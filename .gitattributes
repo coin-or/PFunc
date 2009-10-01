@@ -1,0 +1,9 @@
+* text=auto !eol
+/CMakeLists.txt -text
+/IOS-Book-Article.cls -text
+figs/fim_8.eps -text
+/itemset-defs.tex -text
+/itemset.tex -text
+presentation/ParCO-short.ppt -text
+presentation/ParCO.pptx -text
+/refs.bib -text

@@ -1,0 +1,85 @@
+\usepackage{times}
+\normalfont
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{palatino}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{subfigure}
+%\usepackage{subfloat}
+\usepackage{ifpdf}
+\usepackage{epsfig}
+%\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{color}
+\ExecuteOptions{letter}
+
+\newcommand{\Cpp}{C\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\conceptCpp}{Concept\Cpp}
+
+\newenvironment{commentenv}[1]{\begin{list}{}{}\item[]{\sc [#1:}
+}{{\rm {\sc End of comment.]}} \end{list}}
+
+%\long\gdef\comment#1#2{[\textsc{#1}: \textsf{#2}]}
+\long\gdef\comment#1#2{}
+\long\gdef\anju#1{\comment{Anju}{#1}}
+\long\gdef\todo#1{\comment{To do}{#1}}
+
+\newcommand{\code}[1]{\lstinline[basicstyle=\sffamily]{#1}}
+\newcommand{\func}[1]{\lstinline[basicstyle=\sffamily]{#1()}}
+\newcommand{\ConceptCpp}{ConceptC\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\MPIpp}{MPI\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\Cilkpp}{Cilk\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\Charmpp}{Charm\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\tablefont}{\fontsize{8}{15}\selectfont}
+\renewcommand{\emph}{\textit}
+
+
+\newcommand{\concept}[1]{{\sc #1}}
+
+\lstdefinestyle{basic}{showstringspaces=false,columns=fullflexible,language=C++,escapechar=@,xleftmargin=1pc,%
+basicstyle=\small\sffamily,
+commentstyle=\mdseries,
+moredelim=**[is][\color{white}]{~}{~},
+morekeywords={concept,model,require,where,reduction,cilk,spawn,sync,omp,pragma,task,taskwait},
+literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}}1,
+}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A subfigure environment that can hold verbatim text %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{subfigure}
+%\newbox\subfigbox
+%\makeatletter
+%\newenvironment{subfloat}%
+%{\def\caption##1{\gdef\subcapsave{\relax##1}}%
+%  \let\subcapsave\@empty%
+%  \setbox\subfigbox\hbox%
+%  \bgroup}%
+%{\egroup%
+%\subfigure[\subcapsave]{\box\subfigbox}}%
+%\makeatother
+
+
+\newcommand{\todoa}[1]{%
+	\textcolor{blue}{TODO: #1}
+}
+
+\newcommand{\insimgx}[3]{%
+  \begin{figure}[!htbp]
+  \begin{center}
+    \includegraphics[width=#1]{./figs/#2}
+    \vspace{-15pt}
+    \caption{#3}
+    \vspace{-12pt}
+    \label{#2}
+  \end{center}
+  \end{figure}
+}
