@@ -1,9 +1,0 @@
-Here are the things to do:
--------------------------
-1) Point to point communication for GROUPS.
-
-2) We currently have no way of stopping thread stack explosion because we are 
-not checking the levels of a task before stealing it in the Cilk-style, 
-LIFO and FIFO scheduling models. This can be fixed for the Cilk-style execution
-model by tracking the level of each task and then ONLY stealing those tasks in
-the progress_wait() that are at the same depth or below us in the tree.

@@ -117,13 +117,11 @@ instructions for PFunc on Linux/OS X/AIX:
       i) "pfunc" -> builds the static library "libpfunc.a"
       ii) "tutorial" -> builds the tutorial if BUILD_TUTORIAL was ON.
       iii) "doc" -> build documentation if BUILD_DOCS was ON.
-      iv) "papers" -> builds PFunc's conference articles if BUILD_PAPERS was
-           ON.
-      v) "all" -> builds all the selected targets.
-      vi) "clean" -> removes all the object files.
-      vii) "install" -> installs the targets to the selected prefix.
-      ix) "uninstall" -> does the obvious.
-      x) "examples" -> builds examples if BUILD_EXAMPLES was ON.
+      iv) "all" -> builds all the selected targets.
+      v) "clean" -> removes all the object files.
+      vi) "install" -> installs the targets to the selected prefix.
+      vii) "uninstall" -> does the obvious.
+      viii) "examples" -> builds examples if BUILD_EXAMPLES was ON.
 
   e) #make <target-name>
     

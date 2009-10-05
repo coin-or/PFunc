@@ -84,21 +84,11 @@ endif (BUILD_TUTORIAL)
 
 ###############################################################################
 
-# papers: do we need to build this
-option (BUILD_PAPERS "Whether to build the PFunc papers" OFF)
-if (BUILD_PAPERS)
-  add_subdirectory (papers)
-endif (BUILD_PAPERS)
-
-###############################################################################
-
 # Do we build documentation
-option (BUILD_DOCS "Whether to build the PFunc papers" ON)
+option (BUILD_DOCS "Whether to build the PFunc documentation" ON)
 if (BUILD_DOCS)
   include (BuildDocs)
 endif (BUILD_DOCS)
-
-
 
 ###############################################################################
 
