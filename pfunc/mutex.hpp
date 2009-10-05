@@ -21,40 +21,57 @@
 #if PFUNC_HAVE_FUTEX == 1
 #include <pfunc/futex.h>
 
+/*
+ * TODO: There is an assumption here that int is 32-bits. Need to change this
+ */
+
 namespace pfunc {
   struct mutex : public detail::no_copy {
     private:
     ALIGN64 int val;
+    static const unsigned int PFUNC_MUTEX_FREE = 0x0;
+    static const unsigned int PFUNC_MUTEX_LOCKED = 0x1;
+    static const unsigned int PFUNC_MUTEX_LOCKED_WITH_WAITERS = 0x2;
+    static const unsigned int PFUNC_MAX_RELAXATIONS = 2*1024*1024; /* 2M */
 
     public:
-    mutex () : val (0) {}
+    mutex () : val (PFUNC_MUTEX_FREE) {}
 
     void lock () {
-      if (0 != pfunc_compare_and_swap_32 (&val, 1, 0)) {
+      if (PFUNC_MUTEX_FREE != pfunc_compare_and_swap_32 (&val, 
+                                              PFUNC_MUTEX_LOCKED, 
+                                              PFUNC_MUTEX_FREE)) {
         do {
-          int oldval = pfunc_compare_and_swap_32 (&val, 2, 1);
-          if (oldval != 0) {
+          int oldval = pfunc_compare_and_swap_32 (&val, 
+                                       PFUNC_MUTEX_LOCKED_WITH_WAITERS, 
+                                       PFUNC_MUTEX_LOCKED);
+          if (PFUNC_MUTEX_FREE != oldval) {
             /** Try to spin for a while first */
-            for (unsigned int i = 0; i < 2000000; i++) {
-              if (val == 2) cpu_relax ();
+            for (unsigned int i = 0; i < PFUNC_MAX_RELAXATIONS; i++) {
+              if (PFUNC_MUTEX_LOCKED_WITH_WAITERS == val) cpu_relax ();
               else break;
             }
             /** Give up and sleep */
-            futex_wait (reinterpret_cast<int*>(&val), 2);
+            futex_wait (reinterpret_cast<int*>(&val), 
+                        PFUNC_MUTEX_LOCKED_WITH_WAITERS);
           }
-        } while (0 != pfunc_compare_and_swap_32 (&val, 2, 0));
+        } while (PFUNC_MUTEX_FREE != pfunc_compare_and_swap_32 (&val, 
+                                           PFUNC_MUTEX_LOCKED_WITH_WAITERS, 
+                                           PFUNC_MUTEX_FREE));
       }
     }
 
     bool trylock () {
-      if (0 != pfunc_compare_and_swap_32 (&val, 1, 0)) return true;
+      if (PFUNC_MUTEX_FREE != pfunc_compare_and_swap_32 (&val, 
+                                          PFUNC_MUTEX_LOCKED, 
+                                          PFUNC_MUTEX_FREE)) return true;
       else return false;
     }
 
     void unlock () { 
-      int oldval = pfunc_fetch_and_store_32 (&val, 0);
-      if (oldval <= 1) return;
-      else futex_wake (&val, 1); 
+      int oldval = pfunc_fetch_and_store_32 (&val, PFUNC_MUTEX_FREE);
+      if (oldval <= PFUNC_MUTEX_LOCKED) return;
+      else futex_wake (&val, PFUNC_MUTEX_LOCKED); 
     }
   };
 } /* namespace pfunc */
