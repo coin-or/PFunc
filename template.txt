@@ -1,0 +1,124 @@
+// Here is the overview of the SC paper
+1. Abstract
+
+2. Introduction
+ - New architectures driving shared-memory and hybrid parallelism
+   - Parallelization of applications in scientific computing is very well 
+     understood. But its mostly tied in to low level parallel constructs 
+     such as MPI -- this works on traditional clusters, but with finer 
+     grained parallelism becoming available, we need to switch to higher 
+     level APIs for parallel programming. These allow expression of parallelism
+     sans the system details. 
+ - Programmer productivity.
+ - New application domains such as informatics which were not kept in mind
+   when designing the parallel interfaces we have today.
+ - How does PFunc address these issues. Specifically
+   - New features
+   - How are we evaluating them
+   (Tell them what they can expect to take away from the paper) 
+   - Roadmap
+    
+3. Related work
+ - Other efforts in parallel programming
+   - HPCS
+   - Cilk and others
+   - Charm++, STAPL, etc.
+ - Disadvantages of existing approaches
+   - What are the limitations of the current approaches when take in together.
+    - Specific to the problems that we will be describing later in the section.
+
+4. PFunc
+  - Give people a flavor of whats going on.
+    - Task parallel library
+    - Hello world -- fibonacci
+  - What is significantly different. describe only those features
+    that are different.
+    - One or two inlined calls that depict how to utilize the feature.
+  - Describe all the features for completeness.
+    - This is important to point out that we are a superset of TBB and Cilk
+      and OpenMP.
+
+5. Case Studies
+   - FIM
+    - Background and what is the unique requirement placed by this 
+      application.
+    - Description of how this can be done in the existing model. 
+    - Description of how this can be done using PFunc's new features.
+    - Results
+
+   - Iterative sparse solvers
+    - Background and what is the unique requirement placed by this 
+      application.
+    - Description of how this can be done in the existing model. 
+    - Description of how this can be done using PFunc's new features.
+    - Results
+
+   - DAG scheduling
+    - Background and what is the unique requirement placed by this 
+      application.
+    - Description of how this can be done in the existing model. 
+    - Description of how this can be done using PFunc's new features.
+    - Results
+  
+
+6. Conclusions
+
+7. Future Work
+
+8. Acknowledgements
+
+Anshul's text:
+Broadly speaking, there are three popular ways of exploiting traditional
+(homogeneous) multicores:  (1) New Languages (e.g. Cilk), (2) Language
+extensions for traditional languages (e.g. OpenMP), and (3) Library based
+solution (e.g. TBB).   Underneath, they may all be implemented using a standard
+API, like Pthreads. BTW, option (4) may be for the application developer to use
+Pthreads directly, but that is seldom used because it is considered too low
+level. For the sake of completeness, I would also add an option (0), which is
+to use pre-parallelized libraries of commonly used functions (e.g., ESSLsmp)
+w/o making any effort to parallelize the main application -- equivalent to what
+you refer to as picking low-hanging fruit only.  Each option 0-4 has its pros
+and cons. 
+
+We can draw an analogy for Hybrid/heterogenous systems, with OpenCL being the
+low level counterpart of Pthreads. Libraries like Pfunc and TBB can be retooled
+w/ moderate effort to give users a fairly good balance of productivity and
+performance on hybrid architectures. 
+
+More thoughts from Anshul:
+1. Make the sentence starting "Given these new.... " less strong; e.g. Task
+parallelism appears to be the most .... to address these challenges. 
+
+2. Do not over-emphasize informatics. In this paper we are trying to say that
+Pfunc makes one-stop shopping possible due to all its special features, still
+is easy to use for applications that do not need those features. So we should
+probably say applications in informatics and scientific computing.
+
+3. "... existing task parallel solutions such as Cilk and OpenMP." We should
+probably add TBB. Also, OpenMP is not really a task parallel solution. It is a
+data parallel solution to which task parallelism has been added as an
+afterthought. Can we rephrase to just say something like "parallel programming
+solutions" instead?
+
+4. Rephrase the last sentence. Lets not emphasize "improvement" at this point
+at least, primarily to avoid an argument w/ reviewers. Lets emphasize the fact
+that PFunc can naturally and easily handle a wide range of applications with
+high performance. We can do A, B, and C easily in Pfunc and get good
+performance in all three. Cilk may be good at A and B but not C, OpenMP may be
+good for A and C but not B, and TBB may be good for B and C, not A.
+
+If you agree, then there is no need for a call tonight; if you want to discuss
+anything, you can call.
+
+In the paper, you may also want to discuss productivity, scalability,
+composability, mixability, completeness, non-intrusiveness, maintenance,
+modern paradigm support, etc. and give a mild comparison w/ TBB, Cilk, OpenMP,
+etc. You did that in one of your talks last year.
+
+Also make sure that in future work (mention in intro too) you write a
+paragraph about the fact that the model naturally works with the new OpenCL
+standard and explicit control over queues can be use to set up queues for GPUs
+when present, but can default to regular CPUs when not. So can be extended to
+something that can be used to write portable programs that work on regular
+machines as well as those with GPUs attached. OpenCL uses explicit task queues
+too.

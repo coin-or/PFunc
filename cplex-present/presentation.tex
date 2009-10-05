@@ -1,0 +1,349 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\lstdefinestyle{basic}{showstringspaces=false,
+                       columns=fullflexible,
+                       language=C++,
+                       escapechar=@,
+                       basicstyle=\tiny\sffamily,
+classoffset=1,
+morekeywords={pfunc_cilk_task_init, pfunc_cilk_task_clear},
+morekeywords={pfunc_cilk_spawn_c, pfunc_cilk_wait, pfunc_cilk_task_t},
+keywordstyle=[1]\color{blue}, 
+classoffset=0,
+moredelim=**[is][\color{white}]{~}{~},
+literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}}1,
+}
+\lstset{language=C++,style=basic}
+
+\newenvironment{discuss}{\begin{list}{}{}\item[]{\it Discussion item:}
+\addcontentsline{toc}{subsection}{Discussion Item}
+}{{\rm ({\it End of discussion item.})} \end{list}}
+\newcommand{\code}[1]{\lstinline[basicstyle=\sffamily]{#1}}
+\newcommand{\func}[1]{\lstinline[basicstyle=\sffamily]{#1()}}
+\newcommand{\Cpp}{C\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\MPIpp}{MPI\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\tablefont}{\fontsize{8}{13}\selectfont}
+\newcommand{\halfline}{\vspace{-1.0ex}}
+
+\mode<presentation>
+{
+  \usetheme{Warsaw}
+  \setbeamercovered{transparent}
+  \definecolor{TUCGreen}{RGB}{0,100,50}
+  \definecolor{TUCGreenlight}{RGB}{120,200,150}
+  \definecolor{IURed}{RGB}{255,0,0}
+  \definecolor{IURedlight}{RGB}{255,204,204}
+  \definecolor{OMPIBlue}{RGB}{80,130,255}
+  \definecolor{OMPIBluelight}{RGB}{240,240,255}
+  \definecolor{white}{RGB}{255,255,255}
+  \definecolor{black}{RGB}{0,0,0}
+  \setbeamercolor*{palette primary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette secondary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette tertiary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette quartenary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar primary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar secondary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar tertiary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar quartenary}{fg=white, bg=IURed}
+  \setbeamercolor*{normal text}{fg=black, bg=white}
+  \setbeamercolor*{example text}{fg=black, bg=white}
+  \setbeamercolor*{titlelike}{fg=white, bg=IURed}
+  \setbeamercolor*{separation line}{fg=white, bg=IURed}
+  \setbeamercolor*{item projected}{fg=white, bg=IURed}
+  \setbeamercolor*{block title}{fg=white, bg=IURed}
+  \setbeamercolor*{block title alerted}{fg=IURed, bg=white}
+  \setbeamercolor*{block title example}{fg=IURed, bg=white}
+  \setbeamercolor{block body}{fg=black, bg=IURedlight}
+  \setbeamercolor*{structure}{fg=IURed, bg=white}
+  \setbeamercolor*{sidebar}{fg=IURed, bg=white}
+  % or whatever (possibly just delete it)
+}
+
+\setbeamertemplate{background canvas}
+
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\title{PFunc: Modern Task Parallelism For Modern High Performance Computing}
+
+\author{Prabhanjan Kambadur and Anshul Gupta}
+
+\date{{\small IBM T J Watson Research Center}\\
+{\footnotesize Yorktown Heights, NY}\\
+$5^{th}$ May 2009}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivation.}
+\begin{itemize}
+\item Parallelize a wide-variety of applications.
+  \begin{itemize}
+  \item Traditional HPC, informatics and mainstream.
+  \end{itemize}
+\item Parallelize for modern architectures.
+  \begin{itemize}
+  \item Multi-core, many-core and GPGPUs.
+  \end{itemize}
+\item Enable user-driven optimizations.
+  \begin{itemize}
+  \item Fine-tune application performance.
+  \item No runtime penalties.
+  \end{itemize}
+\item Mix SPMD-style programming with tasks.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Features.}
+\begin{itemize}
+\item Extends existing task parallel feature-set. 
+  \begin{itemize}
+  \item Cilk, Threading Building Blocks, Fortran M, etc.
+  \end{itemize}
+\item Portable.
+  \begin{itemize}
+  \item Linux, OS X, AIX and Windows.
+  \end{itemize}
+\item Customizable.
+  \begin{itemize}
+  \item Generic and generic programming techniques.
+    \begin{itemize}
+    \item No runtime penalty.
+    \end{itemize}
+  \end{itemize}
+\item C and \Cpp{} APIs.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{New features.}
+\begin{itemize}
+\item Customizable task scheduling and priorities.
+\begin{center}
+\tablefont
+\begin{tabular}{|c|l|l|}
+\hline
+\textcolor{blue}{Sched policy} & Explanation & Task priority \\
+\hline
+\textcolor{blue}{cilkS} & Cilk-style scheduling & Not used \\
+\hline
+\textcolor{blue}{prioS} & Priority-based scheduling & \textcolor{red}{Used} \\
+\hline
+\textcolor{blue}{proxS} & Proximity-based scheduling using k-d tree & \textcolor{red}{Used} \\
+\hline
+\textcolor{blue}{fifoS} & Queue-based scheduling & Not used \\
+\hline
+\textcolor{blue}{lifoS} & Stack-based scheduling & Not used \\
+\hline
+\end{tabular}
+\normalsize
+\end{center}
+  \begin{itemize}
+  \item \textcolor{blue}{Informatics and real-time applications.}
+  \end{itemize}
+\item Multiple completion notifications.
+  \begin{itemize}
+  \item Tasks can return to \textcolor{red}{multiple} parents/\textcolor{red}{siblings}.
+  \item \textcolor{blue}{Natural parallelization of DAG executions}.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{New features.}
+\begin{itemize}
+\item Task groups.
+  \begin{itemize}
+  \item SPMD-style parallelization.
+    \begin{itemize}
+    \item Point-to-point and barrier operations.
+    \end{itemize}
+  \item \textcolor{blue}{Iterative sparse solvers.}
+  \end{itemize}
+\item Task affinities.
+  \begin{itemize}
+  \item Heterogeneous computer architectures.
+  \item Attach tasks to queues and queues to processors.
+  \item \textcolor{blue}{Optimize for NUMA and GPGPU machines.}
+  \end{itemize}
+\item Exception handling.
+  \begin{itemize}
+  \item Exceptions delivered to \textcolor{red}{spawn} sites.
+  \end{itemize}
+\item Performance profiling.
+  \begin{itemize}
+  \item PAPI integration.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Fibonacci numbers.}
+\begin{center}
+\begin{minipage}{0.75\textwidth}
+\begin{lstlisting}
+typedef struct {int n; int fib_n;} fib_t;
+@\halfline@
+void fibonacci (void* arg) {
+  fib_t* fib_arg = (fib_t*) arg;
+@\halfline@
+  if (0 == fib_arg->n || 1 == fib_arg->n) { 
+    fib_arg->fib_n = fib_arg->n;
+  } else { 
+    pfunc_cilk_task_t fib_task;
+    fib_t fib_n_1 = {(fib_arg->n)-1, 0};
+    fib_t fib_n_2 = {(fib_arg->n)-2, 0};
+@\halfline@
+    pfunc_cilk_task_init (&fib_task);   
+@\halfline@
+    pfunc_cilk_spawn_c (fib_task, /* Handle to the task */
+                         NULL,       /* Attribute -- use default */
+                         NULL,       /* Group -- use default */
+                         fibonacci,  /* Function to execute */ 
+                         &fib_n_1);  /* Argument */
+    fibonacci (&fib_n_2);
+    pfunc_cilk_wait (fib_task);
+@\halfline@
+    pfunc_cilk_task_clear (&fib_task);   
+@\halfline@
+    fib_arg->fib_n = fib_n_1.fib_n + fib_n_2.fib_n;
+  } 
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Important concepts.}
+\begin{center}
+\tablefont
+\begin{tabular}{|c|l|}
+\hline
+\textcolor{blue}{Concept} & Explanation \\
+\hline
+\textcolor{blue}{Attribute} & $\ast{}$ Attached to each task. \\
+          & $\ast{}$ Priority, affinity, group affiliation, etc \\
+          & $\ast{}$ Default values can be used (eg., Fibonacci). \\
+\hline
+\textcolor{blue}{Group} & $\ast{}$ Used for SPMD-style programming. \\
+      & $\ast{}$ Point-to-point, barrier operations. \\
+      & $\ast{}$ Default values can be used (eg., Fibonacci). \\
+\hline
+\textcolor{blue}{Task} & $\ast{}$ Handle to a spawned ``\textcolor{red}{task}''. \\
+     & $\ast{}$ Used for status inspection. \\
+\hline
+%\textcolor{blue}{TaskMgr} & $\ast{}$ An instance of PFunc's runtime. \\
+%        & $\ast{}$ Encapsulates threads, task queues and scheduling policy. \\
+%        & $\ast{}$ Multiple taskmgr's can exist simultaneously. \\
+%\hline
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Fibonacci: task creation overhead.}
+$\rightarrow{}$ \textcolor{blue}{Fibonacci number 37 ($2^{36}\approx{}69$ billion tasks).}
+\tablefont
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|} 
+\hline
+Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
+\hline
+1  & 2.17 & 2.2178  & 4.431 & 0.5004 \\ 
+\hline
+2  & 1.15 & 2.1135 & 4.1924 & 0.5041 \\ 
+\hline
+4  & 0.55 & 2.2131 & 4.4183 & 0.5009 \\ 
+\hline
+8  & 0.28 & 2.2114 & 4.9839 & 0.4437 \\ 
+\hline
+16 & 0.15 & 2.4944 & 5.9370 & 0.4201 \\ 
+\hline
+\end{tabular}
+\end{center}
+\normalsize
+\begin{itemize}
+\item \textcolor{red}{2x faster than TBB!}
+\item Only 2x slower than Cilk.
+  \begin{itemize}
+  \item \textcolor{red}{But provides more flexibility!}
+    \begin{itemize}
+    \item Fibonacci is the \textcolor{red}{worst} case behavior.
+    \end{itemize}
+  \item Library-based rather than a custom compiler.
+  \end{itemize}
+\end{itemize}
+\tiny\textcolor{blue}{$\ast{}$4 socket, quad-core AMD 8356 with Linux 2.6.24.}\normalsize
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Results}
+\framesubtitle{Custom task scheduling and priority: frequent pattern mining.}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{figs/fim_8}
+\label{fig:fim}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Results}
+\framesubtitle{Task groups: iterative sparse solvers.}
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{figs/cg_8}
+\label{fig:cg}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Results}
+\framesubtitle{Multiple completion notifications: DAG execution (runtime).}
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{figs/dag_speedup}
+\label{fig:dag_speedup}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Results}
+\framesubtitle{Multiple completion notifications: DAG execution (peak memory).}
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{figs/dag_memory}
+\label{fig:dag_memory}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusions}
+\begin{itemize}
+\item PFunc increases support for:
+  \begin{itemize}
+  \item Modern HPC applications.
+  \item Modern computer architectures.
+  \item SPMD-style programming.
+  \item \textcolor{blue}{DAG execution, frequent pattern mining, sparse CG.}
+  \end{itemize}
+\item Future work.
+  \begin{itemize}
+  \item \textcolor{red}{Parallelize more applications!}
+  \item Increase support for GPGPUs.
+  %\item Distributed-memory version of PFunc.
+  \end{itemize}
+\end{itemize}
+\vspace{+10pt}
+\begin{center}
+\textcolor{red}{$\ast{}$ If you have an application, we will help you 
+                parallelize. $\ast{}$}
+\end{center}
+\end{frame}
+
+\end{document}
