@@ -1,0 +1,291 @@
+\section{Initializing PFunc}
+\label{sec:initialize}
+
+\begin{figure}
+\begin{tabular}{|c|c|l|}
+\hline
+Parameter & Value type & Explanation \\
+\hline
+Num queues & \code{unsigned int} & Number of task queues to be used. \\
+           &                     & Queues are numbered from 0 to N-1. \\
+\hline
+Num threads per queue & \code{unsigned int[]} & Number of threads to work on each queue. \\
+                      &                       & Allows a $m\times{}n$ mapping. \\
+                      &                       & $1\times{}n$ mapping represents work-sharing (thread-pools). \\
+                      &                       & $n\times{}1$ mapping represents work-stealing (Cilk-style). \\
+\hline
+Thread affinities & \code{unsigned int[][]} & Affinity of each thread in each queue to a processor. \\
+                  &                         & Processors are numbered from 0 to N-1. \\
+                  &                         & Default values are accepted. \\
+\hline
+\end{tabular}
+\caption{Table depicting the three parameters that are needed to initialize 
+PFunc's runtime.}
+\label{fig:init}
+\end{figure}
+
+% Mention that there are two ways of doing things.
+Once the appropriate library instance description has been generated, the next
+step is to initialize the PFunc runtime. PFunc's runtime is encapsulated by
+objects of type \code{taskmgr} (see Section~\ref{sec:generate}).~\footnote{
+To help understand, each object of type \code{taskmgr} can be thought of as 
+the equivalent of an OpenMP \code{parallel} section.}. Each such object 
+encapsulates a task scheduling policy, a number of task queues into which 
+tasks can be placed, and threads that are attached to these task queues, which 
+execute the tasks.
+%
+Typically, there is one object of type \code{taskmgr} per application run.
+However, users can create as many object instances of type \code{taskmgr} as
+they deem necessary.~\footnote{For example, if there are two disjoint sets of
+tasks that need to be run simultaneously with different scheduling policies, it
+is advisable to create two objects of type \code{taskmgr}. Each such object of
+type \code{taskmgr} represents a separate initialized instance of PFunc's
+runtime.} PFunc further facilitates users who require just one runtime
+(\code{taskmgr}) per application run by allowing specification of a global
+object of type \code{taskmgr} that can be used as an implicit argument in many
+function calls.~\footnote{The words ``runtime'' and \code{taskmgr} can be used
+interchangably}.
+
+To initialize PFunc's runtime, users are required to provide three pieces of
+information: number of queues, number of threads per queue and the affinities
+of threads to processors. These three parameters are summarized in
+Figure~\ref{fig:init}.  By manipulating these parameters, users are able to
+choose from a wide variety of mappings ranging from centralized work-sharing
+model to the distributed work-stealing model. 
+
+\subsection{Initializing in \Cpp{}}
+\label{sec:cxx:init}
+In this section, we initialize PFunc's runtime to use Cilk-style work stealing.
+Consider the following example:
+
+\begin{lstlisting}
+/* Library instance description */
+typedef pfunc::generator<cilkS, /* scheduling policy */
+                         pfunc::use_default, /* compare */
+                         parallel_foo> my_pfunc; /*function object*/
+
+int main () {
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+  const unsigned int affinities[4][1] = {{0},{1},{2},{3}};
+
+  /* Create a variable of the type taskmgr */
+  my_pfunc::taskmgr my_taskmgr (num_queues, num_threads_per_queue, affinities);
+  ...
+  return 0; /* PFunc runtime is destroyed when my_taskmgr goes out of scope */
+}
+\end{lstlisting}
+
+Let us now walk through the above example step by step. First, we generate the
+required library instance description using PFunc's \code{generator} interface
+(see Section~\ref{sec:cxx:gen}). Next, we create an object of type
+\code{taskmgr} that is going to act as our runtime with the required
+parameters. 
+
+\paragraph{Scheduling Policy} In our case, we choose Cilk-style runtime with
+with 4 queues and 1 thread per queue. Notice that this configuration sets up
+each thread with its own queue. When a thread runs out of work on its own
+queue, it ``steals'' work from other task queues. Hence, this model is called
+the work-stealing model. At the other end of the spectrum, if had chosen to
+have a single queue and put all our threads on it, it would constitute a
+work-sharing model. PFunc also allows users to define an $m\times{}n$ model,
+which would be a hybrid between the work-stealing and work-sharing models.  The
+work-stealing model has been proven to be efficient for running applications
+that are written in a divide and conquer model (for example, the naive
+fibonacci example in Section~\ref{sec:fibonacci}). In such applications, each
+thread generates ample tasks to keep itself busy and avoids the contention
+associated with having a single task queue. The best scheduling policy for an
+application is usually found out by experimenting with different
+configurations. With PFunc, this is as simple as just changing the library
+instance description and the initialization of the runtime.
+
+\paragraph{Processor Affinities} In our example, we also specify the processor
+affinities for each of the threads. In this example, we bind thread 0 to
+processor 0, thread 1 to processor 1, thread 2 to processor 2 and thread 3 to
+processor 3.~\footnote{Processor affinities are currently only supported on
+Linux platforms.} By default, each thread can be scheduled to run on
+\textit{any} of the available processors (cores). Binding a thread to a
+particular processor (core) might results in better cache resuse for
+applications running on dedicated machines. However, setting a thread's
+affinity also prevents it from being scheduled on other processors (cores). 
+
+\paragraph{How many threads?} In PFunc, the number of threads created can be
+calculated by multiplying the number of queues with the number of threads in
+each queue. In our example, we are creating 4 threads in all. These threads are
+created in addition to the main user thread that is already running. As a
+general rule, it is recommended to have only as many threads running an
+application as there are processors (cores). For example, on a dual core
+machine, we recommend creating only two threads, regardless of the
+configuration that the users set the threads up in (for example, $2\times{}1$
+or $1\times{}2$). Creating more threads than processors might result in
+performance degradation as threads contend for shared computing resources. 
+Furthermore, each PFunc runtime initialization (i.e., each object of type 
+\code{taskmgr}) creates its own threads separate from other instances. So, 
+exercise caution while having more than one library instance running.
+
+\paragraph{What do the threads do?} As soon as PFunc's runtime is initialized,
+the task queues and their corresponding threads are created. Each thread 
+continually checks on the tasks queues (starting with its own) for tasks to 
+be executed. However, as such continuous checking for tasks to run can deplete
+compute resource, PFunc threads check for tasks a pre-specified number of times
+($2\times10^{6}$ by default) before ``yielding'' the processor that they are
+running on. Such yielding behavior allows PFunc applications to co-exist with
+other applications without completely eating up compute resources. However, 
+when the number of threads is $\le{}$ to the number of processors available to
+run, and the application is being run on a dedicated machine, users can opt for
+Cilk-like behavior by increasing the number of attempts made by each thread
+before yielding. The higher the number of attempts made by a thread, the
+quicker the response time of a task in the task queue of being picked up by the
+thread and executed. Figure~\ref{fig:attempts} demonstrates how the maximum
+attempts can be changed if it is not to the user's liking. 
+
+\begin{figure}
+\begin{center}
+\begin{minipage}{0.60\textwidth}
+\begin{lstlisting}[frame=lrtb]
+unsigned int num_attempts;
+pfunc::taskmgr_max_attempts_get (my_taskmgr, num_attempts);
+if (10000 > num_attempts) {
+  pfunc::taskmgr_max_attempts_set (my_taskmgr, 10000);
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+\caption {Changing the maximum attempts made by each thread to obtain a task to 
+run from the task queue before yielding control over the processor (in \Cpp{}).}
+\label{fig:attempts}
+\end{figure}
+
+
+\subsection{Initializing in C}
+\label{sec:c:init}
+
+In this section, we see how to initialize PFunc's runtime exactly to the same 
+specification as that in Section~\ref{sec:cxx:init}. Initializing PFunc in C
+is much the same as in \Cpp{}, and is shown in the code given below:
+
+\begin{lstlisting}
+int main () {
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+  const unsigned int affinities[4][1] = {{0},{1},{2},{3}};
+  pfunc_cilk_taskmgr_t cilk_tmanager;
+
+  /* Initialize a global instance of the library */
+  pfunc_cilk_taskmgr_init 
+    (&cilk_tmanager, num_queues, num_threads_per_queue, affinities);
+  ...
+  /* Clear the global instance of the library */
+  pfunc_cilk_taskmgr_clear (&cilk_tmanager);
+
+  return 0;
+}
+\end{lstlisting}
+
+Immediately, two differences can be seen from the \Cpp{} example. First, as we
+are programming in C, PFunc is initialized using a function call
+(\func{pfunc_cilk_taskmgr_init} in this case) rather than by constructors.
+Second, unlike in \Cpp{}. PFunc's runtime needs to be explicitly cleared to
+release all the resources allocated by PFunc (using
+\func{pfunc_cilk_taskmgr_clear} in this case).
+
+\subsection{Using global runtimes}
+The most common use of PFunc involves using only one object of type
+\code{taskmgr} (one runtime). Under such circumstances, it becomes tedious to
+explicitly specify the correct runtime to use when spawning tasks. To avoid
+this, PFunc allows users to set up a global runtime and use it as the default
+runtime when a specific runtime (object of type \code{taskmgr}) is not
+specified in the various PFunc function calls. In following \Cpp{} code
+sample, we set up a global runtime and then proceed to change the number of
+attempts made by each thread to check for the availability of a task before 
+yielding control to the thread scheduler.
+
+\begin{lstlisting}
+/* Library instance description */
+typedef pfunc::generator<cilkS, /* scheduling policy */
+                         pfunc::use_default, /* compare */
+                         parallel_foo> my_pfunc; /*function object*/
+
+int main () {
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+  const unsigned int affinities[4][1] = {{0},{1},{2},{3}};
+  unsigned int num_attempts;
+
+  /* Create a variable of the type taskmgr */
+  my_pfunc::taskmgr my_taskmgr (num_queues, num_threads_per_queue, affinities);
+
+  /* Set up my_taskmgr as the global runtime */
+  pfunc::init (my_taskmgr);
+
+  /* Change the number of attempts if necessary */
+  pfunc::taskmgr_max_attempts_get (num_attempts);
+  if (10000 > num_attempts) pfunc::taskmgr_max_attempts_set (10000);
+
+  /* Clear my_taskmgr as the global runtime */
+  pfunc::clear ();
+
+  return 0; /* my_taskmgr is destroyed when my_taskmgr goes out of scope */
+}
+\end{lstlisting}
+
+The global run time is set up by first initializing an object of the type
+\code{taskmgr} (\code{my_taskmgr}) as before and then using the function
+\func{init} to specify the use of \code{my_taskmgr} as the global runtime. 
+Corresponding to this, it is necessary to clear the global runtime using the 
+function \func{clear}. This does not destroy \code{my_taskmgr}, but merely 
+unsets the use of \code{my_taskmgr} as the global runtime. This is useful when
+users want to switch to using a different object of type \code{taskmgr} as the 
+global runtime. Finally, we turn our attention to how setting up the global 
+runtime simplifies further function calls. In our case, we have simply omitted 
+the first argument (meant to be \code{my_taskmgr}) from calls to the functions 
+\func{taskmgr_max_attempts_set} and \func{taskmgr_max_attempts_get}. Similarly, 
+once the global runtime has been set up, users can omit the \code{taskmgr} 
+argument from the function call.
+
+Figure~\ref{fig:c_global} demonstrates the programmatic equivalent of the above
+example in C. To set up and clear the global runtime, we have used the
+functions \func{pfunc_cilk_init} and \func{pfunc_cilk_clear} respectively. The
+one marked difference from the \Cpp{} example is the addition of the
+``\code{_gbl}'' suffix to the name of the functions that operate on the global
+runtimes. Such suffixing is necessary because C does not provide function
+overloading. For example, in Figure~\ref{fig:c_global}, the local equivalent of
+the function \func{pfunc_cilk_taskmgr_max_attempts_set_gbl} would be
+\func{pfunc_cilk_taskmgr_max_attempts_set}.
+
+\begin{figure}
+\begin{center}
+\begin{minipage}{0.75\textwidth}
+\begin{lstlisting}[frame=lrtb]
+int main () {
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+  const unsigned int affinities[4][1] = {{0},{1},{2},{3}};
+  pfunc_cilk_taskmgr_t cilk_tmanager;
+  unsigned int num_attempts;
+
+  /* Initialize a global instance of the library */
+  pfunc_cilk_taskmgr_init 
+    (&cilk_tmanager, num_queues, num_threads_per_queue, affinities);
+
+  /* Set up the global runtime */
+  pfunc_cilk_init (&cilk_tmanager);
+
+  /* Change the number of attempts if necessary */
+  pfunc_cilk_taskmgr_max_attempts_get_gbl (&num_attempts);
+  if (10000 > num_attempts) pfunc_cilk_taskmgr_max_attempts_set_gbl (10000);
+
+  /* Clear the global runtime */
+  pfunc_cilk_clear (&cilk_tmanager);
+
+  /* Clear the global instance of the library */
+  pfunc_cilk_taskmgr_clear (&cilk_tmanager);
+
+  return 0;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+\caption{Setting up a PFunc global Cilk-style runtime in C.}
+\label{fig:c_global}
+\end{figure}

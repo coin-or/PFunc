@@ -1,0 +1,187 @@
+\section{Attributes}
+\label{sec:attribute}
+
+PFunc is built on the philosophy that not all tasks are created the same. As 
+a results, PFunc provides the users control over the execution of each 
+individual task using the ``attribute'' mechanism. In PFunc, a task has 
+many attributes, and are summarized below:
+
+\begin{list}{\labelitemi}{\leftmargin=1em}
+\item \code{Priority:} When the scheduling policy under use utilizes task
+priorities (eg., \code{prioS} or \code{proxS}), the value of this attribute is
+used for scheduling purposes.
+\item \code{Queue number:} The value of this attribute determines the task
+queue on which the associated spawned task is put. By default, a task is
+spawned on the queue of the thread that is executing the spawning task. This 
+is standard practice in existing task parallel solutions such as Cilk and TBB.
+\item \code{Num waiters:} By default, each task's completion status is 
+delivered to only one waiting task (uusally the spawning task). However, users 
+can enable the delivery of multiple task completion notifications by setting 
+this attribute to a value greater than 1. 
+\item \code{Grouped:} The value to this attribute determines if the spawned
+task is associated with a group or not. By default, a tasks are not attached to
+the group they are spawned with. To attach a task to the group, users should 
+turn set the value of this attribute to \code{true} (see
+Figure~\ref{fig:nested}).
+\item \code{Nested:} By default, all tasks are nested. In fact, nested 
+parallelism is one of the founding principles of task parallelism. Without
+nesting, it would be difficult to have a large number of tasks be executed 
+in parallel by a small number of threads. However, users can turn off nested
+parallelism on a task by task basis by unsetting this attribute (see
+Figure~\ref{fig:nested}).
+\end{list}
+
+\begin{figure}[h]
+\begin{center}
+\begin{minipage}{0.65\textwidth}
+\lstset{frame=lrtb}
+\begin{lstlisting}
+/* Library instance description */
+typedef pfunc::generator<cilkS, /* scheduling policy */
+                         pfunc::use_default, /* compare */
+                         my_func_obj> my_pfunc; /*function object*/
+
+/* Create a variable of type attribute (which has the following defaults).
+ * (1) Nesting turned ON.  (2) Grouped turned OFF. */
+my_pfunc::attribute my_attr;
+pfunc_attr_nested_set (my_attr, true);
+pfunc_attr_grouped_set (my_attr, true);
+\end{lstlisting}
+\end{minipage}
+\end{center}
+\caption{Setting the values of the ``nested'' and ``grouped'' attributes using
+\func{pfunc_attr_nested_set} and \func{pfunc_attr_grouped_set} in \Cpp{}.}
+\label{fig:nested}
+\end{figure}
+
+\subsection{\Cpp{}}
+Attributes in \Cpp{} are manipulated through objects of type \code{attribute}.
+The following example depicts how one can enable multiple completion
+notifications using task attributes.
+
+\begin{lstlisting}
+/* Function object that is to be executed */
+struct my_func_obj {
+  void operator () { ... }
+};
+
+/* Library instance description */
+typedef pfunc::generator<cilkS, /* scheduling policy */
+                         pfunc::use_default, /* compare */
+                         my_func_obj> my_pfunc; /*function object*/
+
+const unsigned int num_queues = 4; 
+const unsigned int threads_per_queue[] = {1, 1, 1, 1}; 
+
+/* Initialize the library */
+my_pfunc::taskmgr cilk_tmanager (num_queues, threads_per_queue);
+
+/* Set the number of waiters for this task to be 4 */
+my_pfunc::attribute my_attr;
+pfunc::attr_num_waiters_set (my_attr, 4);
+
+/* Create the task handle */
+my_pfunc::task my_task;
+
+/* Spawn the task */
+pfunc::spawn (cilk_tmanager, my_task, my_attr, my_func_obj());
+
+...
+
+/* Wait for the task to complete */
+pfunc::wait (cilk_tmanager, my_task);
+\end{lstlisting}
+
+The first portion of the code shown in the above example reinforces the notion
+of generating the library instance description and initializing a global object
+of type \code{taskmgr}. In order to ensure that the right \textbf{type} of
+\code{taskmgr} is initialized. In our example, we have chosen Cilk-style
+scheduling and initialized the library with 4 threads with each thread having
+its own task queue. Next, we set up the task to deliver 4 task completion
+notifications. Therefore, 4 tasks can wait on the completion of this task. This
+is done using the function \func{pfunc::attr_num_waiters_set}. The other
+functions that can be used to manipulate task attributes are:
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Function & Explanation & Values\\
+\hline
+\code{attr_priority_set} & Set task's priority & Depends on type \\
+\code{attr_priority_get} & Get task's priority & Eg., if priority == \code{int} \\ 
+                         &                     & then, MIN\_INT to MAX\_INT\\
+
+\hline
+\code{attr_queue_num_set} & Set task's queue number & 0 to num\_queues-1 \\
+\code{attr_queue_num_get} & Get task's queue number & \\
+\hline
+\code{attr_num_waiters_set} & Set task's completion notification number & 1 to num\_tasks \\
+\code{attr_num_waiters_get} & Get task's completion notification number & \\
+\hline
+\code{attr_grouped_set} & Set task's grouped attribute & \code{true, false} \\
+\code{attr_grouped_get} & Get task's grouped attribute & \\
+\hline
+\code{attr_nested_set} & Set task's nested attribute & \code{true, false} \\
+\code{attr_nested_get} & Get task's nested attribute & \\
+\hline
+\code{pfunc_<schedpolicy>_attr_init} & Initialize the C group & \\
+\code{pfunc_<schedpolicy>_attr_clear} & Clear the C group & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{\Cpp{} functions (first 10) that are use to set and get the various
+attributes associated with each task. Their C counterparts can be deduced by
+adding the prefix \code{pfunc_<schedpolicy>_}. For example, the C equivalent of
+the function \func{attr_priority_set} for Cilk-style scheduling is
+\func{pfunc_cilk_attr_priority_set}. Note that in C, task priorities are
+limited to be \code{int}s. The last two functions are strictly C and are
+required to initialize an clear the attribute structure.}
+\end{figure}
+
+If it suffices to have a task be executed using default values for all the 
+attributes, no object of type \code{attribute} is needed to spawn such a task.
+In these cases, default values are used.
+
+\subsection{C}
+The only additional step required in case of using the C interface is the 
+initialization of the object of type attribute. This is required for all PFunc
+types when using the C interface as they are mere pointers to \Cpp{} objects.
+The equivalent code of the \Cpp{} example described in the previous section 
+is shown below. 
+
+\begin{lstlisting}
+/* Function object that is to be executed */
+void my_func (void* arg) { ... }
+
+const unsigned int num_queues = 4; 
+const unsigned int threads_per_queue[] = {1, 1, 1, 1}; 
+pfunc_cilk_taskmgr_t cilk_tmanager;
+
+/* Initialize the library */
+pfunc_cilk_taskmgr_init (&cilk_tmanager, num_queues, threads_per_queue, NULL);
+
+/* Set the number of waiters for this task to be 4 */
+pfunc_cilk_attr_t my_attr;
+pfunc_cilk_attr_init (&my_attr);
+pfunc_cilk_attr_num_waiters_set (my_attr, 4);
+
+/* Create the task handle */
+pfunc_cilk_task_t my_task;
+
+/* Spawn the task */
+pfunc_cilk_spawn_c (cilk_tmanager, my_task, my_attr, NULL /*group*/, my_func, NULL /*arg*/);
+
+/* Clear the attribute */
+pfunc_cilk_attr_clear (&my_attr);
+
+...
+
+/* Wait for the task to complete */
+pfunc_cilk_wait (cilk_tmanager, my_task);
+\end{lstlisting}
+
+Note that the attribute associated with a spawned task can be cleared (using
+\code{pfunc_cilk_attr_clear}) at anytime after the spawn. Similar to the \Cpp{}
+interface, the C interface provides functions to set and get all the different
+attributes that can be associated with a task.

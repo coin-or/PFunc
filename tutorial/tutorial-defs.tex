@@ -1,0 +1,102 @@
+% fullpage is a little ambiguous -- two different ones around....
+% \usepackage{fullpage}
+% set margins ourselves
+\typeout{Style Option FULLPAGE Version 2 as of 15 Dec 1988}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\usepackage{graphicx}
+\usepackage{palatino}
+\usepackage[scaled=0.92]{helvet}
+\usepackage[scaled=0.985]{couriers}
+
+\usepackage{url}
+\usepackage{cite}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage{ifpdf}
+\usepackage{epsfig}
+
+\ExecuteOptions{letter}
+
+\newcommand{\Cpp}{C\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\conceptCpp}{Concept\Cpp}
+
+\newenvironment{commentenv}[1]{\begin{list}{}{}\item[]{\sc [#1:}
+}{{\rm {\sc End of comment.]}} \end{list}}
+
+%\long\gdef\comment#1#2{[\textsc{#1}: \textsf{#2}]}
+\long\gdef\comment#1#2{}
+\long\gdef\anju#1{\comment{Anju}{#1}}
+\long\gdef\todo#1{\comment{To do}{#1}}
+
+\newcommand{\code}[1]{\lstinline[basicstyle=\sffamily]{#1}}
+\newcommand{\func}[1]{\lstinline[basicstyle=\sffamily]{#1()}}
+\newcommand{\keyword}[1]{\emph{#1}}
+\newcommand{\ConceptCpp}{ConceptC\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\MPIpp}{MPI\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\Cilkpp}{Cilk\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\Charmpp}{Charm\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\tablefont}{\fontsize{9}{15}\selectfont}
+\renewcommand{\emph}{\textit}
+
+
+\newcommand{\concept}[1]{{\sc #1}}
+
+\lstdefinestyle{basic}{showstringspaces=false,columns=fullflexible,language=C++,escapechar=@,xleftmargin=1pc,%
+basicstyle=\small\sffamily,
+commentstyle=\mdseries,
+moredelim=**[is][\color{white}]{~}{~},
+morekeywords={concept,model,require,where,reduction},
+literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}}1,
+}
+
+\makeatletter
+
+\renewenvironment{thebibliography}[1]
+     {\section*{\refname
+        \@mkboth{\MakeUppercase\refname}{\MakeUppercase\refname}}%
+      \list{\@biblabel{\@arabic\c@enumiv}}%
+           {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+      \sloppy\clubpenalty4000\widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+
+\def\Box{{\ \vbox{\hrule\hbox{%                                            
+   \vrule height1.3ex\hskip0.8ex\vrule}\hrule
+  }}\par}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A subfigure environment that can hold verbatim text %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newbox\subfigbox % Create a box to hold the subfigure. 
+\makeatletter 
+\newenvironment{subfloat}% % Create the new environment. 
+{\def\caption##1{\gdef\subcapsave{\relax##1}}% 
+\let\subcapsave=\@empty % Save the subcaption text. 
+\let\sf@oldlabel=\label 
+\def\label##1{\xdef\sublabsave{\noexpand\label{##1}}}% 
+\let\sublabsave\relax % Save the label key. 
+\setbox\subfigbox\hbox 
+\bgroup}% % Open the box... 
+{\egroup % ... close the box and call \subfigure. 
+\let\label=\sf@oldlabel 
+\subfigure[\subcapsave]{\box\subfigbox}}% 
+\makeatother 

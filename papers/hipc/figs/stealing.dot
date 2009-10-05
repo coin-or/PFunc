@@ -1,0 +1,16 @@
+digraph stealing {
+  A [label="A,1"]
+  B [label="B,4"]
+  C [label="C,2"]
+  D [label="D,2"]
+  E [label="E,5"]
+  F [label="F,3"]
+  G [label="G,3"]
+  A->B
+  A->C
+  A->D
+  B->E
+  C->F
+  D->G
+  G->B
+}

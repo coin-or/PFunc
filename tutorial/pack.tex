@@ -1,0 +1,74 @@
+\section{Packing arguments in C}
+\label{sec:pack}
+
+As mentioned in Section~\ref{subsubsec:spawn_c}, all functions that can be
+parallelized using PFunc have to be of the type \code{void (*)(void*)}. This
+forces programmers to pack all arguments to their parallel functions into
+either a single structure or buffer. Although this is relatively easy to do for
+functions that accept small number of arguments (eg., Fibonacci in
+Section~\ref{sec:fibonacci}), currying arguments back and forth is tedious for
+most functions. To alleviate these troubles, PFunc provides two function calls:
+\func{pfunc_pack} and \func{pfunc_unpack}, that help in packing arguments.
+These two functions are similar in vein to stdlib's printf function in that
+they both take in a format specifier that allows us to pack arguments using
+\code{varargs}. In this section, we will rewrite relevant sections from the
+Fibonacci example from Section~\ref{sec:fibonacci} using \func{pfunc_pack} and
+\func{pfunc_unpack} to demonstrate its use.  Consider rewritten version of the
+function \func{parallel_fib} given below:
+
+\begin{lstlisting}
+void parallel_fib (void* arg) {
+  int n;
+  int* fib_n;
+
+  /* unpack the arguments */
+  pfunc_unpack (arg, "int, int*", &n, &fib_n);
+
+  if (0 == n || 1 == n) *fib_n = n;
+  else {
+    int x, y;
+    pfunc_cilk_task_t fib_task;
+    char* fib_arg_1;
+    char* fib_arg_2;
+
+    /* Pack the arguments to the function call */
+    pfunc_pack (&fib_arg_1, "int, int*", n-1, &x);
+    pfunc_pack (&fib_arg_2, "int, int*", n-2, &y);
+
+    pfunc_cilk_task_init (&fib_task);
+
+    pfunc_cilk_spawn_c_gbl (fib_task, NULL, NULL, parallel_fib, fib_arg_1);
+    parallel_fib (fib_arg_2);
+
+    pfunc_cilk_wait_gbl (fib_task);
+    pfunc_cilk_task_clear (&fib_task);
+
+    *fib_n = x + y;
+  }
+}
+\end{lstlisting}
+
+In this example, we first use \func{pfunc_unpack} to get the arguments to the 
+current invocation of \func{parallel_fib}. Later, for non-base cases, we 
+utilize \func{pfunc_pack} to prepare the arguments for the recursive invocation
+of \func{parallel_fib}. Notice that no memory was allocated for the buffers 
+during \func{pfunc_pack} or that no memory was freed following the call to 
+\func{pfunc_unpack}. This is because PFunc internally allocates and deallocates
+memory required for the packing and unpacking of the function parameters. 
+
+\subsection{Caveats}
+As both \func{pfunc_pack} and \func{pfunc_unpack} utilize \code{varargs} to
+parse their inputs \code{char}, \code{unsigned char} and \code{float} cannot be
+used as parameters. Instead, use \code{int}, \code{unsigned int} and
+\code{double}.
+
+\subsection{User-defined types}
+As both \func{pfunc_pack} and \func{pfunc_unpack} utilize \code{varargs} to
+parse their inputs, user-defined types cannot be specified as the parameter
+types. Instead, user-defined types should be passed by reference as
+\code{void*}. The valid values inside the format string of \func{pfunc_pack}
+and \func{pfunc_unpack} are: \code{int}, \code{unsigned int}, \code{long int},
+\code{int*}, \code{unsigned int*}, \code{long int*}, \code{int**},
+\code{unsigned int**}, \code{long int**}, \code{char*}, \code{unsigned char*},
+\code{char**}, \code{unsigned char**}, \code{float*}, \code{float**},
+\code{double}, \code{double*}, \code{double**} and \code{void*}.

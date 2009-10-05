@@ -1,0 +1,37 @@
+#ifndef PFUNC_ENVIRON_HPP
+#define PFUNC_ENVIRON_HPP
+
+/**
+ * \file environ.hpp
+ * \author Prabhanjan Kambadur
+ * This file contains all the environ specific defines that we need.
+ * In PFunc, we are concerned about the OS-type, Architecture and Compiler.
+ * In this file, we check that the environment we are running on is something
+ * we have seen and tested before. For now, we will only honor the following:
+ *
+ * OS: Linux, Darwin, AIX and Windows.
+ * Compiler: GNU, Intel, XLC and VS.
+ * Architecture: X86-based, PPC.
+ */
+
+#include <pfunc/config.h>
+
+/** Define alignment policy for different OS types */
+#if PFUNC_WINDOWS == 1
+#define ALIGN16 __declspec(align(16))
+#define ALIGN32 __declspec(align(32))
+#define ALIGN64 __declspec(align(64))
+#define ALIGN128 __declspec(align(128))
+#elif PFUNC_LINUX == 1 || PFUNC_AIX == 1 || PFUNC_DARWIN == 1
+#define ALIGN16 __attribute__((aligned(16)))
+#define ALIGN32 __attribute__((aligned(32)))
+#define ALIGN64 __attribute__((aligned(64)))
+#define ALIGN128 __attribute__((aligned(128)))
+#else
+#define ALIGN16 
+#define ALIGN32 
+#define ALIGN64 
+#define ALIGN128
+#endif
+
+#endif /* PFUNC_ENVIRON_HPP */
