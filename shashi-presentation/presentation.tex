@@ -68,13 +68,12 @@ literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}
 \usepackage{times}
 \usepackage[T1]{fontenc}
 
-\title{PFunc: Modern Task Parallelism For Modern High Performance Computing}
+\title{The PFunc Implementation of NAS Parallel Benchmarks.}
 
-\author{Prabhanjan Kambadur and Anshul Gupta}
+\author{Shashi Kumar Nanjaiah}
 
-\date{{\small IBM T J Watson Research Center}\\
-{\footnotesize Yorktown Heights, NY}\\
-$5^{th}$ May 2009}
+\date{{\small Calfornia State University,}
+{\footnotesize Sacramento, CA}}
 
 \begin{document}
 
@@ -83,27 +82,27 @@ $5^{th}$ May 2009}
 \end{frame}
 
 \begin{frame}
-\frametitle{Motivation.}
+\frametitle{Overview.}
+\begin{center}
+\textcolor{blue}{The goal of this project is to prove the efficacy of task 
+parallelism in PFunc to parallelize industry-standard benchmark computation 
+kernels and applications on shared-memory.}
+\end{center}
 \begin{itemize}
-\item Parallelize a wide-variety of applications.
+\item Introduce PFunc, a new tool for task parallelism.
   \begin{itemize}
-  \item Traditional HPC, informatics and mainstream.
+  \item New features and extensions.
+  \item Fibonacci example.
   \end{itemize}
-\item Parallelize for modern architectures.
+\item Introduce NAS parallel benchmarks.
   \begin{itemize}
-  \item Multi-core, many-core and GPGPUs.
+  \item Briefly explain the 7 benchmarks.
   \end{itemize}
-\item Enable user-driven optimizations.
-  \begin{itemize}
-  \item Fine-tune application performance.
-  \item No runtime penalties.
-  \end{itemize}
-\item Mix SPMD-style programming with tasks.
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Features.}
+\frametitle{PFunc: A new tool for task parallelism.}
 \begin{itemize}
 \item Extends existing task parallel feature-set. 
   \begin{itemize}
@@ -121,73 +120,15 @@ $5^{th}$ May 2009}
     \end{itemize}
   \end{itemize}
 \item C and \Cpp{} APIs.
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{New features.}
-\begin{itemize}
-\item Customizable task scheduling and priorities.
-\begin{center}
-\tablefont
-\begin{tabular}{|c|l|l|}
-\hline
-\textcolor{blue}{Sched policy} & Explanation & Task priority \\
-\hline
-\textcolor{blue}{cilkS} & Cilk-style scheduling & Not used \\
-\hline
-\textcolor{blue}{prioS} & Priority-based scheduling & \textcolor{red}{Used} \\
-\hline
-\textcolor{blue}{proxS} & Proximity-based scheduling using k-d tree & \textcolor{red}{Used} \\
-\hline
-\textcolor{blue}{fifoS} & Queue-based scheduling & Not used \\
-\hline
-\textcolor{blue}{lifoS} & Stack-based scheduling & Not used \\
-\hline
-\end{tabular}
-\normalsize
-\end{center}
+\item Released under Eclipse Public License v1.0.
   \begin{itemize}
-  \item \textcolor{blue}{Informatics and real-time applications.}
-  \end{itemize}
-\item Multiple completion notifications.
-  \begin{itemize}
-  \item Tasks can return to \textcolor{red}{multiple} parents/\textcolor{red}{siblings}.
-  \item \textcolor{blue}{Natural parallelization of DAG executions}.
-  \end{itemize}
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{New features.}
-\begin{itemize}
-\item Task groups.
-  \begin{itemize}
-  \item SPMD-style parallelization.
-    \begin{itemize}
-    \item Point-to-point and barrier operations.
-    \end{itemize}
-  \item \textcolor{blue}{Iterative sparse solvers.}
-  \end{itemize}
-\item Task affinities.
-  \begin{itemize}
-  \item Heterogeneous computer architectures.
-  \item Attach tasks to queues and queues to processors.
-  \item \textcolor{blue}{Optimize for NUMA and GPGPU machines.}
-  \end{itemize}
-\item Exception handling.
-  \begin{itemize}
-  \item Exceptions delivered to \textcolor{red}{spawn} sites.
-  \end{itemize}
-\item Performance profiling.
-  \begin{itemize}
-  \item PAPI integration.
+  \item \textcolor{blue}{http://coin-or.org/projects/PFunc.xml}
   \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Fibonacci numbers.}
+\frametitle{Example: Parallelizing Fibonacci numbers.}
 \begin{center}
 \begin{minipage}{0.75\textwidth}
 \begin{lstlisting}
@@ -220,33 +161,6 @@ void fibonacci (void* arg) {
 }
 \end{lstlisting}
 \end{minipage}
-\end{center}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Important concepts.}
-\begin{center}
-\tablefont
-\begin{tabular}{|c|l|}
-\hline
-\textcolor{blue}{Concept} & Explanation \\
-\hline
-\textcolor{blue}{Attribute} & $\ast{}$ Attached to each task. \\
-          & $\ast{}$ Priority, affinity, group affiliation, etc \\
-          & $\ast{}$ Default values can be used (eg., Fibonacci). \\
-\hline
-\textcolor{blue}{Group} & $\ast{}$ Used for SPMD-style programming. \\
-      & $\ast{}$ Point-to-point, barrier operations. \\
-      & $\ast{}$ Default values can be used (eg., Fibonacci). \\
-\hline
-\textcolor{blue}{Task} & $\ast{}$ Handle to a spawned ``\textcolor{red}{task}''. \\
-     & $\ast{}$ Used for status inspection. \\
-\hline
-%\textcolor{blue}{TaskMgr} & $\ast{}$ An instance of PFunc's runtime. \\
-%        & $\ast{}$ Encapsulates threads, task queues and scheduling policy. \\
-%        & $\ast{}$ Multiple taskmgr's can exist simultaneously. \\
-%\hline
-\end{tabular}
 \end{center}
 \end{frame}
 
@@ -286,63 +200,63 @@ Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
 \tiny\textcolor{blue}{$\ast{}$4 socket, quad-core AMD 8356 with Linux 2.6.24.}\normalsize
 \end{frame}
 
-\begin{frame}[fragile]
-\frametitle{Results}
-\framesubtitle{Custom task scheduling and priority: frequent pattern mining.}
-\begin{figure}
-\includegraphics[width=0.8\textwidth]{figs/fim_8}
-\label{fig:fim}
-\end{figure}
+\begin{frame}
+\frametitle{NAS Parallel Benchmarks.}
+  \begin{itemize}
+  \item Stands for \textit{N}ASA \textit{A}dvanced \textit{S}upercomputing.
+  \item Help to evaluate performance of parallel tools and machines.
+  \item Consits of 5 kernels and 3 psuedo applications.
+    \begin{itemize}
+    \item Taken mostly from Computational Fluid Dynamics (CFD).
+    \end{itemize}
+  \item Originally written in Fortran, but C versions are available.
+  \item \textcolor{blue}{http://www.nas.nasa.gov/Resources/Software/npb.html}
+  \item NPB OpenMP-C v2.3.
+    \begin{itemize}
+    \item Base code taken from Omni group's implementation.
+    \end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Results}
-\framesubtitle{Task groups: iterative sparse solvers.}
-\begin{figure}
-\includegraphics[width=0.9\textwidth]{figs/cg_8}
-\label{fig:cg}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Results}
-\framesubtitle{Multiple completion notifications: DAG execution (runtime).}
-\begin{figure}
-\includegraphics[width=0.9\textwidth]{figs/dag_speedup}
-\label{fig:dag_speedup}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Results}
-\framesubtitle{Multiple completion notifications: DAG execution (peak memory).}
-\begin{figure}
-\includegraphics[width=0.9\textwidth]{figs/dag_memory}
-\label{fig:dag_memory}
-\end{figure}
+\frametitle{NAS Parallel Benchmarks.}
+\tablefont
+\begin{tabular}{|c|l|}
+\hline
+\textcolor{blue}{Benchmark} & Explanation  \\
+\hline
+\textcolor{blue}{Embarrassingly Parallel (EP)} & Gaussian random variates. \\
+                                               & Marsaglia polar method. \\
+\hline
+\textcolor{blue}{Multigrid (MG)} & 3-dimensional discrete poisson equation. \\
+\hline
+\textcolor{blue}{Conjugate Gradient (CG)} & Iterative solver for linear systems. \\
+                                          & Symmetric positive-definite matrices. \\
+\hline
+\textcolor{blue}{Integer sort (IS)} & Bucket sort.\\
+\hline
+\textcolor{blue}{LU Solver (LU)} & Lower-upped symmetric Gauss-Seidel. \\
+                                 & System of nonlinear equations. \\
+\hline
+\textcolor{blue}{Pentadiagonal solver (SP)} & System of nonlinear equations. \\
+\hline
+\textcolor{blue}{Block tridiagonal solver (BT)} & System of nonlinear equations. \\
+\hline
+\end{tabular}
+\normalsize
 \end{frame}
 
 \begin{frame}
-\frametitle{Conclusions}
-\begin{itemize}
-\item PFunc increases support for:
+\frametitle{The End}
   \begin{itemize}
-  \item Modern HPC applications.
-  \item Modern computer architectures.
-  \item SPMD-style programming.
-  \item \textcolor{blue}{DAG execution, frequent pattern mining, sparse CG.}
+  \item Modify data-parallel NPB OpenMP-C version to task parallel version.
+  \item Compare against original NPB OpenMP-C version.
+    \begin{itemize}
+    \item For problem sizes in classes A, B and C.
+    \end{itemize}
   \end{itemize}
-\item Future work.
-  \begin{itemize}
-  \item \textcolor{red}{Parallelize more applications!}
-  \item Increase support for GPGPUs.
-  %\item Distributed-memory version of PFunc.
-  \end{itemize}
-\end{itemize}
-\vspace{+10pt}
 \begin{center}
-\textcolor{red}{$\ast{}$ If you have an application, we will help you 
-                parallelize. $\ast{}$}
+\textcolor{blue}{Questions?}
 \end{center}
 \end{frame}
 
