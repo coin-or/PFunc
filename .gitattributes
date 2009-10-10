@@ -42,5 +42,11 @@ fimresults/parse.py -text
 /pfunc-defs.tex -text
 /pfunc.tex -text
 /refs.bib -text
+shashi-presentation/Makefile -text
+shashi-presentation/figs/cg_8.pdf -text
+shashi-presentation/figs/dag_memory.pdf -text
+shashi-presentation/figs/dag_speedup.pdf -text
+shashi-presentation/figs/fim_8.pdf -text
+shashi-presentation/presentation.tex -text
 /sig-alternate.cls -text
 /template.txt -text
