@@ -32,8 +32,8 @@ if (LATEX_COMPILER AND BIBTEX_COMPILER AND
   message (STATUS "Found LATEX, BIBTEX, DVIPS and PS2PDF compilers")
   
   # Set the tex to dvi perl script
-  set (TEX_TO_DVI ${CMAKE_CURRENT_SOURCE_DIR}/../../CMake/tex_to_dvi.pl)
-  set (COPY_TEX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../CMake/copy_tex_sources.pl)
+  set (TEX_TO_DVI ${CMAKE_CURRENT_SOURCE_DIR}/../CMake/tex_to_dvi.pl)
+  set (COPY_TEX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../CMake/copy_tex_sources.pl)
 
   # Now, we define a bunch of custom commands that will result in the 
   # itemset getting built 
