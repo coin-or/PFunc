@@ -8,8 +8,7 @@
                        escapechar=@,
                        basicstyle=\tiny\sffamily,
 classoffset=1,
-morekeywords={pfunc_cilk_task_init, pfunc_cilk_task_clear},
-morekeywords={pfunc_cilk_spawn_c, pfunc_cilk_wait, pfunc_cilk_task_t},
+morekeywords={attr_level_set,spawn,wait}
 keywordstyle=[1]\color{blue}, 
 classoffset=0,
 moredelim=**[is][\color{white}]{~}{~},
@@ -103,7 +102,7 @@ $19^{th}$ Nov 2009}
 \end{frame}
 
 \begin{frame}
-\frametitle{Features.}
+\frametitle{PFunc: Key features.}
 \begin{itemize}
 \item Extends existing task parallel feature-set. 
   \begin{itemize}
@@ -111,14 +110,12 @@ $19^{th}$ Nov 2009}
   \end{itemize}
 \item Portable.
   \begin{itemize}
-  \item Linux, OS X, AIX and Windows.
+  \item Linux, OS X, AIX and \textcolor{gray}{Windows}.
   \end{itemize}
 \item Customizable.
   \begin{itemize}
-  \item Generic and generic programming techniques.
-    \begin{itemize}
-    \item No runtime penalty.
-    \end{itemize}
+  \item Generic and generative programming techniques.
+  \item No runtime penalty for customizations.
   \end{itemize}
 \item C and \Cpp{} APIs.
 \end{itemize}
@@ -155,9 +152,10 @@ $19^{th}$ Nov 2009}
 \begin{center}
 \begin{minipage}{0.6\textwidth}
 \begin{lstlisting}
+struct fibonacci;
 typedef pfunc::generator<cilkS, /* scheduling policy */
                          use_default, /* compare */
-                         use_default> my_pfunc; /*function object*/
+                         fibonacci> my_pfunc; /*function object*/
 \end{lstlisting}
 \end{minipage}
 \end{center}
@@ -165,12 +163,12 @@ typedef pfunc::generator<cilkS, /* scheduling policy */
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Important concepts.}
+\frametitle{Important types.}
 \begin{center}
 \tablefont
 \begin{tabular}{|c|l|}
 \hline
-\textcolor{blue}{Concept} & Explanation \\
+\textcolor{blue}{Type} & Explanation \\
 \hline
 \textcolor{blue}{Attribute} & $\ast{}$ Attached to each task. \\
           & $\ast{}$ Priority, affinity, group affiliation, etc \\
@@ -209,8 +207,10 @@ typedef my_pfunc::functor my_functor; /* type of functor */
 \begin{frame}[fragile]
 \frametitle{Fibonacci numbers.}
 \begin{center}
-\begin{minipage}{0.75\textwidth}
+\begin{minipage}{0.60\textwidth}
 \begin{lstlisting}
+my_taskmgr *gbl_taskmgr; /* Initialized in main() */
+@\halfline@
 struct fibonacci {
   private:
   const int n;
@@ -231,8 +231,8 @@ struct fibonacci {
       fibonacci fib_n_1 (n-1);
       fibonacci fib_n_2 (n-2);
 @\halfline@
-      pfunc::attr_level_set (nested_attr, ~0x0-(n-1));
-      pfunc::spawn (*gbl_taskmgr, tsk, nested_attr, gbl_default_group, fib_n_1);
+      pfunc::attr_level_set (nested_attr, (0xFFFFFFFF-(n-1)));
+      pfunc::spawn (*gbl_taskmgr, tsk, nested_attr, fib_n_1);
 @\halfline@
       fib_n_2();
 @\halfline@
@@ -346,21 +346,25 @@ Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Results}
-\framesubtitle{Custom task scheduling and priority: frequent pattern mining.}
-\begin{figure}
-\includegraphics[width=0.8\textwidth]{figs/fim_8}
-\label{fig:fim}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Results}
-\framesubtitle{Task groups: iterative sparse solvers.}
-\begin{figure}
-\includegraphics[width=0.9\textwidth]{figs/cg_8}
-\label{fig:cg}
-\end{figure}
+\frametitle{Case studies}
+\framesubtitle{Demand-driven DAG execution}
+\begin{itemize}
+\item Data-driven execution of DAGs has many shortcomings.
+  \begin{itemize}
+  \item Increased memory consumption in many applications.
+  \item Over-parallelization $\rightarrow{}$ \textcolor{blue}{Sparse Cholesky Factorization}.
+  \end{itemize}
+\item Current solutions support demand-driven tree execution.
+  \begin{itemize}
+  \item DAGs can be executed only using data-driven model.
+  \item Side-effect of using \textcolor{blue}{strict} computational model.
+  \end{itemize}
+\item PFunc allows demand-driven execution of DAGs.
+  \begin{itemize}
+  \item Multiple task completion notifications.
+  \item Task priorities to control execution.
+  \end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -381,6 +385,71 @@ Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
 \end{figure}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{Case studies}
+\framesubtitle{Frequent Pattern Mining}
+\begin{itemize}
+\item Frequent pattern mining applications are not recursive!
+  \begin{itemize}
+  \item The best algorithms are breadth-first (eg., Apriori).
+  \item Optimal execution $\rightarrow{}$ memory reuse b/w tasks.
+  \end{itemize}
+\item Current solutions do not support custom task affinities.
+  \begin{itemize}
+  \item Affinities exploited in tree structured depth-first executions.
+    \begin{itemize}
+    \item Emphasis is on \textcolor{blue}{recursive} parallelism.
+    \end{itemize}
+  \item Task priorities are not supported.
+  \end{itemize}
+\item PFunc allows custom scheduling policies and priorities.
+  \begin{itemize}
+  \item Hash-tables used for task scheduling queues.
+  \item Task priorities double as keys for individual tasks.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Results}
+\framesubtitle{Custom task scheduling and priority: frequent pattern mining.}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{figs/fim_8}
+\label{fig:fim}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Case studies}
+\framesubtitle{Iterative sparse solvers}
+\begin{itemize}
+\item Efficient parallelization requires
+  \begin{itemize}
+  \item SPMD $\rightarrow{}$ unpreconditioned iterative sparse solvers.
+  \item Task parallel $\rightarrow{}$ preconditioners.
+    \begin{itemize}
+    \item Incomplete factorization methods.
+    \end{itemize}
+  \end{itemize}
+  \item Krylov-subspace iterative algorithms (CG, GMRES).
+\item Current solutions do not support the SPMD model.
+\item PFunc supports SPMD model through task groups.
+  \begin{itemize}
+  \item \textcolor{gray}{Point-to-point} and collective operations.
+  \item \textcolor{gray}{Group cancellation}.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Results}
+\framesubtitle{Task groups: iterative sparse solvers.}
+\begin{figure}
+\includegraphics[width=0.9\textwidth]{figs/cg_8}
+\label{fig:cg}
+\end{figure}
+\end{frame}
+
 \begin{frame}
 \frametitle{Conclusions}
 \begin{itemize}
@@ -395,13 +464,11 @@ Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
   \begin{itemize}
   \item \textcolor{red}{Parallelize more applications!}
   \item Increase support for GPGPUs.
-  %\item Distributed-memory version of PFunc.
   \end{itemize}
 \end{itemize}
 \vspace{+10pt}
 \begin{center}
-\textcolor{red}{$\ast{}$ If you have an application, we will help you 
-                parallelize. $\ast{}$}
+\textcolor{blue}{$\ast{}$ https://projects.coin-or.org/PFunc $\ast{}$}
 \end{center}
 \end{frame}
 
