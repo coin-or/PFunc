@@ -70,11 +70,11 @@ literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}
 
 \title{PFunc: Modern Task Parallelism For Modern High Performance Computing}
 
-\author{Prabhanjan Kambadur and Anshul Gupta}
+\author{Prabhanjan Kambadur}
 
-\date{{\small IBM T J Watson Research Center}\\
-{\footnotesize Yorktown Heights, NY}\\
-$5^{th}$ May 2009}
+\date{{\small SC 2009}
+{\footnotesize Portland, OR}\\
+$19^{th}$ Nov 2009}
 
 \begin{document}
 
@@ -122,6 +122,165 @@ $5^{th}$ May 2009}
   \end{itemize}
 \item C and \Cpp{} APIs.
 \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Overview of PFunc}
+
+\tablefont
+\begin{center}
+\textcolor{blue}{Most aspects of PFunc are customizable, with suitable defaults!}
+\end{center}
+
+\begin{center}
+\tablefont
+\begin{tabular}{|c|l|}
+\hline
+\textcolor{blue}{Feature} & Explanation \\
+\hline
+\textcolor{blue}{Scheduling Policy} & $\ast{}$ Determines task scheduling. \\
+          & $\ast{}$ Default values can be used (eg., \textcolor{blue}{cilkS}). \\
+\hline
+\textcolor{blue}{Compare} & $\ast{}$ Ordering function for task priorities. \\
+      & $\ast{}$ \textcolor{blue}{Priority}, an inherited feature can also be customized. \\
+\hline
+\textcolor{blue}{Functor} & $\ast{}$ Type of the parallel function. \\
+                          & $\ast{}$ In some situations, avoids virtual function costs. \\
+\hline
+\end{tabular}
+\end{center}
+
+\normalsize
+
+\begin{center}
+\begin{minipage}{0.6\textwidth}
+\begin{lstlisting}
+typedef pfunc::generator<cilkS, /* scheduling policy */
+                         use_default, /* compare */
+                         use_default> my_pfunc; /*function object*/
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Important concepts.}
+\begin{center}
+\tablefont
+\begin{tabular}{|c|l|}
+\hline
+\textcolor{blue}{Concept} & Explanation \\
+\hline
+\textcolor{blue}{Attribute} & $\ast{}$ Attached to each task. \\
+          & $\ast{}$ Priority, affinity, group affiliation, etc \\
+          & $\ast{}$ Default values can be used (eg., Fibonacci). \\
+\hline
+\textcolor{blue}{Group} & $\ast{}$ Used for SPMD-style programming. \\
+      & $\ast{}$ Point-to-point, barrier operations. \\
+      & $\ast{}$ Default values can be used (eg., Fibonacci). \\
+\hline
+\textcolor{blue}{Task} & $\ast{}$ Handle to a spawned ``\textcolor{red}{task}''. \\
+     & $\ast{}$ Used for status inspection. \\
+\hline
+\textcolor{blue}{TaskMgr} & $\ast{}$ An instance of PFunc's runtime. \\
+        & $\ast{}$ Encapsulates threads, task queues and scheduling policy. \\
+        & $\ast{}$ Multiple taskmgr's can exist simultaneously. \\
+\hline
+\end{tabular}
+\end{center}
+
+\normalsize
+
+\begin{center}
+\begin{minipage}{0.5\textwidth}
+\begin{lstlisting}
+typedef my_pfunc::attribute my_attribute; /* attribute */
+typedef my_pfunc::group  my_group; /* group */
+typedef my_pfunc::task my_task; /* task handle */
+typedef my_pfunc::taskmgr my_taskmgr; /* runtime */
+typedef my_pfunc::functor my_functor; /* type of functor */
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Fibonacci numbers.}
+\begin{center}
+\begin{minipage}{0.75\textwidth}
+\begin{lstlisting}
+struct fibonacci {
+  private:
+  const int n;
+  int fib_n;
+@\halfline@
+  public:
+  fibonacci (const int& n) : n(n), fib_n(0) {}
+@\halfline@
+  int get_number () const { return fib_n; }
+@\halfline@
+  void operator () (void) {
+@\halfline@
+    if (0 == n || 1 == n) fib_n = n;
+    else {
+      task tsk; 
+      attribute nested_attr;
+@\halfline@
+      fibonacci fib_n_1 (n-1);
+      fibonacci fib_n_2 (n-2);
+@\halfline@
+      pfunc::attr_level_set (nested_attr, ~0x0-(n-1));
+      pfunc::spawn (*gbl_taskmgr, tsk, nested_attr, gbl_default_group, fib_n_1);
+@\halfline@
+      fib_n_2();
+@\halfline@
+      pfunc::wait (*gbl_taskmgr, tsk);
+@\halfline@
+      fib_n = fib_n_1.get_number () + fib_n_2.get_number ();
+    }
+  }
+};
+\end{lstlisting}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Fibonacci: task creation overhead.}
+$\rightarrow{}$ \textcolor{blue}{Fibonacci number 37 ($2^{36}\approx{}69$ billion tasks).}
+\tablefont
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|} 
+\hline
+Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
+\hline
+1  & 2.17 & 2.2178  & 4.431 & 0.5004 \\ 
+\hline
+2  & 1.15 & 2.1135 & 4.1924 & 0.5041 \\ 
+\hline
+4  & 0.55 & 2.2131 & 4.4183 & 0.5009 \\ 
+\hline
+8  & 0.28 & 2.2114 & 4.9839 & 0.4437 \\ 
+\hline
+16 & 0.15 & 2.4944 & 5.9370 & 0.4201 \\ 
+\hline
+\end{tabular}
+\end{center}
+\normalsize
+\begin{itemize}
+\item \textcolor{red}{2x faster than TBB!}
+\item Only 2x slower than Cilk.
+  \begin{itemize}
+  \item \textcolor{red}{But provides more flexibility!}
+    \begin{itemize}
+    \item Fibonacci is the \textcolor{red}{worst} case behavior.
+    \end{itemize}
+  \item Library-based rather than a custom compiler.
+  \end{itemize}
+\end{itemize}
+\tiny\textcolor{blue}{$\ast{}$4 socket, quad-core AMD 8356 with Linux 2.6.24.}\normalsize
 \end{frame}
 
 \begin{frame}[fragile]
@@ -184,106 +343,6 @@ $5^{th}$ May 2009}
   \item PAPI integration.
   \end{itemize}
 \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Fibonacci numbers.}
-\begin{center}
-\begin{minipage}{0.75\textwidth}
-\begin{lstlisting}
-typedef struct {int n; int fib_n;} fib_t;
-@\halfline@
-void fibonacci (void* arg) {
-  fib_t* fib_arg = (fib_t*) arg;
-@\halfline@
-  if (0 == fib_arg->n || 1 == fib_arg->n) { 
-    fib_arg->fib_n = fib_arg->n;
-  } else { 
-    pfunc_cilk_task_t fib_task;
-    fib_t fib_n_1 = {(fib_arg->n)-1, 0};
-    fib_t fib_n_2 = {(fib_arg->n)-2, 0};
-@\halfline@
-    pfunc_cilk_task_init (&fib_task);   
-@\halfline@
-    pfunc_cilk_spawn_c (fib_task, /* Handle to the task */
-                         NULL,       /* Attribute -- use default */
-                         NULL,       /* Group -- use default */
-                         fibonacci,  /* Function to execute */ 
-                         &fib_n_1);  /* Argument */
-    fibonacci (&fib_n_2);
-    pfunc_cilk_wait (fib_task);
-@\halfline@
-    pfunc_cilk_task_clear (&fib_task);   
-@\halfline@
-    fib_arg->fib_n = fib_n_1.fib_n + fib_n_2.fib_n;
-  } 
-}
-\end{lstlisting}
-\end{minipage}
-\end{center}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Important concepts.}
-\begin{center}
-\tablefont
-\begin{tabular}{|c|l|}
-\hline
-\textcolor{blue}{Concept} & Explanation \\
-\hline
-\textcolor{blue}{Attribute} & $\ast{}$ Attached to each task. \\
-          & $\ast{}$ Priority, affinity, group affiliation, etc \\
-          & $\ast{}$ Default values can be used (eg., Fibonacci). \\
-\hline
-\textcolor{blue}{Group} & $\ast{}$ Used for SPMD-style programming. \\
-      & $\ast{}$ Point-to-point, barrier operations. \\
-      & $\ast{}$ Default values can be used (eg., Fibonacci). \\
-\hline
-\textcolor{blue}{Task} & $\ast{}$ Handle to a spawned ``\textcolor{red}{task}''. \\
-     & $\ast{}$ Used for status inspection. \\
-\hline
-%\textcolor{blue}{TaskMgr} & $\ast{}$ An instance of PFunc's runtime. \\
-%        & $\ast{}$ Encapsulates threads, task queues and scheduling policy. \\
-%        & $\ast{}$ Multiple taskmgr's can exist simultaneously. \\
-%\hline
-\end{tabular}
-\end{center}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Fibonacci: task creation overhead.}
-$\rightarrow{}$ \textcolor{blue}{Fibonacci number 37 ($2^{36}\approx{}69$ billion tasks).}
-\tablefont
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|} 
-\hline
-Threads & Cilk Time (secs) & PFunc/Cilk & TBB/Cilk & PFunc/TBB \\
-\hline
-1  & 2.17 & 2.2178  & 4.431 & 0.5004 \\ 
-\hline
-2  & 1.15 & 2.1135 & 4.1924 & 0.5041 \\ 
-\hline
-4  & 0.55 & 2.2131 & 4.4183 & 0.5009 \\ 
-\hline
-8  & 0.28 & 2.2114 & 4.9839 & 0.4437 \\ 
-\hline
-16 & 0.15 & 2.4944 & 5.9370 & 0.4201 \\ 
-\hline
-\end{tabular}
-\end{center}
-\normalsize
-\begin{itemize}
-\item \textcolor{red}{2x faster than TBB!}
-\item Only 2x slower than Cilk.
-  \begin{itemize}
-  \item \textcolor{red}{But provides more flexibility!}
-    \begin{itemize}
-    \item Fibonacci is the \textcolor{red}{worst} case behavior.
-    \end{itemize}
-  \item Library-based rather than a custom compiler.
-  \end{itemize}
-\end{itemize}
-\tiny\textcolor{blue}{$\ast{}$4 socket, quad-core AMD 8356 with Linux 2.6.24.}\normalsize
 \end{frame}
 
 \begin{frame}[fragile]
