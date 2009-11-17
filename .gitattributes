@@ -16,10 +16,10 @@ cgresults/genstats.py -text
 cgresults/parse.py -text
 cgresults/results.txt -text
 cplex-present/Makefile -text
-cplex-present/figs/cg_8.pdf -text
-cplex-present/figs/dag_memory.pdf -text
-cplex-present/figs/dag_speedup.pdf -text
-cplex-present/figs/fim_8.pdf -text
+cplex-present/figs/cg_8.eps -text
+cplex-present/figs/dag_memory.eps -text
+cplex-present/figs/dag_speedup.eps -text
+cplex-present/figs/fim_8.eps -text
 cplex-present/presentation.tex -text
 dagresults/dag_memory.eps -text
 dagresults/dag_memory.perf -text
