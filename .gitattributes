@@ -43,6 +43,7 @@ fimresults/parse.py -text
 /pfunc.tex -text
 /refs.bib -text
 sc-present/16-9-osl-template.potx -text
+sc-present/sc-present.pptx -text
 shashi-presentation/Makefile -text
 shashi-presentation/figs/cg_8.pdf -text
 shashi-presentation/figs/dag_memory.pdf -text
