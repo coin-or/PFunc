@@ -42,5 +42,6 @@ figs/openmp.eps -text
 figs/stealing.dot -text
 figs/stealing.eps -text
 figs/stealing.fig -text
+/hipc-present.pptx -text
 /refs.bib -text
 /subfloat.sty -text
