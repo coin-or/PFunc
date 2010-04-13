@@ -29,10 +29,10 @@ namespace pfunc {
   struct mutex : public detail::no_copy {
     private:
     ALIGN64 int val;
-    static const unsigned int PFUNC_MUTEX_FREE = 0x0;
-    static const unsigned int PFUNC_MUTEX_LOCKED = 0x1;
-    static const unsigned int PFUNC_MUTEX_LOCKED_WITH_WAITERS = 0x2;
-    static const unsigned int PFUNC_MAX_RELAXATIONS = 2*1024*1024; /* 2M */
+    static const int PFUNC_MUTEX_FREE = 0x0;
+    static const int PFUNC_MUTEX_LOCKED = 0x1;
+    static const int PFUNC_MUTEX_LOCKED_WITH_WAITERS = 0x2;
+    static const int PFUNC_MAX_RELAXATIONS = 2*1024*1024; /* 2M */
 
     public:
     mutex () : val (PFUNC_MUTEX_FREE) {}
