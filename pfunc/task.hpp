@@ -7,7 +7,7 @@
  * \author Prabhanjan Kambadur
  *
  */
-#include <stdlib.h>
+#include <cstdlib>
 
 #if PFUNC_HAVE_ERRNO_H == 1
 #include <errno.h>
