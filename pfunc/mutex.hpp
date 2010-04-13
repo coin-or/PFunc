@@ -47,7 +47,7 @@ namespace pfunc {
                                        PFUNC_MUTEX_LOCKED);
           if (PFUNC_MUTEX_FREE != oldval) {
             /** Try to spin for a while first */
-            for (unsigned int i = 0; i < PFUNC_MAX_RELAXATIONS; i++) {
+            for (int i = 0; i < PFUNC_MAX_RELAXATIONS; i++) {
               if (PFUNC_MUTEX_LOCKED_WITH_WAITERS == val) cpu_relax ();
               else break;
             }
