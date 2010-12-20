@@ -72,8 +72,12 @@ if (PFUNC_LINUX AND PFUNC_HAVE_TIME_H AND
            ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/futex.cpp)
   if (PFUNC_FUTEX_EXIT_CODE EQUAL 0)
     message (STATUS "Checking if we have futex support - found")
-    # Unsetting Futex support for now. There seems to be a bug in my locks.
-    #set (PFUNC_HAVE_FUTEX 1)
+    # Unsetting Futex support on PPC for now. There seems to be a bug in my locks.
+    if (PFUNC_PPC EQUAL 1)
+      message (STATUS "NOT enabling futex support - awaiting bug fix on PPC")
+    else (PFUNC_PPC EQUAL 1)
+      set (PFUNC_HAVE_FUTEX 1)
+    endif (PFUNC_PPC EQUAL 1)
   else (PFUNC_FUTEX_EXIT_CODE EQUAL 0)
     message (STATUS "Checking if we have futex support - not found")
   endif (PFUNC_FUTEX_EXIT_CODE EQUAL 0)
