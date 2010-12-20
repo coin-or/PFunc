@@ -1,4 +1,6 @@
 #include <iostream>
+#include <numeric>
+#include <functional>
 #include <pfunc/pfunc.hpp>
 
 double wsmprtc(void) {

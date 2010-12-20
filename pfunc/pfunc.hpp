@@ -600,7 +600,8 @@ namespace pfunc {
                           Functor& func)  {
     PFUNC_START_TRY_BLOCK()
     global_tmanager->spawn_task(reinterpret_cast<void*>(&task), 
-                                reinterpret_cast<void*>(&attr), 
+                                reinterpret_cast<void*>(
+                                  &(const_cast<Attribute&>(attr))), 
                                 reinterpret_cast<void*>(&grp), 
                                 reinterpret_cast<void*>(&func));
     PFUNC_END_TRY_BLOCK()

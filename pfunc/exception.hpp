@@ -5,7 +5,7 @@
 #include <typeinfo>
 #include <stdexcept>
 #include <string>
-#include <stdlib.h>
+#include <cstdlib>
 #include <pfunc/config.h>
 
 /**
