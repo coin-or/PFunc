@@ -77,7 +77,7 @@ add_subdirectory (lib)
 ###############################################################################
 
 # Tutorial: do we need to build this
-option (BUILD_TUTORIAL "Whether to build the PFunc tutorial" ON)
+option (BUILD_TUTORIAL "Whether to build the PFunc tutorial" OFF)
 if (BUILD_TUTORIAL)
   add_subdirectory (tutorial)
 endif (BUILD_TUTORIAL)
@@ -85,7 +85,7 @@ endif (BUILD_TUTORIAL)
 ###############################################################################
 
 # Do we build documentation
-option (BUILD_DOCS "Whether to build the PFunc documentation" ON)
+option (BUILD_DOCS "Whether to build the PFunc documentation" OFF)
 if (BUILD_DOCS)
   include (BuildDocs)
 endif (BUILD_DOCS)
