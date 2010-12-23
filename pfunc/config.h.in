@@ -13,6 +13,9 @@
 /** Do we have time.h */
 #cmakedefine PFUNC_HAVE_TIME_H 1
 
+/** Do we have sys/time.h */
+#cmakedefine PFUNC_HAVE_SYS_TIME_H 1
+
 /** Do we have sched.h */
 #cmakedefine PFUNC_HAVE_SCHED_H 1
 
