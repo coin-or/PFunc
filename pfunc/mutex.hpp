@@ -14,7 +14,7 @@
 #include <pfunc/pfunc_atomics.h>
 #include <pfunc/environ.hpp>
 
-#if PFUNC_HAVE_ERRNO_H
+#if PFUNC_HAVE_ERRNO_H == 1
 #include <errno.h>
 #endif
 

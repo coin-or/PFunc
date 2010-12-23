@@ -14,10 +14,6 @@
 #include <utility>
 #include <map>
 
-#if PFUNC_HAVE_ERRNO_H == 1
-#include <errno.h>
-#endif
-
 #include <pfunc/pfunc_common.h>
 #include <pfunc/pfunc_atomics.h>
 #include <pfunc/exception.hpp>

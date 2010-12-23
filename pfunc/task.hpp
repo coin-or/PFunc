@@ -9,14 +9,6 @@
  */
 #include <cstdlib>
 
-#if PFUNC_HAVE_ERRNO_H == 1
-#include <errno.h>
-#endif
-
-#if PFUNC_HAVE_TIME_H == 1
-#include <sys/time.h>
-#endif
-
 #include <pfunc/no_copy.hpp>
 #include <pfunc/exception.hpp>
 #include <pfunc/event.hpp>
