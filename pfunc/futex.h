@@ -18,6 +18,8 @@
 #define SYS_futex	202
 #endif
 
+#include <pfunc/environ.hpp>
+
 #define FUTEX_WAIT 0
 #define FUTEX_WAKE 1
 
@@ -35,7 +37,7 @@ extern "C" {
  * \param[in] val The value if found at the given address, the sleep should 
  *                be entering. 
  */
-static inline void futex_wait (int* addr, int val) {
+static PFUNC_INLINE void futex_wait (int* addr, int val) {
   syscall (SYS_futex, addr, FUTEX_WAIT, val, NULL, NULL, 0);
 }
 
@@ -46,14 +48,14 @@ static inline void futex_wait (int* addr, int val) {
  * \param[in] addr Address at which the threads are waiting.
  * \param[in] nthreads The number of threads to wake up.
  */
-static inline void futex_wake (int *addr, int nthreads) {
+static PFUNC_INLINE void futex_wake (int *addr, int nthreads) {
   syscall (SYS_futex, addr, FUTEX_WAKE, nthreads, NULL, NULL, 0);
 }
 
 /**
  * \brief Performs a nop -- basically a way to ensure we are not using memory.
  */
-static inline void cpu_relax (void) {
+static PFUNC_INLINE void cpu_relax (void) {
 #if PFUNC_X86 == 1
   __asm__ __volatile__ ("rep; nop" : : : "memory");
 #else

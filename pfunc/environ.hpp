@@ -34,4 +34,23 @@
 #define ALIGN128
 #endif
 
+/** 
+ * Get a definition of inline going. For now, we assume that it is 
+ * __inline__ for C and inline for C++ compilers. __inline__ might not
+ * work on all compilers, but it does on the ones we care about.
+ */
+#if defined (c_plusplus) || defined (__cplusplus)
+#define PFUNC_INLINE inline
+#else 
+#if defined(MSVC)
+#define PFUNC_INLINE __inline
+#elif defined(CMAKE_COMPILER_IS_GNUCC)
+#define PFUNC_INLINE __inline__
+#else
+#define PFUNC_INLINE /*nothing*/
+#endif
+#endif
+
+   
+
 #endif /* PFUNC_ENVIRON_HPP */

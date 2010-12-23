@@ -9,6 +9,7 @@
  */
 
 #include <pfunc/config.h>
+#include <pfunc/environ.hpp>
 
 #if defined (c_plusplus) || defined (__cplusplus)
 extern "C" {
@@ -17,7 +18,6 @@ extern "C" {
 #if PFUNC_HAVE_STDINT_H == 1
 #include <stdint.h>
 #else
-#define inline __inline
 typedef _int32 int32_t;
 typedef _int16 int16_t;
 typedef _int8 int8_t;
@@ -39,9 +39,8 @@ typedef _int8 int8_t;
  * }  
  * \endcode
  */ 
-static inline int8_t pfunc_compare_and_swap_8 (volatile void* dest, 
-                                               int8_t exchg, 
-                                               int8_t comprnd); 
+static PFUNC_INLINE int8_t pfunc_compare_and_swap_8 
+              (volatile void* dest, int8_t exchg, int8_t comprnd); 
 
 /**
  * \brief Compare and Swap an 16-bit memory location
@@ -59,9 +58,8 @@ static inline int8_t pfunc_compare_and_swap_8 (volatile void* dest,
  * }  
  * \endcode
  */ 
-static inline int16_t pfunc_compare_and_swap_16 (volatile void* dest, 
-                                                 int16_t exchg, 
-                                                 int16_t comprnd); 
+static PFUNC_INLINE int16_t pfunc_compare_and_swap_16 
+                   (volatile void* dest, int16_t exchg, int16_t comprnd); 
 
 /**
  * \brief Compare and Swap an 32-bit memory location
@@ -79,9 +77,8 @@ static inline int16_t pfunc_compare_and_swap_16 (volatile void* dest,
  * }  
  * \endcode
  */ 
-static inline int32_t pfunc_compare_and_swap_32 (volatile void* dest,
-                                                 int32_t exchg,
-                                                 int32_t comprnd); 
+static PFUNC_INLINE int32_t pfunc_compare_and_swap_32 
+              (volatile void* dest, int32_t exchg, int32_t comprnd); 
 
 /**
  * \brief Atomically fetches 8-bit value from memory and stores a new value
@@ -95,8 +92,8 @@ static inline int32_t pfunc_compare_and_swap_32 (volatile void* dest,
  * return result;
  * \endcode
  */ 
-static inline int8_t pfunc_fetch_and_store_8 (volatile void* location, 
-                                              int8_t new_val); 
+static PFUNC_INLINE int8_t pfunc_fetch_and_store_8 
+                    (volatile void* location, int8_t new_val); 
 
 /**
  * \brief Atomically fetches 16-bit value from memory and stores a new value
@@ -110,8 +107,8 @@ static inline int8_t pfunc_fetch_and_store_8 (volatile void* location,
  * return result;
  * \endcode
  */ 
-static inline int16_t pfunc_fetch_and_store_16 (volatile void* location, 
-                                                int16_t new_val); 
+static PFUNC_INLINE int16_t pfunc_fetch_and_store_16 
+                      (volatile void* location, int16_t new_val); 
 
 /**
  * \brief Atomically fetches 32-bit value from memory and stores a new value
@@ -125,8 +122,8 @@ static inline int16_t pfunc_fetch_and_store_16 (volatile void* location,
  * return result;
  * \endcode
  */ 
-static inline int32_t pfunc_fetch_and_store_32 (volatile void* location, 
-                                                int32_t new_val); 
+static PFUNC_INLINE int32_t pfunc_fetch_and_store_32 
+                      (volatile void* location, int32_t new_val); 
 
 /**
  * \brief Atomically fetches 8-bit value from memory and adds to it.
@@ -140,8 +137,8 @@ static inline int32_t pfunc_fetch_and_store_32 (volatile void* location,
  * return result;
  * \endcode
  */ 
-static inline int8_t pfunc_fetch_and_add_8 (volatile void* location, 
-                                            int8_t addend); 
+static PFUNC_INLINE int8_t pfunc_fetch_and_add_8 
+                  (volatile void* location, int8_t addend); 
 
 /**
  * \brief Atomically fetches 16-bit value from memory and adds to it.
@@ -155,8 +152,8 @@ static inline int8_t pfunc_fetch_and_add_8 (volatile void* location,
  * return result;
  * \endcode
  */ 
-static inline int16_t pfunc_fetch_and_add_16 (volatile void* location, 
-                                              int16_t addend); 
+static PFUNC_INLINE int16_t pfunc_fetch_and_add_16 
+                    (volatile void* location, int16_t addend); 
 
 /**
  * \brief Atomically fetches 32-bit value from memory and adds to it.
@@ -170,8 +167,8 @@ static inline int16_t pfunc_fetch_and_add_16 (volatile void* location,
  * return result;
  * \endcode
  */ 
-static inline int32_t pfunc_fetch_and_add_32 (volatile void* location, 
-                                              int32_t addend); 
+static PFUNC_INLINE int32_t pfunc_fetch_and_add_32 
+                    (volatile void* location, int32_t addend); 
 
 /**
  * \brief Read an 8-bit value and insert a fence after the read
@@ -179,7 +176,7 @@ static inline int32_t pfunc_fetch_and_add_32 (volatile void* location,
  * \param location The memory from which to read
  * \return Value at location
  */ 
-static inline int8_t pfunc_read_with_fence_8 (volatile void* location); 
+static PFUNC_INLINE int8_t pfunc_read_with_fence_8 (volatile void* location); 
 
 /**
  * \brief Read an 16-bit value and insert a fence after the read
@@ -187,7 +184,7 @@ static inline int8_t pfunc_read_with_fence_8 (volatile void* location);
  * \param location The memory from which to read
  * \return Value at location
  */ 
-static inline int16_t pfunc_read_with_fence_16 (volatile void* location); 
+static PFUNC_INLINE int16_t pfunc_read_with_fence_16 (volatile void* location); 
 
 /**
  * \brief Read an 32-bit value and insert a fence after the read
@@ -195,7 +192,7 @@ static inline int16_t pfunc_read_with_fence_16 (volatile void* location);
  * \param location The memory from which to read
  * \return Value at location
  */ 
-static inline int32_t pfunc_read_with_fence_32 (volatile void* location); 
+static PFUNC_INLINE int32_t pfunc_read_with_fence_32 (volatile void* location); 
 
 /**
  * \brief Write an 8-bit value and insert a fence before the write.
@@ -203,8 +200,8 @@ static inline int32_t pfunc_read_with_fence_32 (volatile void* location);
  * \param location The memory to write to
  * \param value The value to write
  */ 
-static inline void pfunc_write_with_fence_8 (volatile void* location, 
-                                             int8_t value); 
+static PFUNC_INLINE void pfunc_write_with_fence_8 
+                (volatile void* location, int8_t value); 
 
 /**
  * \brief Write an 16-bit value and insert a fence before the write.
@@ -212,8 +209,8 @@ static inline void pfunc_write_with_fence_8 (volatile void* location,
  * \param location The memory to write to
  * \param value The value to write
  */ 
-static inline void pfunc_write_with_fence_16 (volatile void* location, 
-                                              int16_t value); 
+static PFUNC_INLINE void pfunc_write_with_fence_16 
+                (volatile void* location, int16_t value); 
 
 /**
  * \brief Write an 32-bit value and insert a fence before the write.
@@ -221,8 +218,8 @@ static inline void pfunc_write_with_fence_16 (volatile void* location,
  * \param location The memory to write to
  * \param value The value to write
  */ 
-static inline void pfunc_write_with_fence_32 (volatile void* location, 
-                                              int32_t value);
+static PFUNC_INLINE void pfunc_write_with_fence_32 
+                  (volatile void* location, int32_t value);
 
 #if defined (c_plusplus) || defined (__cplusplus)
 }

@@ -280,13 +280,6 @@ namespace pfunc { namespace detail {
 #else
 #error "Windows threads or pthreads are required"
 #endif
-
-      /* insert the attributes into the TLS */
-#if PFUNC_HAVE_TLS == 1
-      tls_attr_map [attr->get_thread_id()] = attr;
-#else
-      tls_attr_map [get_native_id(handle)] = attr;
-#endif 
     }
 
     /**

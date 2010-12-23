@@ -7,7 +7,6 @@ include_directories (BEFORE ${PFUNC_SOURCE_DIR} ${PFUNC_BINARY_DIR})
 
 add_executable (fibonacci fibonacci.cpp)
 add_dependencies (fibonacci pfunc)
-target_link_libraries (fibonacci pthread)
 
 add_custom_target (cxx_examples ALL)
 add_dependencies (cxx_examples fibonacci)

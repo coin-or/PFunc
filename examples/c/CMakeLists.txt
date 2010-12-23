@@ -7,11 +7,11 @@ include_directories (BEFORE ${PFUNC_SOURCE_DIR} ${PFUNC_BINARY_DIR})
 
 add_executable (groups groups.c)
 add_dependencies (groups pfunc)
-target_link_libraries (groups pfunc stdc++ pthread)
+target_link_libraries (groups pfunc)
 
 add_executable (simple simple.c)
 add_dependencies (simple pfunc)
-target_link_libraries (simple pfunc stdc++ pthread)
+target_link_libraries (simple pfunc)
 
 add_custom_target (c_examples ALL)
 add_dependencies (c_examples groups simple)
