@@ -285,7 +285,7 @@ namespace pfunc { namespace detail {
 #if PFUNC_HAVE_TLS == 1
       tls_attr_map [attr->get_thread_id()] = attr;
 #else
-      tls_attr_map [handle] = attr;
+      tls_attr_map [get_native_id(handle)] = attr;
 #endif 
     }
 
@@ -305,13 +305,13 @@ namespace pfunc { namespace detail {
     /**
      * Exits the calling thread
      *
-     * \param [in] id The id of the thread that we are joining with.
+     * \param [in] handle handle of the thread that we are joining with.
      */
-    void join_thread (const native_thread_id_type& id) const  {
+    void join_thread (const thread_handle_type& handle) const  {
 #if PFUNC_HAVE_WINDOWS_THREADS == 1
-      WaitForSingleObject (id, INFINITE);
+      WaitForSingleObject (handle, INFINITE);
 #elif PFUNC_HAVE_PTHREADS == 1
-      PFUNC_CAPTURE_RETURN_VALUE(error) pthread_join (id, NULL);
+      PFUNC_CAPTURE_RETURN_VALUE(error) pthread_join (handle, NULL);
 #if PFUNC_USE_EXCEPTIONS == 1
       if (error)
         throw exception_generic_impl
@@ -325,7 +325,26 @@ namespace pfunc { namespace detail {
     }
 
     /**
-     * Get an ID associated with the thread
+     * Get an ID associated with the handle being passed in. For 
+     * PTHREADS, this is the handle itself. On Windows, its 
+     * gotten through a function call. This function is never called
+     * from the thread whose native ID we seek.
+     *
+     * \param [in] handle The handle of the thread whose ID is being sought
+     * \return Native ID of the thread with handle "handle".
+     */ 
+    native_thread_id_type get_native_id(const thread_handle_type& handle)const{ 
+#if PFUNC_HAVE_WINDOWS_THREADS == 1
+      return GetThreadId (handle);
+#elif PFUNC_HAVE_PTHREADS == 1
+      return handle;
+#else
+#error "Windows threads or pthreads are required"
+#endif
+    }
+ 
+    /**
+     * Get an ID associated with the current thread.
      *
      * \return Native ID of the current thread (eg., pthread_self())
      */ 
@@ -464,7 +483,6 @@ namespace pfunc { namespace detail {
     int get_num_procs () const  {
       int num_procs = 0;
       error_code_type error;
-#elif PFUNC_WINDOWS == 1
       num_procs = error = GetActiveProcessorCount (ALL_PROCESSOR_GROUPS);
 #if PFUNC_USE_EXCEPTIONS == 1
     if (0 == error)

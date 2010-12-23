@@ -170,7 +170,6 @@ namespace pfunc { namespace detail {
     void wait (mutex& mtx) {
       HANDLE actual_mutex = mtx.get_internal_mutex();
       BOOL last_waiter = FALSE;
-      DWORD ret_val;
   
       /* Increment num_waiters */
       EnterCriticalSection (&num_waiters_lock);
