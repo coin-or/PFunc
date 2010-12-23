@@ -33,7 +33,7 @@ perf_tests/virtual_fn_cost.cpp -text
 pfunc/CMakeLists.txt -text
 pfunc/asm/generic.h -text
 pfunc/asm/ppc.h -text
-pfunc/asm/windows.h -text
+pfunc/asm/win.h -text
 pfunc/asm/x86.h -text
 pfunc/attribute.hpp -text
 pfunc/barrier.hpp -text

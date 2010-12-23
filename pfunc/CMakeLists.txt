@@ -43,6 +43,7 @@ endif (CMAKE_SYSTEM_PROCESSOR MATCHES "Intel*" OR
 if (CMAKE_SYSTEM MATCHES "Linux")
   set (PFUNC_LINUX 1)
 elseif (CMAKE_SYSTEM MATCHES "Windows")
+  message (STATUS "We only support 32-bit Windows as of now")
   set (PFUNC_WINDOWS 1)
 elseif (CMAKE_SYSTEM MATCHES "Darwin")
   set (PFUNC_DARWIN 1)

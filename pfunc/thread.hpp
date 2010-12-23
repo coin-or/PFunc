@@ -9,7 +9,7 @@
 #include <pfunc/config.h>
 #include <pfunc/pfunc_common.h>
 #if PFUNC_HAVE_WINDOWS_THREADS == 1
-#include <windows.h>
+#include <Windows.h>
 #elif PFUNC_HAVE_PTHREADS == 1
 #include<pthread.h>
 #if PFUNC_HAVE_SCHED_AFFINITY == 1

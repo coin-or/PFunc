@@ -93,7 +93,7 @@
 #include <pfunc/mutex.hpp>
 
 #if PFUNC_WINDOWS == 1 
-#include <windows.h>
+#include <Windows.h>
 
 namespace pfunc { namespace detail {
   struct cond : public detail::no_copy {
@@ -168,7 +168,7 @@ namespace pfunc { namespace detail {
      * \param mtx Mutex that is associated with the condition
      */
     void wait (mutex& mtx) {
-      HANDLE actual_mutex = mutex.get_internal_mutex();
+      HANDLE actual_mutex = mtx.get_internal_mutex();
       BOOL last_waiter = FALSE;
       DWORD ret_val;
   

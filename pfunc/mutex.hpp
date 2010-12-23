@@ -188,7 +188,7 @@ namespace pfunc {
                          FALSE,/* Unowned */
                          NULL);/* Unnamed */
 #if PFUNC_USE_EXCEPTIONS == 1
-      if (NULL == mutex)
+      if (NULL == mtx)
         throw exception_generic_impl
       ("pfunc::detail::mutex::mutex::CreateMutex at " FILE_AND_LINE(),
        "Error initializing the mutex",
@@ -200,9 +200,9 @@ namespace pfunc {
      * Destructor
      */
     ~mutex () {
-      if (FALSE == CloseHandle (mtx))
+      BOOL ret_val = CloseHandle(mtx);
 #if PFUNC_USE_EXCEPTIONS == 1
-      if (NULL == mutex) 
+      if (FALSE == ret_val) 
         throw exception_generic_impl
       ("pfunc::detail::mutex::mutex::CloseHandle at " FILE_AND_LINE(),
        "Error destroying the mutex",

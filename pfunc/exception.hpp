@@ -8,6 +8,10 @@
 #include <cstdlib>
 #include <pfunc/config.h>
 
+#if PFUNC_WINDOWS == 1
+#include <Windows.h>
+#endif
+
 /**
  * \file exception.hpp
  * \brief Implementation of exceptions

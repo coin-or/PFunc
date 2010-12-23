@@ -252,7 +252,7 @@ static inline void pfunc_write_with_fence_32 (volatile void* location,
 
 /** Now, include the right file based on the environment */
 #if PFUNC_WINDOWS == 1 
-#include <pfunc/asm/windows.h>
+#include <pfunc/asm/win.h>
 #elif PFUNC_X86 == 1
 #include <pfunc/asm/x86.h>
 #elif PFUNC_PPC == 1 && PFUNC_HAVE_PTHREADS == 1
