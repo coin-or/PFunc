@@ -35,22 +35,20 @@
 #endif
 
 /** 
- * Get a definition of inline going. For now, we assume that it is 
- * __inline__ for C and inline for C++ compilers. __inline__ might not
- * work on all compilers, but it does on the ones we care about.
+ * Get a definition of inline for the C compilers.
  */
 #if defined (c_plusplus) || defined (__cplusplus)
 #define PFUNC_INLINE inline
 #else 
-#if defined(MSVC)
+#if PFUNC_HAVE_INLINE == 1
+#define PFUNC_INLINE inline
+#elif PFUNC_HAVE_UNDERSCORE_INLINE == 1
 #define PFUNC_INLINE __inline
-#elif defined(CMAKE_COMPILER_IS_GNUCC)
+#elif PFUNC_HAVE_UNDERSCORE_INLINE_UNDERSCORE == 1
 #define PFUNC_INLINE __inline__
 #else
 #define PFUNC_INLINE /*nothing*/
 #endif
 #endif
-
-   
 
 #endif /* PFUNC_ENVIRON_HPP */

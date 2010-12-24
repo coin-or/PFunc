@@ -4,6 +4,7 @@
 #include <sys/resource.h>
 #include <math.h>
 #include <tbb/scalable_allocator.h>
+#include <pfunc/utility.h>
 
 #define HASH #
 #define BOOBOO HASH ## ifdef BOO
@@ -33,20 +34,6 @@ struct anju {
 #endif
   }
 };
-
-double wsmprtc(void) {
-struct timeval tp;
-static long start=0, startu;
-
-  if (!start) {
-    gettimeofday(&tp, NULL);
-    start = tp.tv_sec;
-    startu = tp.tv_usec;
-    return(0.0);
-  }
-  gettimeofday(&tp, NULL);
-  return( ((double) (tp.tv_sec - start)) + (tp.tv_usec-startu)*1.e-6 );
-}
 
 struct boom {
   virtual void allocate_one_int (int*&) = 0;
@@ -153,9 +140,9 @@ int main () {
 
   foo bar (baz_ptr);
 
-  double time = wsmprtc ();
+  double time = micro_time ();
   bar.do_one_thing ();
   bar.do_one_more_thing ();
-  printf ("%lf\n", wsmprtc() - time);
+  printf ("%lf\n", micro_time () - time);
   return 0;
 }

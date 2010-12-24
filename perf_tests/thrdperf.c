@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "pfunc.h"
-
-extern double wsmprtc ();
+#include <pfunc/pfunc.h>
+#include <pfunc/utility.h>
 
 /**
  * void work_func (void* work_func_arg);
@@ -10,8 +9,16 @@ extern double wsmprtc ();
  */
 void work_func (void* work_func_arg) { }
 
+/**
+ * A NOOP function.
+ * \param a ignored.
+ */
 void serial_foo (int a) { }
 
+/**
+ * A wrapper around serial function.
+ * \param args Argument to pass to serial_foo.
+ */
 void parallel_foo (void* args) {
   int a;
   pfunc_unpack (args, "int", &a);
@@ -19,78 +26,64 @@ void parallel_foo (void* args) {
 }
 
 int main () {
+  /** iteration indices and time */
   double tt;
-  int i;
-  int j;
-  const int niters = 100;
-  const int njobs = 5000;
-  pfunc_handle_t handles[5000];
+  int i, j;
+
+  /** iteration range */
+  const int NITERS = 100;
+  const int NJOBS = 5000;
+
+  /** pfunc declarations */
+  pfunc_cilk_taskmgr_t taskmgr;
+  pfunc_cilk_task_t tasks[NJOBS];
+  pfunc_cilk_attr_t attr;
+  pfunc_cilk_group_t group;
+
+  /** run parameters */
+  unsigned int num_queues = 1;
   unsigned int threads_per_queue = 2;
-  char* args[5000];
+  char* args[NJOBS];
 
-  pfunc_init(1, /* one queue */
-             &threads_per_queue,/* two threads in this queue */
-             NULL);
+  /** initialize pfunc */
+  pfunc_cilk_taskmgr_init (&taskmgr,  // task manager 
+                           num_queues,  // number of queues
+                           &threads_per_queue, // number of threads per queue
+                           NULL); // thread affinities
 
-#if MODE_ONE
-  for (j=0; j<njobs; ++j) pfunc_handle_init (&handles[j]);
+  /** initialize tasks, attribute and group */
+  pfunc_cilk_attr_init (&attr);
+  pfunc_cilk_group_init (&group);
+  for (j=0; j<NJOBS; ++j) pfunc_cilk_task_init (&(tasks[j]));
 
-  tt = wsmprtc();
-  for (i = 0; i < niters; i++) {
-    for (j = 0; j < njobs; j++) 
-      pfunc_run (&handles[j], PFUNC_ATTR_DEFAULT, PFUNC_GROUP_DEFAULT, work_func, NULL);
-    pfunc_wait_all (handles, njobs);
-  }
-  tt = wsmprtc() - tt;
 
-  for (j=0; j<njobs; ++j) pfunc_handle_clear (handles[j]);
-
-#elif MODE_TWO
-  for (j=0; j<njobs; ++j) pfunc_handle_init (&handles[j]);
-
-  tt = wsmprtc();
-  for (i = 0; i < niters; i++) {
-    for (j = 0; j < njobs; j++) {
-      pfunc_pack (&args[i], "int", j);
-      pfunc_run (&handles[j], PFUNC_ATTR_DEFAULT, PFUNC_GROUP_DEFAULT, parallel_foo, args[i]);
-    }
-    pfunc_wait_all (handles, njobs);
-  }
-  tt = wsmprtc() - tt;
-
-  for (j=0; j<njobs; ++j) pfunc_handle_clear (handles[j]);
-#elif MODE_THREE
-  tt = wsmprtc();
-
-  for (i = 0; i < niters; i++) {
-    for (j = 0; j < njobs; j++) {
-      pfunc_handle_init (&handles[j]);
-      pfunc_run (&handles[j], PFUNC_ATTR_DEFAULT, PFUNC_GROUP_DEFAULT, work_func, NULL);
-    }
-    pfunc_wait_all (handles, njobs);
-    for (j=0; j<njobs; ++j) pfunc_handle_clear (handles[j]);
-  }
-
-  tt = wsmprtc() - tt;
-#else 
-  tt = wsmprtc();
-
-  for (i = 0; i < niters; i++) {
-    for (j = 0; j < njobs; j++) {
-      pfunc_handle_init (&handles[j]);
-      pfunc_pack (&args[i], "int", j);
-      pfunc_run (&handles[j], PFUNC_ATTR_DEFAULT, PFUNC_GROUP_DEFAULT, parallel_foo, args[i]);
-    }
-    pfunc_wait_all (handles, njobs);
-    for (j=0; j<njobs; ++j) pfunc_handle_clear (handles[j]);
-  }
-
-  tt = wsmprtc() - tt;
+  tt = micro_time ();
+  for (i = 0; i < NITERS; i++) {
+    /** spawn the tasks */
+    for (j = 0; j < NJOBS; j++) {
+#if MODE_ONE /** run an empty function to see the function overhead */
+      pfunc_cilk_spawn_c (taskmgr, tasks[j], attr, group, work_func, NULL);
+#else
+      pfunc_pack (&(args[j]), "int", j);
+      pfunc_cilk_spawn_c 
+            (taskmgr, tasks[j], attr, group, parallel_foo, args[j]);
 #endif
+    }
 
+    /** wait for the tasks to complete */
+    for (j = 0; j < NJOBS; j++) pfunc_cilk_wait (taskmgr, tasks[j]); 
+  }
+  tt = micro_time () - tt;
 
-  pfunc_clear ();
-  printf ("Total, unit time = %g, %g\n",tt,tt/(njobs*niters));
+  /** clear the variables */
+  for (j=0; j<NJOBS; ++j) pfunc_cilk_task_clear (&tasks[j]);
+  pfunc_cilk_attr_clear (&attr);
+  pfunc_cilk_group_clear (&group);
+
+  /** clear the task manager and print out the time */
+  pfunc_cilk_taskmgr_clear (&taskmgr);
+  printf ("Total time (secs) = %g, unit time (secs) = %g\n",
+                    tt,tt/(NJOBS*NITERS));
 
   return 0;
 }

@@ -15,6 +15,7 @@ include (CheckIncludeFileCXX)
 check_include_file_cxx (errno.h PFUNC_HAVE_ERRNO_H)
 check_include_file_cxx (limits.h PFUNC_HAVE_LIMITS_H)
 check_include_file_cxx ("sys/sysctl.h" PFUNC_HAVE_SYSCTL_H)
+check_include_file_cxx ("sys/resource.h" PFUNC_HAVE_SYS_RESOURCE_H)
 check_include_file_cxx ("sys/syscall.h" PFUNC_HAVE_SYSCALL_H)
 check_include_file_cxx ("unistd.h" PFUNC_HAVE_UNISTD_H)
 check_include_file_cxx ("time.h" PFUNC_HAVE_TIME_H)
@@ -109,6 +110,55 @@ if (PFUNC_LINUX AND PFUNC_HAVE_SCHED_H)
     message (STATUS "Checking if we have scheduler affinity support - not found")
   endif (PFUNC_SCHED_EXIT_CODE EQUAL 0)
 endif (PFUNC_LINUX AND PFUNC_HAVE_SCHED_H)
+
+# Check if thread level storage is supported
+if (PFUNC_WINDOWS AND MSVC)
+  set (INLINE_COMPILE_FLAGS "/DINLINE_STRING=inline")
+  set (UNDERSCORE_INLINE_COMPILE_FLAGS "/DINLINE_STRING=__inline")
+  set (UNDERSCORE_INLINE_UNDERSCORE_COMPILE_FLAGS "/DINLINE_STRING=__inline__")
+else (PFUNC_WINDOWS AND MSVC)
+  set (INLINE_COMPILE_FLAGS "-DINLINE_STRING=inline")
+  set (UNDERSCORE_INLINE_COMPILE_FLAGS "-DINLINE_STRING=__inline")
+  set (UNDERSCORE_INLINE_UNDERSCORE_COMPILE_FLAGS "-DINLINE_STRING=__inline__")
+endif (PFUNC_WINDOWS AND MSVC)
+
+try_compile (PFUNC_INLINE_COMPILE_CODE
+             ${CMAKE_CURRENT_BINARY_DIR}
+             ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/inline.c
+             COMPILE_DEFINITIONS ${INLINE_COMPILE_FLAGS})
+if (PFUNC_INLINE_COMPILE_CODE)
+  message (STATUS "Checking if inline is accepted by compiler - yes")
+  set (PFUNC_HAVE_INLINE 1)
+else (PFUNC_INLINE_COMPILE_CODE)
+  message (STATUS "Checking if inline is accepted by compiler - no")
+
+  try_compile (PFUNC_UNDERSCORE_INLINE_COMPILE_CODE
+               ${CMAKE_CURRENT_BINARY_DIR}
+               ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/inline.c
+               COMPILE_DEFINITIONS ${UNDERSCORE_INLINE_COMPILE_FLAGS})
+  if (PFUNC_UNDERSCORE_INLINE_COMPILE_CODE)
+    message (STATUS "Checking if __inline is accepted by compiler - yes")
+    set (PFUNC_HAVE_UNDERSCORE_INLINE 1)
+  else (PFUNC_UNDERSCORE_INLINE_COMPILE_CODE)
+    message (STATUS "Checking if __inline is accepted by compiler - no")
+    message (STATUS ${UNDERSCORE_INLINE_COMPILE_FLAGS})
+
+    try_compile (PFUNC_UNDERSCORE_INLINE_UNDERSCORE_COMPILE_CODE
+                 ${CMAKE_CURRENT_BINARY_DIR}
+                 ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/inline.c
+                 COMPILE_DEFINITIONS 
+                  ${UNDERSCORE_INLINE_UNDERSCORE_COMPILE_FLAGS})
+    if (PFUNC_UNDERSCORE_INLINE_UNDERSCORE_COMPILE_CODE)
+      message (STATUS "Checking if __inline__ is accepted by compiler - yes")
+      set (PFUNC_HAVE_UNDERSCORE_INLINE_UNDERSCORE 1)
+    else (PFUNC_UNDERSCORE_INLINE_UNDERSCORE_COMPILE_CODE)
+      message (STATUS "Checking if __inline__ is accepted by compiler - no")
+      message (WARNING "Inline support was not found in the C compiler")
+    endif (PFUNC_UNDERSCORE_INLINE_UNDERSCORE_COMPILE_CODE)
+
+  endif (PFUNC_UNDERSCORE_INLINE_COMPILE_CODE)
+
+endif (PFUNC_INLINE_COMPILE_CODE)
 
 # Option to enable exceptions
 option (USE_EXCEPTIONS "Whether to enable exceptions" OFF)

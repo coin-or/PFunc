@@ -2,20 +2,7 @@
 #include <numeric>
 #include <functional>
 #include <pfunc/pfunc.hpp>
-
-double wsmprtc(void) {
-struct timeval tp;
-static long start=0, startu;
-
-  if (!start) {
-    gettimeofday(&tp, NULL);
-    start = tp.tv_sec;
-    startu = tp.tv_usec;
-    return(0.0);
-  }
-  gettimeofday(&tp, NULL);
-  return( (static_cast<double>(tp.tv_sec - start)) + (tp.tv_usec-startu)*1.e-6);
-}
+#include <pfunc/utility.h>
 
 struct fibonacci;
 
@@ -80,7 +67,7 @@ int main (int argc, char**argv) {
           num_threads_per_queue[i] = atoi (argv[2]);
   n = atoi (argv[3]);
  
-  double time = wsmprtc ();
+  double time = micro_time ();
   gbl_taskmgr = new taskmgr (num_queues, num_threads_per_queue);
  
   fibonacci fib_n (n); 
@@ -93,7 +80,7 @@ int main (int argc, char**argv) {
                 fib_n); /** The functor */
   pfunc::wait (*gbl_taskmgr, root_task);
 
-  time = wsmprtc() - time;
+  time = micro_time() - time;
  
   std::cout << "The fibonacci number is: " 
             << fib_n.get_number () 

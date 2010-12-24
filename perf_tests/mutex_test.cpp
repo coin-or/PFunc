@@ -1,9 +1,9 @@
 #include <cstdio>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <math.h>
 #include <pthread.h>
+#include <pfunc/utility.h>
 
 struct my_mutex {
   pthread_mutex_t mutex;
@@ -24,20 +24,6 @@ struct my_mutex {
     pthread_mutex_unlock (&mutex);
   }
 };
-
-double wsmprtc(void) {
-struct timeval tp;
-static long start=0, startu;
-
-  if (!start) {
-    gettimeofday(&tp, NULL);
-    start = tp.tv_sec;
-    startu = tp.tv_usec;
-    return(0.0);
-  }
-  gettimeofday(&tp, NULL);
-  return( ((double) (tp.tv_sec - start)) + (tp.tv_usec-startu)*1.e-6 );
-}
 
 struct my_exception {
   const char* what (void) const {
@@ -70,14 +56,14 @@ void* pthread_func (void* arg) {
 int main () {
   pthread_t threads[8];
 
-  double time = wsmprtc ();
+  double time = micro_time ();
   for (int i=0; i<8; ++i) 
     pthread_create (threads+i, NULL, pthread_func, NULL);
   
   for (int i=0; i<8; ++i)
     pthread_join (threads[i], NULL);  
 
-  printf ("%ld: %lf\n", counter, wsmprtc() - time);
+  printf ("%ld: %lf\n", counter, micro_time () - time);
 
   return 0;
 }

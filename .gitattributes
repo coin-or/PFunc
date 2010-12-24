@@ -23,6 +23,7 @@ examples/other/tbb_fibonacci.cpp -text
 lib/CMakeLists.txt -text
 lib/pfunc_c.cpp -text
 lib/pfunc_pack.cpp -text
+perf_tests/CMakeLists.txt -text
 perf_tests/Makefile -text
 perf_tests/cancel_threads.c -text
 perf_tests/mutex_test.cpp -text
@@ -39,6 +40,7 @@ pfunc/attribute.hpp -text
 pfunc/barrier.hpp -text
 pfunc/cilk.hpp -text
 pfunc/cmake_tests/futex.cpp -text
+pfunc/cmake_tests/inline.c -text
 pfunc/cmake_tests/sched_affinity.cpp -text
 pfunc/cmake_tests/tls.cpp -text
 pfunc/cond.hpp -text
@@ -65,6 +67,7 @@ pfunc/task.hpp -text
 pfunc/taskmgr.hpp -text
 pfunc/thread.hpp -text
 pfunc/trampolines.hpp -text
+pfunc/utility.h -text
 tutorial/CMakeLists.txt -text
 tutorial/attribute.tex -text
 tutorial/couriers.sty -text

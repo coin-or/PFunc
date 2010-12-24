@@ -19,8 +19,11 @@
 /** Do we have sched.h */
 #cmakedefine PFUNC_HAVE_SCHED_H 1
 
-/** Do we have sysctl.h */
+/** Do we have sys/sysctl.h */
 #cmakedefine PFUNC_HAVE_SYSCTL_H 1
+
+/** Do we have sys/resource.h */
+#cmakedefine PFUNC_HAVE_SYS_RESOURCE_H 1
 
 /** Do we have stdint.h */
 #cmakedefine PFUNC_HAVE_STDINT_H 1
@@ -60,6 +63,15 @@
 
 /** Do we have a means of setting the scheduler affinities */
 #cmakedefine PFUNC_HAVE_SCHED_AFFINITY 1
+
+/** Do we have inline support in C compiler */
+#cmakedefine PFUNC_HAVE_INLINE 1
+
+/** Do we have __inline support in C compiler */
+#cmakedefine PFUNC_HAVE_UNDERSCORE_INLINE 1
+
+/** Do we have __inline__ support in C compiler */
+#cmakedefine PFUNC_HAVE_UNDERSCORE_INLINE_UNDERSCORE 1
 
 /** Does the user want to compile with exceptions */
 #cmakedefine PFUNC_USE_EXCEPTIONS 1

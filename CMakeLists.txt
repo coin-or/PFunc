@@ -100,6 +100,14 @@ endif (BUILD_EXAMPLES)
 
 ###############################################################################
 
+# Perf tests
+option (BUILD_PERF_TESTS "Whether to build examples" OFF)
+if (BUILD_PERF_TESTS)
+  add_subdirectory (perf_tests)
+endif (BUILD_PERF_TESTS)
+
+###############################################################################
+
 # Uninstall
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/cmake_uninstall.cmake.in"
