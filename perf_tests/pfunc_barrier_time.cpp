@@ -78,7 +78,7 @@ int main (int argc, char** argv) {
                      BARRIER_STEAL);
 
   // Spawn the tasks.
-  for (int i=0; i<num_queues*num_threads_per_queue; ++i) {
+  for (unsigned int i=0; i<num_queues*num_threads_per_queue; ++i) {
     pfunc::spawn (*global_tmanager, 
                   tasks[i],
                   world_attribute,
@@ -87,7 +87,7 @@ int main (int argc, char** argv) {
   }
 
   // Now, wait on the tasks to return
-  for (int i=0; i<num_queues*num_threads_per_queue; ++i) {
+  for (unsigned int i=0; i<num_queues*num_threads_per_queue; ++i) {
     pfunc::wait (tasks[i]);
   }
 

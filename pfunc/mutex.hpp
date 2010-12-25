@@ -234,13 +234,18 @@ namespace pfunc {
       DWORD ret_val = WaitForSingleObject (mtx, 0);
       if (ret_val == WAIT_OBJECT_0) return true;
       else if (ret_val == WAIT_TIMEOUT) return false;
+      else {
 #if PFUNC_USE_EXCEPTIONS == 1
-      else 
-       throw exception_generic_impl 
+      /** we should not have come here unless there is some error */
+      throw exception_generic_impl 
  ("pfunc::detail::mutex::lock::WaitForSingleObject at " FILE_AND_LINE(),
   "Error locking the mutex",
   GetLastError());
+#else
+      /** Do nothing --- just return false */
+      return false;
 #endif
+      }
     }
 
     /**

@@ -3,6 +3,14 @@
 #include <pfunc/pfunc.h>
 #include <pfunc/utility.h>
 
+#ifndef NITERS
+#define NITERS 100
+#endif
+
+#ifndef NJOBS
+#define NJOBS 5000
+#endif
+
 /**
  * void work_func (void* work_func_arg);
  * \param work_func_arg Argument to the function
@@ -29,10 +37,6 @@ int main () {
   /** iteration indices and time */
   double tt;
   int i, j;
-
-  /** iteration range */
-  const int NITERS = 100;
-  const int NJOBS = 5000;
 
   /** pfunc declarations */
   pfunc_cilk_taskmgr_t taskmgr;

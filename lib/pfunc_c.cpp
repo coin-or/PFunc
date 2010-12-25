@@ -61,7 +61,7 @@ int pfunc_##sched##_attr_nested_set \
   PFUNC_START_TRY_BLOCK() \
   pfunc::detail::pfunc_##sched##_attr_t& cpp_attr = \
       *(reinterpret_cast<pfunc::detail::pfunc_##sched##_attr_t*>(attr)); \
-  cpp_attr.set_nested (nested); \
+  cpp_attr.set_nested ((nested==0) ? true: false); \
   return PFUNC_SUCCESS; \
   PFUNC_END_TRY_BLOCK() \
   PFUNC_C_CATCH_AND_RETURN_EXCEPTION_CODE() \
@@ -72,7 +72,7 @@ int pfunc_##sched##_attr_grouped_set \
   PFUNC_START_TRY_BLOCK() \
   pfunc::detail::pfunc_##sched##_attr_t& cpp_attr = \
       *(reinterpret_cast<pfunc::detail::pfunc_##sched##_attr_t*>(attr)); \
-  cpp_attr.set_grouped (grouped); \
+  cpp_attr.set_grouped ((grouped==0) ? true: false); \
   return PFUNC_SUCCESS; \
   PFUNC_END_TRY_BLOCK() \
   PFUNC_C_CATCH_AND_RETURN_EXCEPTION_CODE() \

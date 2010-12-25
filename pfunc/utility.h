@@ -20,10 +20,17 @@
 extern "C" {
 #endif
 
+/**
+ * Returns the time in seconds (as a double) to micro-second accuracy.
+ * This function can be used to measure the time elapsed. Eg.,
+ * start = micro_time ();
+ * do_stuff ();
+ * end = micro_time () - start;
+ */
 static PFUNC_INLINE double micro_time () {
 #if PFUNC_WINDOWS == 1
 
-  /** Use GetSystemTime to get millisecond time resolution */
+  /** Use GetSystemTime to get microsecond time resolution */
   SYSTEMTIME sys_time;
   FILETIME file_time;
   ULARGE_INTEGER uli;
@@ -33,7 +40,11 @@ static PFUNC_INLINE double micro_time () {
   uli.LowPart = file_time.dwLowDateTime;
   uli.HighPart = file_time.dwHighDateTime;
 
-  return ((double) uli.QuadPart)/100.00;
+  /** Filetime represents the number of 100 nanosecond intervals since
+   * January 1 1601 (UTC). To convert this into seconds, we need to 
+   * multiply by 1.e-7.
+   */
+  return ((double) uli.QuadPart)*1e-7;
 
 #elif PFUNC_HAVE_SYS_TIME_H == 1
 
