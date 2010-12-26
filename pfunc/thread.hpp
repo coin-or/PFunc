@@ -25,7 +25,7 @@
 
 #if PFUNC_HAVE_TLS == 1
 #include <vector>
-__thread unsigned int pfunc_thread_self_id;
+__thread volatile unsigned int pfunc_thread_self_id;
 #elif PFUNC_HAVE_HASH_MAP_H == 1
 #include <ext/hash_map>
 namespace std { using namespace __gnu_cxx; }
