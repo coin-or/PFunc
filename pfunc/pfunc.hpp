@@ -492,7 +492,7 @@ namespace pfunc {
   template <typename TaskType>
   static inline void wait (TaskType& task)  {
     PFUNC_START_TRY_BLOCK()
-    return wait (*global_tmanager, task);
+    return pfunc::wait (*global_tmanager, task);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
