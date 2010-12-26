@@ -515,9 +515,6 @@ struct taskmgr : public taskmgr_virtual_base  {
     thread_attr* my_attr = 
                 static_cast<thread_attr*> (_my_attr);
 
-    /* Save the attribute for later */
-    thread_manager.tls_set (my_attr);
-
     /* Get the information pertaining to this thread */
     const unsigned int my_thread_id = my_attr->get_thread_id ();
     const unsigned int my_task_queue_number = my_attr->get_task_queue_number ();
@@ -527,6 +524,9 @@ struct taskmgr : public taskmgr_virtual_base  {
 #if PFUNC_HAVE_TLS == 1
     pfunc_thread_self_id = my_thread_id;
 #endif
+
+    /* Save the attribute for later */
+    thread_manager.tls_set (my_attr);
 
     /* Let us set the processor affinity now */
     if (PFUNC_NO_AFFINITY!=my_processor_affinity)
