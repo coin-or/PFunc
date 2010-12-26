@@ -19,11 +19,16 @@ endif (PFUNC_HAVE_PTHREADS AND PFUNC_HAVE_SYS_RESOURCE_H)
 
 add_executable (pfunc_barrier_time pfunc_barrier_time.cpp)
 add_dependencies (pfunc_barrier_time pfunc)
-target_link_libraries (pfunc_barrier_time pfunc)
+if (NOT CMAKE_SYSTEM MATCHES "Windows")
+  target_link_libraries (pfunc_barrier_time pthread)
+endif (NOT CMAKE_SYSTEM MATCHES "Windows")
 
 add_executable (thrdperf thrdperf.c)
 add_dependencies (thrdperf pfunc)
 target_link_libraries (thrdperf pfunc)
+if (NOT CMAKE_SYSTEM MATCHES "Windows")
+  target_link_libraries (thrdperf pthread)
+endif (NOT CMAKE_SYSTEM MATCHES "Windows")
 
 add_custom_target (perf_tests ALL)
 add_dependencies (perf_tests pfunc_barrier_time mutex_test)
