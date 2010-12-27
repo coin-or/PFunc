@@ -49,6 +49,7 @@ int main (int argc, char** argv) {
               << std::endl
               << "./pfunc_barrier_time <nqueues> <nthreadsperqueue>"
               << std::endl;
+    exit (3);
   }
  
   // Read in the configuration

@@ -19,9 +19,9 @@ void parallel_dot (void* arg) {
   unsigned int size;
   double dot;
   char* arg_buf = (char*)arg;
-  int my_start_index;
-  int my_stop_index;
-  int i, j, k;
+  unsigned int my_start_index;
+  unsigned int my_stop_index;
+  unsigned int i, j, k;
 
   /* First, we need to unpack the arguments */
   pfunc_unpack (arg_buf, /* the buffer */
