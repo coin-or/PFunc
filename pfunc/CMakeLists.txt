@@ -12,17 +12,19 @@
 # Generate header file
 include (CheckIncludeFileCXX)
 
-check_include_file_cxx (errno.h PFUNC_HAVE_ERRNO_H)
-check_include_file_cxx (limits.h PFUNC_HAVE_LIMITS_H)
-check_include_file_cxx ("sys/sysctl.h" PFUNC_HAVE_SYSCTL_H)
-check_include_file_cxx ("sys/resource.h" PFUNC_HAVE_SYS_RESOURCE_H)
-check_include_file_cxx ("sys/syscall.h" PFUNC_HAVE_SYSCALL_H)
-check_include_file_cxx ("unistd.h" PFUNC_HAVE_UNISTD_H)
-check_include_file_cxx ("time.h" PFUNC_HAVE_TIME_H)
-check_include_file_cxx ("sys/time.h" PFUNC_HAVE_SYS_TIME_H)
-check_include_file_cxx ("sched.h" PFUNC_HAVE_SCHED_H)
-check_include_file_cxx ("stdint.h" PFUNC_HAVE_STDINT_H)
-check_include_file_cxx ("ext/hash_map" PFUNC_HAVE_HASH_MAP_H)
+check_include_file_cxx (errno.h PFUNC_HAVE_ERRNO_H CACHE BOOLEAN ON)
+check_include_file_cxx (limits.h PFUNC_HAVE_LIMITS_H CACHE BOOLEAN ON)
+check_include_file_cxx ("sys/sysctl.h" PFUNC_HAVE_SYSCTL_H CACHE BOOLEAN ON)
+check_include_file_cxx ("sys/resource.h" PFUNC_HAVE_SYS_RESOURCE_H CACHE 
+                        BOOLEAN ON)
+check_include_file_cxx ("sys/syscall.h" PFUNC_HAVE_SYSCALL_H CACHE BOOLEAN ON)
+check_include_file_cxx ("unistd.h" PFUNC_HAVE_UNISTD_H CACHE BOOLEAN ON)
+check_include_file_cxx ("time.h" PFUNC_HAVE_TIME_H CACHE BOOLEAN ON)
+check_include_file_cxx ("sys/time.h" PFUNC_HAVE_SYS_TIME_H CACHE BOOLEAN ON)
+check_include_file_cxx ("sched.h" PFUNC_HAVE_SCHED_H CACHE BOOLEAN ON)
+check_include_file_cxx ("stdint.h" PFUNC_HAVE_STDINT_H CACHE BOOLEAN ON)
+check_include_file_cxx ("ext/hash_map" PFUNC_HAVE_HASH_MAP_H CACHE BOOLEAN ON)
+check_include_file_cxx ("pthread.h" PFUNC_HAVE_PTHREAD_H CACHE BOOLEAN ON)
 
 # Try to see if we can get the processor information
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "Intel*" OR

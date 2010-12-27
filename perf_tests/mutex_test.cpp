@@ -36,7 +36,7 @@ static my_mutex global_mutex;
 #else
 static pthread_mutex_t global_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
-static int64_t counter;
+static long int counter;
 
 void* pthread_func (void* arg) {
 #ifdef MINE

@@ -8,12 +8,12 @@ static __attribute__((aligned(128))) volatile int b = 0;
 static int c;
 static int d;
 
-void* func (void*) {
+void* func (void* unused_arg) {
 
   pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
   pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
 
-  while (true) {
+  while (1) {
     pthread_mutex_lock (&lock);
     printf ("*");
     ++a;

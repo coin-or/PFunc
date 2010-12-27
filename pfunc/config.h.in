@@ -4,6 +4,12 @@
 /** Do we have limits.h */
 #cmakedefine PFUNC_HAVE_LIMITS_H 1
 
+/** Do we have sys/sysctl.h */
+#cmakedefine PFUNC_HAVE_SYSCTL_H 1
+
+/** Do we have sys/resource.h */
+#cmakedefine PFUNC_HAVE_SYS_RESOURCE_H 1
+
 /** Do we have syscall.h */
 #cmakedefine PFUNC_HAVE_SYSCALL_H 1
 
@@ -19,17 +25,14 @@
 /** Do we have sched.h */
 #cmakedefine PFUNC_HAVE_SCHED_H 1
 
-/** Do we have sys/sysctl.h */
-#cmakedefine PFUNC_HAVE_SYSCTL_H 1
-
-/** Do we have sys/resource.h */
-#cmakedefine PFUNC_HAVE_SYS_RESOURCE_H 1
-
 /** Do we have stdint.h */
 #cmakedefine PFUNC_HAVE_STDINT_H 1
 
 /** Do we have hash_map.h */
 #cmakedefine PFUNC_HAVE_HASH_MAP_H 1
+
+/** Do we have pthread.h */
+#cmakedefine PFUNC_HAVE_PTHREAD_H 1
 
 /** Are we running under Intel x86 architecture */
 #cmakedefine PFUNC_X86 1

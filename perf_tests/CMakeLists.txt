@@ -5,17 +5,21 @@ cmake_minimum_required (VERSION 2.6)
 # This is done so that the generated header files can also be found.
 include_directories (BEFORE ${PFUNC_SOURCE_DIR} ${PFUNC_BINARY_DIR})
 
+if (PFUNC_HAVE_ERRNO_H)
+  message (STATUS "Hurray")
+endif (PFUNC_HAVE_ERRNO_H)
+
 # Add this test only if we have pthreads and unistd
-if (PFUNC_HAVE_PTHREADS AND PFUNC_HAVE_UNISTD_H)
+if (PFUNC_HAVE_PTHREAD_H AND PFUNC_HAVE_UNISTD_H)
   add_executable (cancel_threads cancel_threads.c)
   target_link_libraries (cancel_threads pthread)
-endif (PFUNC_HAVE_PTHREADS AND PFUNC_HAVE_UNISTD_H)
+endif (PFUNC_HAVE_PTHREAD_H AND PFUNC_HAVE_UNISTD_H)
 
 # Add this test only if we have pthreads and resource
-if (PFUNC_HAVE_PTHREADS AND PFUNC_HAVE_SYS_RESOURCE_H)
+if (PFUNC_HAVE_PTHREAD_H AND PFUNC_HAVE_SYS_RESOURCE_H)
 add_executable (mutex_test mutex_test.cpp)
 target_link_libraries (mutex_test pthread)
-endif (PFUNC_HAVE_PTHREADS AND PFUNC_HAVE_SYS_RESOURCE_H)
+endif (PFUNC_HAVE_PTHREAD_H AND PFUNC_HAVE_SYS_RESOURCE_H)
 
 add_executable (pfunc_barrier_time pfunc_barrier_time.cpp)
 add_dependencies (pfunc_barrier_time pfunc)
