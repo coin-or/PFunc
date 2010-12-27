@@ -19,10 +19,10 @@ CMake version 2.6 or later.
 2) OS:
 ------
 PFunc has been tested on the following platforms:
- a) OS X 10.5 or later.
- b) Linux Kernel version 2.6 or later.
- c) Windows XP professional with SP3.
- d) AIX 5.3 or later.
+ a) OS X 10.5 or later (X86).
+ b) Linux Kernel version 2.6 or later (X86 and PPC)
+ c) Windows XP professional with SP3 (x86).
+ d) AIX 5.3 or later (PPC).
 
 3) Compilers:
 -------------
@@ -180,6 +180,19 @@ during the configuration process. Here are the detailed instructions:
     
     #/home/anon/pfunc-build/examples/cxx/fibonacci \ 
         <num-queues> <threads-per-queue> <fibonacci-number>
+
+ i) CAVEAT:
+ PFunc is written completely in C++ (i.e., "libpfunc.a" is a C++ library that
+ provides C-bindings. To build a C executable using "libpfunc.a", you *may* 
+ need to link against "libstdc++" (a.k.a libC on AIX). When building the 
+ C examples and performance tests, PFunc's configuration mechanism checks for
+ the presence of these libraries. Unfortunately, due to a shortcoming in CMake,
+ the library has to be named "libstdc++.[so|a]" or "libC.[so|a]". Usually, 
+ what you find on your system will be "libstdc++.so.[0-9]", with a SYM-LINK 
+ to "libstdc++.so". In the oft-chance that this SYM-LINK is missing, the C
+ examples will fail to build. In this case, simply manually create a SYM-LINK
+ and the process will work. Note that none of this is required for programs 
+ written in C++.
 
 Installation details:
 ---------------------
