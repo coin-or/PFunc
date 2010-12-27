@@ -50,10 +50,10 @@ int main () {
   char* args[NJOBS];
 
   /** initialize pfunc */
-  pfunc_cilk_taskmgr_init (&taskmgr,  // task manager 
-                           num_queues,  // number of queues
-                           &threads_per_queue, // number of threads per queue
-                           NULL); // thread affinities
+  pfunc_cilk_taskmgr_init (&taskmgr,  /* task manager */
+                           num_queues,  /* number of queues */
+                           &threads_per_queue, /* number of threads per queue*/
+                           NULL); /* thread affinities*/
 
   /** initialize tasks, attribute and group */
   pfunc_cilk_attr_init (&attr);

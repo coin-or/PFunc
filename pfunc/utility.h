@@ -63,4 +63,4 @@ static PFUNC_INLINE double micro_time () {
 }
 #endif
 
-#endif // PFUNC_UTILITY_H
+#endif /* PFUNC_UTILITY_H */

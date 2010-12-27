@@ -5,9 +5,8 @@ cmake_minimum_required (VERSION 2.6)
 # This is done so that the generated header files can also be found.
 include_directories (BEFORE ${PFUNC_SOURCE_DIR} ${PFUNC_BINARY_DIR})
 
-if (PFUNC_HAVE_ERRNO_H)
-  message (STATUS "Hurray")
-endif (PFUNC_HAVE_ERRNO_H)
+#Figure out what the C++ library is called and add it to the required libs.
+find_library (STDCXX NAMES C stdc++ REQUIRED)
 
 # Add this test only if we have pthreads and unistd
 if (PFUNC_HAVE_PTHREAD_H AND PFUNC_HAVE_UNISTD_H)
@@ -31,7 +30,7 @@ add_executable (thrdperf thrdperf.c)
 add_dependencies (thrdperf pfunc)
 target_link_libraries (thrdperf pfunc)
 if (NOT CMAKE_SYSTEM MATCHES "Windows")
-  target_link_libraries (thrdperf pthread)
+  target_link_libraries (thrdperf ${STDCXX} pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
 
 add_custom_target (perf_tests ALL)
