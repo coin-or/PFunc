@@ -24,11 +24,9 @@ lib/CMakeLists.txt -text
 lib/pfunc_c.cpp -text
 lib/pfunc_pack.cpp -text
 perf_tests/CMakeLists.txt -text
-perf_tests/Makefile -text
 perf_tests/cancel_threads.c -text
 perf_tests/mutex_test.cpp -text
 perf_tests/pfunc_barrier_time.cpp -text
-perf_tests/rtc.c -text
 perf_tests/thrdperf.c -text
 perf_tests/virtual_fn_cost.cpp -text
 pfunc/CMakeLists.txt -text
