@@ -1,0 +1,153 @@
+\section{Exception handling}
+\label{sec:exception}
+
+Checking for errors following function calls has traditionally been
+under-rated. Many bugs in programs are due to improper handling of these errors
+or the failure to detect the errors as soon as they occur. This problem is more
+grave when it comes to parallel processing. PFunc provides a robust error
+checking mechanism in both its C and C++ interface. In this section, we will
+see examples of how this can be achieved in a user program.
+
+\subsection{\Cpp{}}
+PFunc continues the philosophy of C++ by providing robust exception handling
+mechanisms. PFunc's exception handling mechanism delivers exceptions thrown by
+a task across threads to the task that is waiting on it. In the case that the
+task throwing the exception has more than one task waiting on it, the thrown
+exception object is delivered to each of the waiting tasks.  All exceptions
+thrown by PFunc are derived from the base type \code{pfunc::exception}. The
+following example shows the use of PFunc's exception handling.
+
+\begin{center}
+\begin{minipage}{0.60\textwidth}
+\begin{lstlisting}
+struct my_fn_object { 
+  void operator () { 
+    try { 
+      ... 
+    }
+    catch (const pfunc::exception& error) { 
+      std::cout << "Description: " << error.what () << std::endl;
+      std::cout << "Trace: " << error.trace () << std::endl; 
+      std::cout << "Code: " << error.code () << std::endl;
+    } 
+  }
+};
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+PFunc's exceptions extend \code{std::exception} to provide useful information
+to the users. There are three primary methods that help users in determining
+the cause of the error. These are:
+
+\begin{center}
+\tablefont
+\begin{tabular}{|c|l|}
+\hline
+Method & Explanation \\
+\hline
+\func{pfunc::exception::what} & Describes the error in string format. \\
+\hline
+\func{pfunc::exception::trace} & Returns the stack trance of the calls 
+                                   through which this exception object was 
+                                   transported. \\
+\hline
+\func{pfunc::exception::code} & Useful when the exception was caused by
+                                a system call failure and returns the error 
+                                number. \\
+\hline
+\end{tabular}
+\end{center}
+                                
+It is important to note that PFunc takes care to ensure that exceptions are
+transported across thread boundaries so that the exception is delivered to the
+calling function without loss of any information. This is an important as it
+gives sequential semantics to the program. All the errors that PFunc throws are
+of the type \code{pfunc::exception_generic_impl}, which is derived from
+\code{pfunc::exception}. This class is implemented to ensure seamless transfer
+of exceptions from one thread to another. Another important point to note is
+that if, during execution, PFunc encounters any other exception (eg.,
+\code{std::bad_alloc}), it converts it into an exception of the type
+\code{pfunc::exception_generic_impl}.  This is done so as to enable transfer of
+standard exceptions between threads. For performance, exception handling is
+\textbf{disabled} by default and can be enabled using a compile time flag.
+
+\subsubsection{Forwarding exceptions}
+When an exception object is thrown by a task that is deeply nested, it is often
+necessary to propogate this exception all the way to the top-level task. In order
+to propogate exceptions up the stack, it is necessary to first convert them 
+into objects of type \code{pfunc::exception}. Consider the following example
+that demonstrates this use case:
+
+\begin{center}
+\begin{minipage}{0.60\textwidth}
+\begin{lstlisting}
+struct my_fn_object { 
+  void operator () { 
+    try { 
+      ... 
+    }
+    catch (const pfunc::exception& error) { 
+      pfunc::exception* clone = error.clone();
+      clone->add_to_trace (": from my_fn_object at " PFUNC_FILE_AND_LINE()); 
+      clone->rethrow ();
+    } 
+  }
+};
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+In the above example, any error that is caught by \code{my_fn_object} is 
+rethrown for higher-level tasks to catch. This is achieved using the following
+functions:
+
+\begin{center}
+\tablefont
+\begin{tabular}{|c|l|}
+\hline
+Method & Explanation \\
+\hline
+\func{pfunc::exception::clone} & Creates a replica of the exception object. \\
+\hline
+\func{pfunc::exception::add_to_trace} & Appends a string that is used by \func{trace}. \\
+\hline
+\func{pfunc::exception::rethrow} & Throw's the cloned exception object.\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{C}
+In C, there is no support for exceptions. All PFunc C APIs return an integer
+that tells us how the function call proceeded. The error code returned by C
+APIs are equivalent to that returned by \func{pfunc::exception::code} in
+\Cpp{}.  PFunc defines a number of error values that \textbf{should} be checked
+for to ensure that the calls to PFunc have succeeded. As PFunc does not store
+the return value of the preceeding calls, it is unable to detect presence of
+earlier errors. For more information, refer to the function documentation to
+check the possible errors that can be returned by each call.  Here is an
+example of how one might check for errors in C.
+
+\begin{center}
+\begin{minipage}{0.60\textwidth}
+\begin{lstlisting}
+void my_fn (void*) {
+  if (PFUNC_SUCCESS != (error = pfunc_init (...))) {
+    switch (error) {
+      case PFUNC_INITIALIZED: /* error message */
+                              break;
+      case PFUNC_NOMEM: /* error message */
+                        break; 
+      case PFUNC_ERROR: /* error message */
+                        break;
+      default: break;                  
+    }
+  }
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+Note that all the error values returned by the C interface are less than zero
+and \textbf{do not} clash with the system error codes such as EINVAL, EBUSY,
+etc.  

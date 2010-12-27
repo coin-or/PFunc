@@ -1,0 +1,200 @@
+Introduction to installing PFunc:
+---------------------------------
+This document contains basic information required to install and start using
+PFunc. Please take the time to read through it as there might be subtleties 
+in the build process that might influence behavior of PFunc, and ultimately,
+your application. Select, important points are written in ALL CAPS throughout 
+this document.
+
+PFunc's requirements:
+----------------------
+1) CMake: 
+---------
+PFunc uses CMake to configure and build itself. The authors selected CMake for
+its portability across Windows, Linux and Unix platforms. So, in order to
+configure and build PFunc, it is REQUIRED THAT CMAKE BE INSTALLED ON YOUR
+SYSTEM. To obtain a copy of CMake, please visit www.cmake.org. PFunc requires
+CMake version 2.6 or later.
+
+2) OS:
+------
+PFunc has been tested on the following platforms:
+ a) OS X 10.5 or later.
+ b) Linux Kernel version 2.6 or later.
+ c) Windows XP professional with SP2.
+ d) AIX 5.3 or later.
+
+3) Compilers:
+-------------
+PFunc is written in stanard conformant C++, and as such, it should work with 
+most C++ compilers. However, because as PFunc makes heavy use of templates, 
+it is recommended to get the latest C++ compilers. The following compilers 
+are known to work:
+ a) GCC v 3.4.6 or later.
+ b) Visual Studio 8.0.
+
+4) Hardware:
+------------
+PFunc makes use of low-level assembly code for atomic operations. Therefore, 
+it works ONLY on the following architectures for now:
+ a) X86_32.
+ b) X86_64.
+ c) PowerPC 32-bit.
+ d) PowerPC 64-bit.
+
+5) Documentation requirements:
+------------------------------
+PFunc builds docuemntation using Doxygen. For this purpose, it is recommended
+that the following binaries be installed:
+  a) doxygen
+  b) latex
+  c) dvips
+  d) ps2pdf
+  e) perl
+  f) makeindex
+
+6) Threading requirements:
+--------------------------
+PFunc uses platform specific threads to implement task parallelism. As such it
+requires the presence of the following threading packages:
+ a) "phtreads" on Linux, OS X and AIX.
+ b) Windows threads on Windows XP.
+
+Installation Options:
+---------------------
+In addition to the standard installation options that are provided by CMake, 
+PFunc provides certain additional options. An entire list of these options 
+can be seen by running the following command:
+
+  #cmake -i
+
+Given below is a list of the most important options.
+ a) CMAKE_BUILD_TYPE: The available choices are "Release", "Debug" and
+    "RelWithDebugInfo". The default is "Release".
+ 
+ b) CMAKE_INSTALL_PREFIX: The value of this variable is used as the base 
+    installation location for PFunc. The default value is "/usr/local".
+
+ c) BUILD_EXAMPLES: The available choices are "ON" or "OFF". By default, this 
+    option is turned on. Enabling this builds the examples that are provided
+    with the distribution.
+
+ d) BUILD_TUTORIAL: The available choices are "ON" or "OFF". By default, this
+    option is turned on. Enabling this builds the PFunc tutorial.
+
+ e) BUILD_DOCS: The available choices are "ON" or "OFF". By default,
+    this option is turned off. Enabling this option builds in-code 
+    documentation. "Doxygen" is needed in-order to build PFunc's docs.
+
+ f) BUILD_PAPERS: The available choices are "ON" or "OFF". By default, this 
+    option is turned off.
+
+Basic Installation:
+-------------------
+For a clean installation process, we recommend an out-of-source build. However,
+the in-source build works just as well. Given below are the basic installation
+instructions for PFunc on Linux/OS X/AIX:
+
+ a) Get a copy of PFunc. For the sake of this installation guide, let us 
+    assume that PFunc's sources have been checked out in the directory
+    "pfunc". Furthermore, let us assume that the absolute path is 
+    "/home/anon/pfunc". 
+
+ b) #cd /home/anon/ && mkdir pfunc-build
+    
+    At the end of this step, we have the following directories:
+      i) "/home/anon/pfunc"
+      ii) "/home/anon/pfunc-build"
+
+ c) #cd /home/anon/pfunc-build
+
+ d) #cmake /home/anon/pfunc \
+    -DCMAKE_INSTALL_PREFIX=/home/anon/pfunc-install
+
+    At this step, we are configuring PFunc and have choosen to install the 
+    files in the local directory. Once configuration is done, the following 
+    targets are available to be built by the native build-system.
+      i) "pfunc" -> builds the static library "libpfunc.a"
+      ii) "tutorial" -> builds the tutorial if BUILD_TUTORIAL was ON.
+      iii) "doc" -> build documentation if BUILD_DOCS was ON.
+      iv) "all" -> builds all the selected targets.
+      v) "clean" -> removes all the object files.
+      vi) "install" -> installs the targets to the selected prefix.
+      vii) "uninstall" -> does the obvious.
+      viii) "examples" -> builds examples if BUILD_EXAMPLES was ON.
+
+  e) #make <target-name>
+    
+     At this stage, we can build any of the targets mentioned in (e).
+
+Running examples:
+-----------------
+To run the examples, it is necessary to turn on the the option BUILD_EXAMPLES
+during the configuration process. Here are the detailed instructions:
+
+ a) Get a copy of PFunc. For the sake of this installation guide, let us 
+    assume that PFunc's sources have been checked out in the directory
+    "pfunc". Furthermore, let us assume that the absolute path is 
+    "/home/anon/pfunc". 
+
+ b) #cd /home/anon/ && mkdir pfunc-build
+    
+    At the end of this step, we have the following directories:
+      i) "/home/anon/pfunc"
+      ii) "/home/anon/pfunc-build"
+
+ c) #cd /home/anon/pfunc-build
+
+ d) #cmake /home/anon/pfunc -DBUILD_EXAMPLES=ON
+
+ e) #make examples
+    
+     At this stage, the following examples have been compiled in the BINDIR:
+     /home/anon/pfunc-build/examples/c/groups
+     /home/anon/pfunc-build/examples/c/simple
+     /home/anon/pfunc-build/examples/cxx/fibonacci
+
+
+ f) Running "simple":
+    
+    #/home/anon/pfunc-build/examples/c/simple
+
+ This example is similar to the MPI-style HELLO WORLD. It spawns 4 threads 20
+ tasks where each task prints its (rank, size).
+
+ g) Running "groups":
+    
+    #/home/anon/pfunc-build/examples/c/simple
+ 
+ This example captures the basic features of "group" computation in PFunc by 
+ computing a DOT PRODUCT.
+
+ h) Running "fibonacci":
+ This example computes the nth fibonacci number using naive recursion. To run
+ this example, the following command line arguments are required:
+    
+    #/home/anon/pfunc-build/examples/cxx/fibonacci \ 
+        <num-queues> <threads-per-queue> <fibonacci-number>
+
+Installation details:
+---------------------
+1) C or C++: 
+PFunc is completely developed in C++. However, it does offer its full
+functionality in C as well. The entire C++ API is delivered through header
+files and as such, there is no need to build "libpfunc" if you are primarily
+interested in using the C++ interface. However, CONFIGURATION of PFunc is a
+must as we determine many system parameters during this process and generate a
+configuration file "config.h" that is necessary to make PFunc work portably. If
+you are using the C interface, it is necessary to build "libpfunc" using the
+target "pfunc".
+
+2) Compiler and Compiler flags:
+CMake automatically chooses the compiler and the compiler flags for building 
+"libpfunc" based on:
+  a) Platform (Linux, OS X, AIX, Windows)
+  b) Build type (Debug, Release, RelWithDebugInfo)
+If you would like to choose your own compiler or compiler flags, it is easily 
+done by changing the appropriate variables during the configuration process. 
+CMake provides extensive documentation about these issues and we recommend 
+browsing online for all the variables that affect CMake's configuration and 
+build process.

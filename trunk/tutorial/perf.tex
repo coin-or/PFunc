@@ -1,0 +1,47 @@
+\section{Performance profiling}
+\label{sec:perf}
+
+PFunc is fully integrated with the Performance Application Programming
+Interface (PAPI), thereby allowing users to profile their
+applications with ease. PAPI was chosen due to its wide availability and
+portability across many hardware platforms. Profiling is handled mainly through
+the \code{taskmgr} type. Users can specify the events (both PAPI presets and
+native) that they wish to monitor when initializing objects of the
+\code{taskmgr} type. Consider the sample code given below:
+
+\begin{lstlisting}
+typedef pfunc::generator<cilkS, /* scheduling policy */
+                         pfunc::use_default, /* compare */
+                         pfunc::use_default> my_pfunc; /*function object*/
+
+enum {nthds=2,
+      nevents=2
+};
+
+struct my_perf_data: pfunc::perf_data {
+  perf_data::event_value_type storage[nthds][nevents];
+  int events[nevents];
+
+  my_perf_data () {
+    events[0] = PAPI_L1_DCA; 
+    events[1]= PAPI_L1_DCM;
+  }
+
+  int get_num_events () const { return nevents; }
+
+  int* get_events () const { return events; }
+
+  perf_data::event_value_type** get_event_storage () const {
+    return storage; 
+  }
+};
+
+my_perf_data perf;
+my_pfunc::taskmgr cilk_tmanager (/*nqueues*/, /*nthreads_per_queue*/, perf);
+\end{lstlisting}
+
+In this example, we utilize PFunc to measure L1 data cache behavior. We
+derive from \code{perf\_data} to communicate the required
+measurements to PFunc. PFunc stores the requested event values in
+\code{my\_perf\_data} and these values can subsequently be used for performance
+tuning.

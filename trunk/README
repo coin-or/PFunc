@@ -1,0 +1,47 @@
+GENERAL INFORMATION:
+--------------------
+PFunc, short for Parallel Functions, is a lightweight and portable library that
+provides C and C++ APIs to express task parallelism on shared memory machines.
+Some of highlights of PFunc are:
+
+- Custom Priorities for tasks.
+- Custom Scheduling for tasks.
+- Task Groups for collective communication.  
+- Nested Parallelism
+- Generic 
+- Open Source
+
+Being designed using generic programming principles, PFunc allows users to
+customize their run at compile-time without any performance penalties.  
+
+For bug reports, feature requests and support, please directly contact 
+Prabhanjan "Anju" Kambadur at pkambadu@osl.iu.edu.
+
+AUTHORS:
+--------
+Prabhanjan Kambadur <pkambadu@osl.iu.edu>
+Anshul Gupta <anshul@us.ibm.com>
+
+DEPENDENCE ON 3rd PARTY SOFTWARE:
+---------------------------------
+1. Library Building - > CMake version 2.6.
+2. Documentation ->
+  a) doxygen
+  b) latex
+  c) dvips
+  d) ps2pdf
+  e) perl
+  f) makeindex
+
+LICENSE:
+--------
+Copyright 2008,2009 International Business Machines and Indiana University
+Research and Technology Corporation Licensed under the ECLIPSE PUBLIC LICENSE,
+Version 1.0 (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at
+http://www.eclipse.org/legal/epl-v10.html. A copy of this LICENSE is provided
+in the "LICENSE" file along with the software. Unless required by applicable
+law or agreed to in writing, software distributed under the License is
+distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied. See the License for the specific language governing
+permissions and limitations under the License.
