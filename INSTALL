@@ -21,7 +21,7 @@ CMake version 2.6 or later.
 PFunc has been tested on the following platforms:
  a) OS X 10.5 or later.
  b) Linux Kernel version 2.6 or later.
- c) Windows XP professional with SP2.
+ c) Windows XP professional with SP3.
  d) AIX 5.3 or later.
 
 3) Compilers:
@@ -31,7 +31,7 @@ most C++ compilers. However, because as PFunc makes heavy use of templates,
 it is recommended to get the latest C++ compilers. The following compilers 
 are known to work:
  a) GCC v 3.4.6 or later.
- b) Visual Studio 8.0.
+ b) Visual Studio Express 10.0.
 
 4) Hardware:
 ------------
@@ -79,14 +79,18 @@ Given below is a list of the most important options.
     option is turned on. Enabling this builds the examples that are provided
     with the distribution.
 
- d) BUILD_TUTORIAL: The available choices are "ON" or "OFF". By default, this
+ d) BUILD_PERF_TESTS: The available choices are "ON" or "OFF". By default, this
+    option is turned off. Enabling this builds the performance tests that are 
+    provided with the distribution.
+
+ e) BUILD_TUTORIAL: The available choices are "ON" or "OFF". By default, this
     option is turned OFF. Enabling this builds the PFunc tutorial.
 
- e) BUILD_DOCS: The available choices are "ON" or "OFF". By default,
+ f) BUILD_DOCS: The available choices are "ON" or "OFF". By default,
     this option is turned OFF. Enabling this option builds in-code 
     documentation. "Doxygen" is needed in-order to build PFunc's docs.
 
- f) BUILD_PAPERS: The available choices are "ON" or "OFF". By default, this 
+ g) BUILD_PAPERS: The available choices are "ON" or "OFF". By default, this 
     option is turned off.
 
 Basic Installation:
@@ -122,10 +126,11 @@ instructions for PFunc on Linux/OS X/AIX:
       vi) "install" -> installs the targets to the selected prefix.
       vii) "uninstall" -> does the obvious.
       viii) "examples" -> builds examples if BUILD_EXAMPLES was ON.
+      ix) "perf_tests" -> builds performance tests if BUILD_PERF_TESTS was ON.
 
-  e) #make <target-name>
+  e) #make <target-name> (on Windows, use "nmake" or Visual Studio)
     
-     At this stage, we can build any of the targets mentioned in (e).
+     At this stage, we can build any of the targets mentioned in (d).
 
 Running examples:
 -----------------
