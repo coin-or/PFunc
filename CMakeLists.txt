@@ -6,12 +6,12 @@ include (FindLATEX)
 include (FindPerl)
 
 # Set the source files for the pfunc
-set (DAG_SOURCES
+set (PFUNC_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/refs.bib 
     ${CMAKE_CURRENT_SOURCE_DIR}/pfunc.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/pfunc-defs.tex)
 
-set (DAG_CLEAN
+set (PFUNC_CLEAN
     ${CMAKE_CURRENT_BINARY_DIR}/error
     ${CMAKE_CURRENT_BINARY_DIR}/pfunc-defs.aux
     ${CMAKE_CURRENT_BINARY_DIR}/pfunc.aux
@@ -23,11 +23,7 @@ set (DAG_CLEAN
     ${CMAKE_CURRENT_BINARY_DIR}/pfunc.pdf)
 
 # Set the fig files for the pfunc 
-set (DAG_FIGS
-    ${CMAKE_CURRENT_SOURCE_DIR}/dagresults/dag_memory.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/dagresults/dag_speedup.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/cgresults/cg_8.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/fimresults/fim_8.eps)
+set (PFUNC_FIGS )
 
 # Print out all the things that were found
 if (LATEX_COMPILER AND BIBTEX_COMPILER AND 
@@ -42,11 +38,7 @@ if (LATEX_COMPILER AND BIBTEX_COMPILER AND
   # pfunc getting built 
   add_custom_command (
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/pfunc.pdf
-    DEPENDS ${DAG_SOURCES} ${DAG_FIGS}
-    COMMAND ${PERL_EXECUTABLE}
-    ARGS ${COPY_TEX_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR} 
-                             ${CMAKE_CURRENT_BINARY_DIR}
-                             cgresults dagresults fimresults figs
+    DEPENDS ${PFUNC_SOURCES} ${PFUNC_FIGS}
     COMMAND ${PERL_EXECUTABLE}
     ARGS ${TEX_TO_DVI}
             ${LATEX_COMPILER} ${BIBTEX_COMPILER} 
@@ -58,12 +50,12 @@ if (LATEX_COMPILER AND BIBTEX_COMPILER AND
     ARGS ${CMAKE_CURRENT_BINARY_DIR}/pfunc.ps)
 
   # Now, add a custom target
-  add_custom_target (sc ALL 
+  add_custom_target (edupar ALL 
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/pfunc.pdf)
 
   # Now, add the clean files
-  add_custom_target (sc_clean
-    ${CMAKE_COMMAND} -E remove -f ${DAG_CLEAN})
+  add_custom_target (edupar_clean
+    ${CMAKE_COMMAND} -E remove -f ${PFUNC_CLEAN})
 
 else (LATEX_COMPILER AND BIBTEX_COMPILER AND 
         DVIPS_CONVERTER AND PS2PDF_CONVERTER AND PERL_FOUND)

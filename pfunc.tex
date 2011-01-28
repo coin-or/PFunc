@@ -8,26 +8,18 @@
 % --- Author Metadata here ---
 \conferenceinfo{SC}{'09 Portland, Oregon USA}
 
-\title{PFunc: Modern Task Parallelism For Modern High Performance Computing}
+\title{PFunc: A Vehicle For Learning Shared-memory Task Parallelism}
 
-\numberofauthors{5} 
+\numberofauthors{2} 
 
 \author{
 % 1st. author
-\alignauthor Prabhanjan Kambadur\\ \affaddr{Indiana University}\\
-\email{pkambadu@osl.iu.edu}
+\alignauthor Prabhanjan Kambadur\\ \affaddr{IBM T J Watson Research Center}\\
+\email{pkambadu@us.ibm.com}
 % 2nd. author
 \alignauthor Anshul Gupta\\ \affaddr{IBM T J Watson Research Center}\\
 \email{anshul@us.ibm.com}
-% 3rd. author
-\alignauthor Amol Ghoting\\ \affaddr{IBM T J Watson Research Center}\\
-\email{aghoting@us.ibm.com} \and  % use '\and' if you need 'another row' of
-% 4th. author
-\alignauthor Haim Avron\\ \affaddr{Tel-Aviv University}\\
-\email{haima@post.tau.ac.il}
-% 5th. author
-\alignauthor Andrew Lumsdaine\\ \affaddr{Indiana University}\\
-\email{lums@osl.iu.edu} }
+}
 
 \maketitle
 
@@ -215,20 +207,13 @@ futures.
 \section{Shortcomings of current solutions for task parallelism}
 \label{sec:shortcomings}
 % Demand-driven DAG Scheduling
-\begin{figure}[t] 
-\centering 
-\includegraphics[width=0.08\textwidth]{figs/dag}
-\caption{A simple DAG that cannot be directly parallelized using
-the existing solutions for task parallelism.} 
-\label{fig:dag} 
-\end{figure}
 
 In this section, we highlight some of the common shortcomings of the popular
 solutions for task parallelism available today.  Current solutions for task
 parallelism implement variations of the \textit{strict} computation
 model~\cite{Blumofe94}, in which each task returns to exactly one ancestor.
 Consequently, the overall task spawn structure in these solutions is a tree.
-For example, consider the DAG in Figure~\ref{fig:dag} where the tasks A and B
+For example, consider the DAG in Figure where the tasks A and B
 must wait on task C to complete before they can continue their execution. This
 simple DAG cannot be directly parallelized using any current task parallel
 solution.  Support for multiple completion notifications is necessary to
@@ -247,7 +232,7 @@ of these algorithms is a challenging
 prospect for the best of programmers.
 %
 Consider the sample execution of a level-wise frequent pattern mining algorithm
-shown in Figure~\ref{fig:fim}. At each level, tasks that represent itemsets to
+shown in Figure. At each level, tasks that represent itemsets to
 be mined are executed. Itemsets (and hence, tasks) to be mined at the next
 level are generated \textit{only} after all the results from the previous
 level are gathered (that is, there is no opportunity for recursion). In such
@@ -274,14 +259,6 @@ provides users the tools to customize task scheduling, it has
 meaningful defaults that allow them to be completely
 oblivious to the scheduling details.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.30\textwidth]{figs/itemset}
-\caption{A frequent pattern mining algorithm that can not be efficiently
-parallelized by the existing task parallel implementations.}
-\label{fig:fim}
-\end{figure}
- 
 % Iterative sparse solver
 Many parallel algorithms are best expressed in the SPMD model where groups of
 cooperating tasks alternate between communication and computation to solve a
@@ -325,15 +302,6 @@ affinities (see Section~\ref{sec:affinities}).
 %    - This is important to point out that we are a superset of TBB and Cilk
 %      and OpenMP.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.90\textwidth]{figs/pfunc}
-\caption{Feature diagram of the PFunc library showing the various features.
-The features colored grey (scheduling policy, function object, compare and
-priority) are generated based on user input.}
-\label{fig:pfunc}
-\end{figure*}
-
 PFunc, short for Parallel Functions, is a lightweight and portable library that
 provides C and \Cpp{} APIs to express task parallelism. The features offered by
 PFunc are a strict superset of the features offered by current solutions for
@@ -357,13 +325,13 @@ PFunc is a two step process. First, users generate a customized library
 instance description that best suits their needs using PFunc's \code{generator}
 interface. Second, the generated library instance description is used to
 parallelize user applications. A feature diagram of PFunc is shown in
-Figure~\ref{fig:pfunc}. The shaded blocks represent features that
+Figure. The shaded blocks represent features that
 can be customized and are described below.
 \begin{list}{\labelitemi}{\leftmargin=1em}
 % Scheduling policy
 \item \textbf{Scheduling policy:}
 The value provided to this feature determines the scheduling policy that is
-used in the generated library instance description.  Figure~\ref{fig:pfunc}
+used in the generated library instance description.  Figure
 enumerates all the built-in values that can be provided for this feature.
 PFunc's users can also define custom scheduling polices and use them as the
 value of this feature at instance generation time.
@@ -426,7 +394,7 @@ Finally, objects of type \code{taskmgr} manage threads and their task
 queues, and are responsible for task scheduling. 
 
 % Fibonacci
-Figure~\ref{fig:hello_world} demonstrates how computation of Fibonacci numbers
+Figure demonstrates how computation of Fibonacci numbers
 can be parallelized using PFunc. When the Fibonacci number that needs to be
 calculated is a non-base case ($N\ge2$), two new tasks are spawned (using
 \func{spawn}) to calculate the $(N-1)^{st}$ and $(N-2)^{nd}$ Fibonacci numbers.
@@ -668,43 +636,12 @@ applications with ease. PAPI was chosen due to its wide availability and
 portability across many hardware platforms. Profiling is handled mainly through
 the \code{taskmgr} type. Users can specify the events (both PAPI presents and
 native) that they wish to monitor when initializing objects of the
-\code{taskmgr} type. Consider the sample code given in Figure~\ref{fig:perf}.
+\code{taskmgr} type. Consider the sample code given in Figure.
 In this example, we utilize PFunc to measure L1 data cache behavior. We
 derive from \code{perf\_data} to communicate the required
 measurements to PFunc. PFunc stores the requested event values in
 \code{my\_perf\_data} and these values can subsequently be used for performance
 tuning.
-
-\begin{figure}[t]
-\centering
-\begin{lstlisting}[frame=trbl]
-enum {nthds=2,nevents=2};
-@\halfline@
-struct my_perf_data: pfunc::perf_data {
-  perf_data::event_value_type storage[nthds][nevents];
-  int events[nevents];
-@\halfline@
-  my_perf_data () {
-    events[0] = PAPI_L1_DCA; 
-    events[1]= PAPI_L1_DCM;}
-  }
-@\halfline@
-  int get_num_events () const { return nevents; }
-@\halfline@
-  int* get_events () const { return events; }
-@\halfline@
-  perf_data::event_value_type** get_event_storage () const {
-    return storage; 
-  }
-}
-@\halfline@
-my_perf_data perf;
-taskmgr my_taskmgr (/*nqueues*/, /*nthreads_per_queue*/, perf);
-\end{lstlisting}
-\caption{A code segment that uses PFunc's integration with PAPI to measure its
-L1 cache behavior.}
-\label{fig:perf}
-\end{figure}
 
 \section{Case Studies}
 \label{sec:cases}
@@ -795,49 +732,6 @@ Parallelizing the demand-driven execution of DAGs using PFunc is
 straight-forward as PFunc supports multiple task completion notifications(see
 Section~\ref{sec:completions}). 
 
-\paragraph{Experimental results}
-\begin{figure}[t]
-\includegraphics[width=0.5\textwidth]{dagresults/dag_speedup}
-\caption{Performance of various DAG execution implementations relative to Cilk
-when using 8 threads.}
-\label{fig:dag_speedup}
-\end{figure}
-
-\begin{figure}[t]
-\includegraphics[width=0.5\textwidth]{dagresults/dag_memory}
-\caption{Peak memory consumption of various DAG execution implementations 
-relative to Cilk when using 8 threads.}
-\label{fig:dag_memory}
-\end{figure}
-
-To benchmark the performance of the sparse unsymmetric multifrontal algorithm
-for LU factorization using the demand-driven model, we implemented the
-data-driven model using Cilk, OpenMP and TBB. PFunc was used to parallelize
-the demand-driven model.  For the Cilk implementation, we used the Cilk 5.4.6
-compiler.  The TBB implementation used the GCC 4.3.2 compiler with TBB 2.1.
-PFunc implementations were also compiled with GCC 4.3.2. Because of its
-excellent support for tasks, we used Sun CC 5.10 for the OpenMP
-implementation. 
-%
-The tests were run on a dual Intel Xeon x5365 processor using Linux 2.6.27. The
-benchmarks were run on matrices from the University of Florida Sparse Matrix
-Collection~\cite{davissparse}.
-
-% Explain the results
-Figure~\ref{fig:dag_memory} shows the peak memory consumption of the data- and
-demand-driven implementations with 8 threads relative to Cilk.  We see that the
-memory consumption for the demand-driven execution is lower than that of the
-data-driven implementations on average.  Figure~\ref{fig:dag_speedup} shows the
-application runtimes of the data- and demand-driven implementations with 8
-threads relative to Cilk.  We see that demand-driven execution performs
-comparably to other data-driven execution schemes. Some variance exists among
-the data-driven model implementations due to the differences in the
-implementations of the task parallel solutions themselves. 
-% Conclude
-When taken in tandem, Figures~\ref{fig:dag_speedup} and~\ref{fig:dag_memory}
-allows us to conclude that the demand-driven model shows promise to decrease
-the memory requirements of many sparse matrix computations without losing
-performance in comparison to the data-driven execution model. 
 
 \subsection{Frequent pattern mining}
 \label{sec:fim}
@@ -911,84 +805,6 @@ through the use of a hash function that places itemsets with common prefixes in
 the same bucket.  Also, task stealing is customized by stealing clusters of
 tasks rather than individual tasks. This modification decreases the number of
 task steals and exploits data locality among stolen tasks.
-
-\paragraph{Experimental results}
-\begin{figure}[t]
-\includegraphics[width=0.5\textwidth]{fimresults/fim_8}
-\caption{Graph showing the runtimes (normalized to Cilk-style) of different
-datasets when using the Cilk-style and Clustered task scheduling policies in
-our Apriori-based frequent pattern mining implementation with 8 threads.
-Support for each of the datasets is given in Table~\ref{tbl:fim8}.}
-\label{fig:fim8}
-\end{figure}
-
-\begin{table*}
-\centering
-\begin{tabular}{|c|c|c|c|c|c|c|c|}  \hline
-
-\multirow{2}{*}{Dataset} & 
-\multirow{2}{*}{Support} & 
-\multicolumn{2}{|c|}{Instructions per cycle} &
-\multicolumn{2}{|c|}{DTLB L1 miss and L2 hit rate} &
-\multicolumn{2}{|c|}{DTLB L1 miss and L2 miss rate} \\ \cline{3-8}
-& & Cilk-style & Clustered & 
-Cilk-style & Clustered & 
-Cilk-style & Clustered \\ 
-\hline
-accidents & 0.25 &  0.595689 & 0.603959 &
-0.000048 & 0.000046 & 0.000161 & 0.000110\\ \hline
-chess & 0.6 & 0.560538 & 0.668965 & 
-0.000797 & 0.000242 & 0.001006 & 0.000032\\ \hline
-connect & 0.8 & 0.543099 & 0.809308 & 
-0.000249 & 0.000112 & 0.001204 & 0.000141\\ \hline
-kosarak & 0.0013 & 0.692103 & 0.717599 & 
-0.000400 & 0.000185 & 0.000659 & 0.000123\\ \hline
-pumsb & 0.75 & 0.494539 & 0.719072 & 
-0.000230 & 0.000114 & 0.001276 & 0.000126\\ \hline
-pumsb\_star & 0.3 & 0.527659 & 0.698358 & 
-0.000315 & 0.000145 & 0.001082 & 0.000113\\ \hline
-mushroom & 0.10 & 0.570390 & 0.705003 & 
-0.000477 &  0.000267 & 0.000950 &0.000022\\ \hline
-T40I10D100K & 0.005 & 0.627272 & 0.727288 &
-0.000368 & 0.000305 & 0.000900 & 0.000021\\ \hline
-T10I4D100K & 0.00006 & 0.555330 & 0.716282 &
-0.000218 & 0.000144 & 0.000876 & 0.000044 \\ \hline
-\end{tabular}
-\caption{Instructions per cycle, L1 data TLB misses and L2 data TLB misses when
-using the Cilk-style and Clustered task scheduling policies in our
-Apriori-based frequent pattern mining implementation with 8 threads for
-different datasets.}
-\label{tbl:fim8}
-\end{table*}
-
-To experimentally evaluate the benefits of our clustered scheduling policy, we
-implemented an Apriori-based frequent pattern application using PFunc and ran
-it with both the clustered and the Cilk-style scheduling policies. The
-scheduling was selected at compile time using methods described in
-Section~\ref{sec:design} and therefore, the frequent pattern mining code itself
-required very little modification.  We ran our experiments on a four socket,
-quad-core (total 16 cores) AMD 8356 processor running Linux Kernel 2.6.24.  For
-compilation, we used GCC 4.3.2 with: ``-O3 -fomit-frame-pointer
--funroll-loops''. To collect hardware metrics, we used PFunc's integration with
-PAPI.  The benchmarks were run on data sets from the FIMI
-repository~\cite{bart:2004}.
-
-Figure~\ref{fig:fim8} contrasts the runtimes of our Apriori-based frequent
-pattern mining implementation for the various data sets with the two scheduling
-policies. The results shown are averages after $5$ runs. As can be seen, the
-clustered scheduling policy runs significantly faster (more than $50\%$ for
-most of the data sets. Only the \code{accidents.dat} data set performs
-similarly with both the scheduling policies. To test our hypothesis that our
-clustered scheduling policy exploits data locality better than the Cilk-style
-policy, we collected various performance measures. Table~\ref{tbl:fim8}
-summarizes some of the important metrics. Our clustered scheduling policy
-delivers more instructions per clock cycle than the Cilk-style scheduling
-policy for all data sets. Also, our clustered scheduling policy incurs far
-fewer lower L2 data TLB misses than the Cilk-style scheduling policy. When
-results from Figure~\ref{fig:fim8} and Table~\ref{tbl:fim8} are taken together,
-we can conclude that the clustered scheduling policy exploits data locality
-much better than the Cilk-style scheduling policy for our Apriori-based
-frequent pattern mining implementation.
 
 \subsection{Iterative sparse solvers}
 \label{sec:cg}
@@ -1079,40 +895,6 @@ stealing barrier (Section~\ref{sec:groups}), which enables the threads
 executing these tasks to temporarily relinquish them and execute the tasks
 spawned from the task-parallel solve function.  All tasks return to the barrier
 upon the completion of the solve.
-
-\paragraph{Experimental results}
-To study the effect of the model of parallelism used in parallelizing the CG
-iterative sparse solver (unpreconditioned), we implemented three different
-parallel solutions. The first solution was purely SPMD and was implemented with
-the aid of OpenMP's \code{parallel} and \code{barrier} constructs. The second
-solution was that of PFunc's task groups, which synchronized with each other
-using the task-level barrier construct.  The third solution was a purely
-task-based SPMD-spirited solution implemented in Cilk.  The tests were run on a
-four socket, quad-core AMD 8356 processor running Linux Kernel 2.6.24.  For the
-OpenMP and PFunc versions, we used the GCC 4.3.2 compiler. For the Cilk model,
-we used Cilk 5.4.6. The following compilation flags were used: "-O3
--fomit-frame-pointer -funroll-loops -fschedule-insns2".  For benchmarking, we
-used matrices from the University of Florida collection~\cite{davissparse}.
-
-\begin{figure}[t]
-\includegraphics[width=0.5\textwidth]{cgresults/cg_8}
-\caption{Execution times (normalized to Cilk) of Cilk, OpenMP and PFunc
-implementations of CG for different sparse matrices with 8 threads.}
-\label{fig:cg8}
-\end{figure}
-
-Figure~\ref{fig:cg8} shows the runtimes of the three implementations of the
-unpreconditioned CG method normalized to the Cilk runtime with 8 threads. 
-For the sake of perusal of the variations in the runtimes of the three
-implementations, the y-axis in Figure~\ref{fig:cg8} has been started at $60\%$.
-For most of the benchmark matrices, the OpenMP and the PFunc implementations
-perform better than the Cilk implementation by at least $10\%$. In fact, for
-the \code{audi\_kw1} and \code{ldoor} matrices, the performance difference is
-significantly higher ($28\%$ and $50\%$ respectively). Our experiments lead to
-two conclusions: first, that the model of task parallelism chosen for
-parallelization has an impact on the performance of the iterative sparse
-solvers and second, the SPMD model of parallelism can be elegantly incorporated
-into the task parallel model with no performance penalties.
 
 \section{Conclusions}
 \label{sec:conclusion}
