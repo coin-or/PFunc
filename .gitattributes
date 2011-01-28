@@ -1,15 +1,7 @@
 * text=auto !eol
 /CMakeLists.txt -text
-cplex-present/Makefile -text
-cplex-present/figs/cg_8.eps -text
-cplex-present/figs/dag_memory.eps -text
-cplex-present/figs/dag_speedup.eps -text
-cplex-present/figs/fim_8.eps -text
-cplex-present/presentation.tex -text
 /pfunc-defs.tex -text
 /pfunc.tex -text
 /refs.bib -text
-sc-present/16-9-osl-template.potx -text
-sc-present/sc-present.pptx -text
 /sig-alternate.cls -text
 /template.txt -text
