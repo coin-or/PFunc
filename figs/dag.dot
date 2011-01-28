@@ -1,4 +1,0 @@
-digraph dag {
-  A->C;
-  B->C;
-}
