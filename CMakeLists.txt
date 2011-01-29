@@ -9,6 +9,7 @@ include (FindPerl)
 set (PFUNC_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/refs.bib 
     ${CMAKE_CURRENT_SOURCE_DIR}/pfunc.tex 
+    ${CMAKE_CURRENT_SOURCE_DIR}/squeeze.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/pfunc-defs.tex)
 
 set (PFUNC_CLEAN

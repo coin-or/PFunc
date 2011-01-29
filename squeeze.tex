@@ -1,0 +1,68 @@
+\makeatletter
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-2.0ex \@plus -1ex \@minus -.2ex}%
+                                   {1.0ex \@plus.2ex}%
+                                   {\normalfont\large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-1.5ex\@plus -1ex \@minus -.2ex}%
+                                     {0.75ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-1.25ex\@plus -1ex \@minus -.2ex}%
+                                     {0.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                    {0.75ex \@plus1ex \@minus.2ex}%
+                                    {-0.66em}%
+                                    {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+                                       {2.25ex \@plus1ex \@minus .2ex}%
+                                       {-1em}%
+                                      {\normalfont\normalsize\bfseries}}
+
+\def\@listi{\leftmargin\leftmargini
+            \parsep 1.0\p@ \@plus\p@ \@minus\p@
+            \topsep 1.25\p@ \@plus2\p@ \@minus2\p@
+            \itemsep1.0\p@ \@plus\p@ \@minus\p@}
+\let\@listI\@listi
+\@listi
+\def\@listii {\leftmargin\leftmarginii
+              \labelwidth\leftmarginii
+              \advance\labelwidth-\labelsep
+              \topsep    2.0\p@ \@plus2\p@ \@minus\p@
+              \parsep    1.5\p@   \@plus\p@  \@minus\p@
+              \itemsep   \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep
+              \topsep    1\p@ \@plus\p@\@minus\p@
+              \parsep    \z@
+              \partopsep \p@ \@plus\z@ \@minus\p@
+              \itemsep   \topsep}
+
+% \setlength\abovecaptionskip{10\p@}
+%\setlength\belowcaptionskip{0\p@}
+\setlength\abovecaptionskip{8\p@}
+\setlength\belowcaptionskip{-16\p@}
+
+%% \def\@maketitle{%
+%%   \newpage
+%%   \null
+%%   \vskip -2.5em%
+%%   \begin{center}%
+%%   \let \footnote \thanks
+%%   \vskip -2.5em%
+%%     {\LARGE \@title \par}%
+%%     \vskip 1.0em%
+%%     {\large
+%%       \lineskip .5em%
+%%       \begin{tabular}[t]{c}%
+%%         \@author
+%%       \end{tabular}\par}%
+%%     \vskip 0.5em%
+%%     {\large \@date}%
+%%   \end{center}%
+%%   \par
+%%   \vskip 1.0em}
+
+\makeatother
