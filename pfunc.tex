@@ -37,7 +37,7 @@ tool for learning both basic and advanced topics in parallel programming.
 \end{abstract}
 
 \section{Introduction}
-% The importance of hands-on parallel programming instructions
+% The importance of teaching hands-on parallel programming.
 \begin{center}
 \small{\textit{``I hear, I know. I see, I remember. I do, I understand.'' -
 Confucius.}}
@@ -63,8 +63,7 @@ Task parallel programming environments can be broadly classified into three
 kinds: languages, language extensions and pragmas, and libraries.
 % Languages
 Many modern programming languages offer direct support for task parallelism
-(eg., Chapel~\cite{Chamberlain:2007p1040}, Fortress~\cite{fortress}, and
-X10~\cite{Charles:2005p1232}).
+(eg., X10~\cite{Charles:2005p1232}).
 %
 However, these new languages are not well suited for learning parallel
 programming as they hide the machinery necessary for realizing task
@@ -180,13 +179,31 @@ Hence, PFunc can also be used for teaching advanced topics in parallel
 programming such as task scheduling, work-stealing, and performance tuning. 
 
 %
-% Write about TBB, TPL, PPL, and Boost Task --- why each of them is not 
-% uniquely suited for our purposes.
+% Write about TBB, TPL, PPL, and Apple's Grand Central Dispatch --- why each of
+% them is not uniquely suited for our purposes.
 %
 \section{Related Work}
+Apart from PFunc, there are several libraries that provide support for task 
+parallelism.
+%
+Apple's Grand Central Dispatch~\cite{kn:gcd} (GCD) provides APIs for task
+parallelism, but it is non-portable (requires OSX 10.6+ or FreeBSD 8.1+) and
+does not lend itself to experimentation.
+%
+Microsoft's Task Parallel Library~\cite{kn:tpl} (TPL), suffers from drawbacks
+similar to that of GCD; in addition, it is also not an open-source software.
+%
+Intel's Threading Building Blocks~\cite{kn:tbb} (TBB) is an elegantly crafted,
+portable library for task parallelism.
+%
+TBB is released under a commercial-aligned open source license that makes it
+available free-of-cost for teaching purposes.
+%
+However, like TPL and GCD, TBB does not allow for experimentation; also, its 
+license does not allow advanced users to pursue funded research.
 
-\tiny
-\bibliographystyle{plain}
+\footnotesize
+\bibliographystyle{abbrv}
 \bibliography{refs}
 
 \end{document}
