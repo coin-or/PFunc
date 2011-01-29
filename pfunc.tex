@@ -29,7 +29,7 @@ irregular applications.
 %
 \end{abstract}
 
-\section{Introduction}
+\section{Discussion}
 % The importance of hands-on parallel programming instructions
 Confucius, the great Chinese philosopher, is credited with saying ``I hear,
 I know. I see, I remember. I do, I understand''.
@@ -104,53 +104,79 @@ behavior.
 %    BLAS, select NAS parallel benchmarks, simple examples).
 % 7. Actively supported.
 %
-
-
-
-However, current solutions for task
-parallelism do not provide all the necessary features required for the
-efficient parallelization of modern scientific computing, informatics, and
-traditionally mainstream serial applications.  Execution parameters such as
-task scheduling and task affinities are not exposed to the users. This
-disallows user-driven customizations that are often critical to attaining good
-application performance. Furthermore, lack of features such as task groups,
-task priorities, and multiple task completion notifications prevents natural
-expression of a wide variety of parallel algorithms including those normally
-expressed in the SPMD model. Instead, users are forced to express their
-algorithms in a manner that is less natural but more conducive to
-parallelization by the parallel programming tool in use.
-
-
 \section{PFunc}
 \label{sec:pfunc}
-%  - Give people a flavor of whats going on.
-%    - Task parallel library
-%    - Hello world -- fibonacci
-%  - What is significantly different. describe only those features
-%    that are different.
-%    - One or two inlined calls that depict how to utilize the feature.
-%  - Describe all the features for completeness.
-%    - This is important to point out that we are a superset of TBB and Cilk
-%      and OpenMP.
+PFunc~\cite{kambadur09:pfunc}, short for Parallel Functions, is a library for
+task parallelism in C/\Cpp{} that has been designed not only as a fast library
+for practitioners, but also as a pedantic tool for writing parallel programs
+with ease and flexibility.
+%
+PFunc is particularly well suited for the classroom as it not only permits, but
+encourages experimentation.
+%
+The features offered by PFunc are a strict superset of the features offered by
+other solutions (languages, language extensions, and libraries) for task
+parallelism.
 
-PFunc, short for Parallel Functions, is a lightweight and portable library that
-provides C and \Cpp{} APIs to express task parallelism. The features offered by
-PFunc are a strict superset of the features offered by current solutions for
-task parallelism.  Specifically, PFunc extends the feature set of current
-solutions with custom task scheduling, task priorities and task affinities.
-Furthermore, PFunc offers task groups for SPMD-style programming and multiple
-task completion notifications for parallel execution of DAGs.  PFunc's extended
-feature set is geared towards helping knowledgeable users optimize their
-application performance. In this section, we describe PFunc with an emphasis on
-its new features.  Due to space constraints, all the code samples given in this
-section are in \Cpp{}. All the functionality described in this section is also
-available through PFunc's C interface.
+%
+% Practical aspects. For beginners.
+%
+PFunc is an open-source software that has been released under the BSD-style
+Eclipse Public License-v1.0.~\footnote{\texttt
+http://www.eclipse.org/legal/epl-v10.html}
+%
+PFunc runs \textit{natively} on Windows, OSX, Linux, and AIX (x86 and
+PowerPC chips) with any standards compliant C/\Cpp{} compiler; that is, PFunc
+can be freely installed and used on a vast majority of desktops and
+laptops.
+%
+PFunc is stable, well documented, and actively developed with detailed
+tutorials and techincal support available through its
+website.~\footnote{\texttt https://projects.coin-or.org/PFunc.}
+%
+Additional learning/teaching material is available in the form of example
+programs that demonstrate different approaches for using PFunc to achieve the
+same goal and the impact of each approach on performance.
+%
+Furthermore, several high performance programs including DAG scheduling,
+frequent pattern mining, select BLAS kernels, and select NAS parallel
+benchmarks parallelized using PFunc are also freely available.
+%
+To help understand, develop, and debug parallel programs, PFunc provides a
+production-grade exception handling mechanism that operates smoothly across
+thread boundaries.
+%
+Therefore, PFunc is an excellent candidate for teaching task parallelism to 
+undergraduate and graduate students.
 
-PFunc's design is based on the principles of generic and generative
-programming. As a result, PFunc is able to offer a wide variety of
-customizations to its users without incurring any runtime penalties.  
+%
+% For advanced users
+%
+PFunc is geared towards experimentation by allowing users to ``plug-and-play''
+with different task scheduling policies, task priorities, and task affinities.
+%
+Not only can students choose from a wide variety of built-in options (eg.,
+Cilk-style, FIFO, LIFO, and priority-based scheduling), but also implement
+their own custom features with ease.
+%
+Orthogonally, PFunc also allows switching from different degrees of the
+work-sharing model to work-stealing model~\cite{Blumofe94} through its
+initialization API.
+%
+Furthermore, PFunc comes with built-in integration with PAPI~\cite{papi}, an
+open-source API for portable performance characterization of programs on a
+variety of architectures. 
+%
+Hence, PFunc can also be used for teaching advanced topics in parallel
+programming such as task scheduling, work-stealing, and performance tuning. 
 
-\small
+%
+% Write about TBB, TPL, PPL, and Boost Task --- why each of them is not 
+% uniquely suited for our purposes.
+%
+\section{Related Work}
+
+\tiny
 \bibliographystyle{plain}
 \bibliography{refs}
 
