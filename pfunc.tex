@@ -19,14 +19,19 @@ IBM T J Watson Research Center\\
 
 
 \begin{abstract} 
-Task parallelism is a simple, generic model of parallelism in which each 
-program is broken down into indivisible tasks that need to be executed in 
-order for the program to complete.
+Task parallelism is an intuitive and generic model of parallelism, which
+subsumes both the data parallel and SPMD~\cite{darema2001} models, and can be
+used to parallelize both regular and irregular applications.
 %
-This model is very generic and subsumes both the data parallel and
-SPMD~\cite{darema2001} models, and can be used to parallelize both regular and
-irregular applications.
+Therefore, it should be an essential part of undergraduate curriculum whether
+the students are preparing for an industrial or academic careers.
 %
+In this half hour presentation, we showcase PFunc, an open-source library for
+task parallelism that has been designed not only for practitioners, but also as
+a pedantic tool for writing parallel programs with ease and flexibility.
+%
+Specifically, we will focus on those aspects of PFunc that make it an ideal 
+tool for learning both basic and advanced topics in parallel programming.
 \end{abstract}
 
 \section{Discussion}
@@ -157,7 +162,7 @@ with different task scheduling policies, task priorities, and task affinities.
 %
 Not only can students choose from a wide variety of built-in options (eg.,
 Cilk-style, FIFO, LIFO, and priority-based scheduling), but also implement
-their own custom features with ease.
+their own customizations with ease.
 %
 Orthogonally, PFunc also allows switching from different degrees of the
 work-sharing model to work-stealing model~\cite{Blumofe94} through its
