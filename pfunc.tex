@@ -7,15 +7,23 @@
 
 \begin{document}
 
-\title{PFunc: A Vehicle For Learning Shared-memory Task Parallelism}
+\title{PFunc: A Tool for Teaching and Implementing Task Parallelism}
 
+\date{A proposal for a 1/2 hour presentation at EduPar 2011}
+
+\numberofauthors{3}
 \author{
-Prabhanjan Kambadur and Anshul Gupta\\ 
-IBM T J Watson Research Center\\
-{\texttt \{pkambadu,anshul\}@us.ibm.com}
+  \alignauthor Prabhanjan Kambadur\\
+  \affaddr{IBM TJ Watson Research Center}\\
+  \email{pkambadu@us.ibm.com}
+  \alignauthor Anshul Gupta\\
+  \affaddr{IBM TJ Watson Research Center}\\
+  \email{anshul@us.ibm.com}
+  \alignauthor Andrew Lumsdaine\\
+  \affaddr{Open Systems Lab}\\
+  \affaddr{Indiana University}\\
+  \email{lums@osl.iu.edu}
 }
-
-\date{}
 
 \maketitle
 
@@ -25,15 +33,20 @@ Task parallelism is an intuitive and generic model of parallelism, which
 subsumes both the data parallel and SPMD~\cite{darema2001} models, and can be
 used to parallelize both regular and irregular applications.
 %
-Therefore, it should be an essential part of undergraduate curriculum whether
-the students are preparing for an industrial or academic careers.
+%Therefore, it should be an essential part of undergraduate curriculum whether
+Inclusion of task parallelism in a modern undergraduate 
+Computer Science and Engineering curriculum is therefore
+essential, whetherr
+the students are preparing for industrial or academic careers.
 %
-In this half hour presentation, we showcase PFunc, an open-source library for
-task parallelism that has been designed not only for practitioners, but also as
+In this presentation, we showcase PFunc, an open-source library for
+task parallelism that has been designed not only for practitioners, 
+but also as
 a pedantic tool for writing parallel programs with ease and flexibility.
 %
 Specifically, we will focus on those aspects of PFunc that make it an ideal 
-tool for learning both basic and advanced topics in parallel programming.
+tool for hands-on
+learning of both basic and advanced topics in parallel programming.
 \end{abstract}
 
 \section{Introduction}
@@ -43,13 +56,15 @@ tool for learning both basic and advanced topics in parallel programming.
 Confucius.}}
 \end{center}
 %
-Till recently, practice of parallel programming was outside the reach of many 
-classrooms due to the lack of parallel programming platforms.
+Untill recently, 
+the practice of parallel programming was outside the reach of many 
+classrooms, particularly in relatively small colleges
+due to the lack of easy access to parallel programming platforms.
 % 
-However, due to the increasing ubiquity of multi-core CPUs on commodity
+However, due to the ubiquity of multi-core CPUs on commodity
 desktops and laptops, parallel programming can be practiced by one and all.
 % Why teach task parallelism instead of other forms
-Of the available parallel programming models, the task parallel model is is
+Of the available parallel programming models, the task parallel model is 
 sufficiently high-level and generic, thereby enabling it to parallelize regular
 and irregular applications on shared, distributed and heterogeneous
 architectures alike.  
@@ -87,9 +102,12 @@ new languages.
 Libraries written in stock programming languages such as C/\Cpp{} have long 
 been used in both industry and academia for parallelizing applications.
 %
-Well-designed task parallel libraries offer an unique advantage for pedantic
-purposes in that they do not require learning a new language nor do they
-encumber laborious installation procedures.
+Well-designed task parallel libraries can offer significantly more
+flexibility in programming than any other means of realizing
+parallelism.
+%offer a unique advantage for pedantic
+%purposes in that they do not require learning a new language nor do they
+%encumber laborious installation procedures.
 %
 Furthermore, as most of the machinery is written in stock programming
 languages, essential programming tools such as debuggers, performance
@@ -134,8 +152,7 @@ http://www.eclipse.org/legal/epl-v10.html}
 %
 PFunc runs \textit{natively} on Windows, OSX, Linux, and AIX (x86 and
 PowerPC chips) with any standards compliant C/\Cpp{} compiler; that is, PFunc
-can be freely installed and used on a vast majority of desktops and
-laptops.
+can be freely installed and used on any desktop or laptop.
 %
 PFunc is stable, well documented, and actively developed with detailed
 tutorials and techincal support available through its

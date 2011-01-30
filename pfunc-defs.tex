@@ -29,3 +29,41 @@ moredelim=**[is][\color{white}]{~}{~},
 morekeywords={concept,model,require,where,reduction},
 literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}}1,
 }
+
+\newfont{\affaddr}{phvr8t at 10pt}
+\newfont{\eaddfnt}{phvr8t at 12pt}
+\newcount\aucount
+\newcount\originalaucount
+\newdimen\auwidth
+\auwidth=\textwidth
+\newdimen\auskip
+\newcount\auskipcount
+\newdimen\auskip
+\global\auskip=1pc
+\newdimen\allauboxes
+\allauboxes=\auwidth
+\newtoks\addauthors
+\newcount\addauflag
+\global\addauflag=0 %Haven't shown additional authors yet
+
+\newtoks\subtitletext
+\gdef\subtitle#1{\subtitletext={#1}}
+
+\gdef\additionalauthors#1{\addauthors={#1}}
+
+\gdef\numberofauthors#1{\global\aucount=#1
+\ifnum\aucount>3\global\originalaucount=\aucount \global\aucount=3\fi %g}  % 3 OK - Gerry March 2007
+\global\auskipcount=\aucount\global\advance\auskipcount by 1
+\global\multiply\auskipcount by 2
+\global\multiply\auskip by \auskipcount
+\global\advance\auwidth by -\auskip
+\global\divide\auwidth by \aucount}
+
+% \and was modified to count the number of authors.  GKMT 12 Aug 1999
+\def\alignauthor{%                  % \begin{tabular}
+\end{tabular}%
+  \begin{tabular}[t]{p{\auwidth}}\centering}%
+
+%\def\email#1{{{\eaddfnt{\vskip 4pt#1}}}}
+% If we have an email, inside a "shared affiliation" then we need the following instead
+\def\email#1{{{\eaddfnt{\par #1}}}}       % revised  - GM - 11/30/2006
