@@ -27,7 +27,6 @@
 
 \maketitle
 
-
 \begin{abstract} 
 Task parallelism is an intuitive and generic model of parallelism, which
 subsumes both the data parallel and SPMD~\cite{darema2001} models, and can be
@@ -59,13 +58,13 @@ the practice of parallel programming was outside the reach of many
 classrooms, particularly in relatively small colleges
 due to the lack of easy access to parallel programming platforms.
 % 
-However, due to the ubiquity of multi-core CPUs on commodity
-desktops and laptops, parallel programming can be practiced by one and all.
+However, due to the ubiquity of multi-core CPUs on commodity desktops and
+laptops, parallel programming can now be practiced by one and all.
 % Why teach task parallelism instead of other forms
 Of the available parallel programming models, the task parallel model is 
 sufficiently high-level and generic, thereby enabling it to parallelize regular
-and irregular applications on shared, distributed and heterogeneous
-architectures alike.  
+and irregular applications on shared, distributed, and heterogeneous
+architectures.  
 %
 Therefore, it should be an essential part of undergraduate curriculum whether
 the students are preparing for an industrial or academic careers.
@@ -78,21 +77,21 @@ kinds: languages, language extensions and pragmas, and libraries.
 Many modern programming languages offer direct support for task parallelism
 (eg., X10~\cite{Charles:2005p1232}).
 %
-However, these new languages are not well suited for learning parallel
+However, these new languages are not well suited for teaching parallel
 programming as they hide the machinery necessary for realizing task
 parallelism.
 %
 Furthermore, these new languages are not yet used either in the industry or in
-academia --- so, the exercise of learning parallelism through new languages 
+academia --- so, the exercise of teaching parallelism through new languages 
 might be in vain.
 %
-Finally, learning a new language takes focus away from learning parallel
-programming itself and therefore might be counter-productive.
+Finally, forcing students to learn a new language takes focus away from
+teaching parallel programming itself and therefore might be counter-productive.
 % Language extensions
 Language extensions and pragmas such as Cilk~\cite{FrigoLeRa98} and
-OpenMP~\cite{kn:omp_30} that provide task parallelism add only a few new
-``keywords'' to existing stock programming languages, making their adaptation
-(relative to new languages) easier.
+OpenMP~\cite{kn:omp_30} provide task parallelism while adding only a few new
+``keywords'' to existing stock programming languages, which makes their
+adaptation (relative to new languages) easier.
 %
 However, for pedantic purposes, they suffer from many of the shortcomings of
 new languages.
@@ -103,9 +102,6 @@ been used in both industry and academia for parallelizing applications.
 Well-designed task parallel libraries can offer significantly more
 flexibility in programming than any other means of realizing
 parallelism.
-%offer a unique advantage for pedantic
-%purposes in that they do not require learning a new language nor do they
-%encumber laborious installation procedures.
 %
 Furthermore, as most of the machinery is written in stock programming
 languages, essential programming tools such as debuggers, performance
