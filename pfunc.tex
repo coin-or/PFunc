@@ -39,7 +39,7 @@ preparing for industrial or academic careers.
 In this presentation, we showcase PFunc, an open-source library for
 task parallelism that has been designed not only for practitioners, 
 but also as
-a pedantic tool for writing parallel programs with ease and flexibility.
+a pedagogical tool for writing parallel programs with ease and flexibility.
 %
 Specifically, we will focus on those aspects of PFunc that make it an ideal 
 tool for hands-on
@@ -53,10 +53,9 @@ learning of both basic and advanced topics in parallel programming.
 Confucius.}}
 \end{center}
 %
-Untill recently, 
-the practice of parallel programming was outside the reach of many 
-classrooms, particularly in relatively small colleges
-due to the lack of easy access to parallel programming platforms.
+Until recently, the practice of parallel programming was outside the reach of
+many classrooms, particularly in relatively small colleges due to the lack of
+easy access to parallel programming platforms.
 % 
 However, due to the ubiquity of multi-core CPUs on commodity desktops and
 laptops, parallel programming can now be practiced by one and all.
@@ -93,7 +92,7 @@ OpenMP~\cite{kn:omp_30} provide task parallelism while adding only a few new
 ``keywords'' to existing stock programming languages, which makes their
 adaptation (relative to new languages) easier.
 %
-However, for pedantic purposes, they suffer from many of the shortcomings of
+However, for pedagogical purposes, they suffer from many of the shortcomings of
 new languages.
 % Libraries
 Libraries written in stock programming languages such as C/\Cpp{} have long 
@@ -125,10 +124,10 @@ behavior.
 %
 \section{PFunc}
 \label{sec:pfunc}
-PFunc~\cite{kambadur09:pfunc}, short for Parallel Functions, is a library for
-task parallelism in C/\Cpp{} that has been designed not only as a fast library
-for practitioners, but also as a pedantic tool for writing parallel programs
-with ease and flexibility.
+PFunc~\cite{kambadur09:pfunc}, short for Parallel Functions, is a C/\Cpp{}
+library for task parallelism that has been designed both as a
+high-performance, production-grade library for practitioners and as a
+pedagogical tool for writing parallel programs with ease and flexibility.
 %
 PFunc is particularly well suited for the classroom as it not only permits, but
 encourages experimentation.
@@ -170,14 +169,16 @@ undergraduate and graduate students.
 %
 % For advanced users
 %
-PFunc is geared towards experimentation by allowing users to ``plug-and-play''
-with different task scheduling policies, task priorities, and task affinities.
+Like the \Cpp{} Standard Library (SL)~\cite{musser01:_stl_ref_guide}, PFunc is
+a generic library~\cite{Musser:1989:GP}; students can freely experiment with
+different task scheduling policies, priorities, and affinities by plugging in
+the appropriate template parameters at compile time.
 %
-Not only can students choose from a wide variety of built-in options (eg.,
-Cilk-style, FIFO, LIFO, and priority-based scheduling), but also implement
+Not only can students choose from a wide variety of built-in options for these
+parameters (eg., Cilk-style, FIFO, and LIFO scheduling), but also implement
 their own customizations with ease.
 %
-Orthogonally, PFunc also allows switching from different degrees of the
+Orthogonally, PFunc also allows switching between different degrees of the
 work-sharing model to work-stealing model~\cite{Blumofe94} through its
 initialization API.
 %
