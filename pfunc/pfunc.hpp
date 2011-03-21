@@ -402,17 +402,54 @@ namespace pfunc {
   * \param [in,out] grp Group that contains the group of these tasks.
   * \param [in] func The work function to execute
   */
-  template <typename TaskManager, 
-            typename Task, 
-            typename Attribute,
-            typename Functor>
+  template <typename TaskManager>
   static inline void spawn (TaskManager& tmanager,
-                   Task& task,
-                   const Attribute& attr,
-                   group& grp,
-                   Functor& func)  {
+                            typename TaskManager::task& task,
+                            const typename TaskManager::attribute& attr,
+                            group& grp,
+                            typename TaskManager::functor& func)  {
     PFUNC_START_TRY_BLOCK()                                                  
     tmanager.spawn_task (task, attr, grp, func);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+ /**
+  * Spawn the task specified. The specification consists of a task, the 
+  * task attributes, the group the task belongs to and the functor that 
+  * executes the task.
+  *
+  * \param [in] tmanager The task manager that is running the tasks.
+  * \param [out] task Task to the task we are adding.
+  * \param [in] func The work function to execute
+  */
+  template <typename TaskManager>
+  static inline void spawn (TaskManager& tmanager,
+                            typename TaskManager::task& task,
+                            typename TaskManager::functor& func)  {
+    PFUNC_START_TRY_BLOCK()                                                  
+    tmanager.spawn_task (task, func);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+ /**
+  * Spawn the task specified. The specification consists of a task, the 
+  * task attributes, the group the task belongs to and the functor that 
+  * executes the task.
+  *
+  * \param [in] tmanager The task manager that is running the tasks.
+  * \param [out] task Task to the task we are adding.
+  * \param [in] attr Attributes with which to create this job.
+  * \param [in] func The work function to execute
+  */
+  template <typename TaskManager>
+  static inline void spawn (TaskManager& tmanager,
+                            typename TaskManager::task& task,
+                            const typename TaskManager::attribute& attr,
+                            typename TaskManager::functor& func)  {
+    PFUNC_START_TRY_BLOCK()                                                  
+    tmanager.spawn_task (task, attr, func);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -577,6 +614,48 @@ namespace pfunc {
   static inline void barrier ()  {
     PFUNC_START_TRY_BLOCK()
     return ::pfunc::barrier (*global_tmanager);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+ /**
+  * Spawn the task specified. The specification consists of a task, the 
+  * task attributes, the group the task belongs to and the functor that 
+  * executes the task.
+  *
+  * \param [out] task Task to the task we are adding.
+  * \param [in] func The work function to execute
+  */
+  template <typename Task,
+            typename Functor>
+  static inline void spawn (Task& task, Functor& func)  {
+    PFUNC_START_TRY_BLOCK()
+    global_tmanager->spawn_task(reinterpret_cast<void*>(&task), 
+                                reinterpret_cast<void*>(&func));
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+ /**
+  * Spawn the task specified. The specification consists of a task, the 
+  * task attributes, the group the task belongs to and the functor that 
+  * executes the task.
+  *
+  * \param [out] task Task to the task we are adding.
+  * \param [in] attr Attributes with which to create this job.
+  * \param [in] func The work function to execute
+  */
+  template <typename Task, 
+            typename Attribute,
+            typename Functor>
+  static inline void spawn (Task& task,
+                            const Attribute& attr,
+                            Functor& func)  {
+    PFUNC_START_TRY_BLOCK()
+    global_tmanager->spawn_task(reinterpret_cast<void*>(&task), 
+                                reinterpret_cast<void*>(
+                                  &(const_cast<Attribute&>(attr))), 
+                                reinterpret_cast<void*>(&func));
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }

@@ -82,6 +82,10 @@ struct taskmgr : public taskmgr_virtual_base  {
   typedef std::pair<barrier_own_predicate, barrier_steal_predicate> barrier_predicate;
   typedef typename thread::thread_handle_type thread_handle_type;
 
+  /* Default values for attribute and group */
+  const attribute default_attribute; /**< used as default during spawn */
+  group default_group; /**< used as default during spawn */
+
   private: 
   const unsigned int num_queues; /**< Number of task queues to create */
   unsigned int num_threads; /**< Number of work threads to create */
@@ -238,6 +242,49 @@ struct taskmgr : public taskmgr_virtual_base  {
    * executed.
    */ 
   void spawn_task (task& new_task, 
+                   functor& new_work)  {
+    PFUNC_START_TRY_BLOCK()
+    spawn_task (new_task, default_attribute, default_group, new_work);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CATCH_AND_RETHROW(taskmgr,spawn_task)
+  }
+
+  /**
+   * spawn_task
+   *
+   * This function is used to add a C++-style object to the queue.
+   *
+   * \param [in,out] new_task The new task to be added. new_task must have a
+   * lifetime atleast till the wait on this task is complete. No copy is made
+   * as it is expensive.
+   * \param [in] new_attr The attributes that dictate execution of the task.
+   * \param [in] new_group The group to be associated with the handle.
+   * \param [in] new_work The function object that represents the code to be
+   * executed.
+   */ 
+  void spawn_task (task& new_task, 
+                   const attribute& new_attr,
+                   functor& new_work)  {
+    PFUNC_START_TRY_BLOCK()
+    spawn_task (new_task, new_attr, default_group, new_work);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CATCH_AND_RETHROW(taskmgr,spawn_task)
+  }
+
+  /**
+   * spawn_task
+   *
+   * This function is used to add a C++-style object to the queue.
+   *
+   * \param [in,out] new_task The new task to be added. new_task must have a
+   * lifetime atleast till the wait on this task is complete. No copy is made
+   * as it is expensive.
+   * \param [in] new_attr The attributes that dictate execution of the task.
+   * \param [in] new_group The group to be associated with the handle.
+   * \param [in] new_work The function object that represents the code to be
+   * executed.
+   */ 
+  void spawn_task (task& new_task, 
                    const attribute& new_attr, 
                    group& new_group,
                    functor& new_work)  {
@@ -252,6 +299,56 @@ struct taskmgr : public taskmgr_virtual_base  {
       task_queue_number=(thread_manager.tls_get())->get_task_queue_number();
     
     task_queue->put (&new_task, task_queue_number);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CATCH_AND_RETHROW(taskmgr,spawn_task)
+  }
+
+  /**
+   * spawn_task
+   *
+   * This function is used to spawn a new task -- only from the virtual base
+   * class. So, all the pointers are void* and we have to cast them back into
+   * the right type. God save the typesafety in this case.
+   *
+   * \param [in,out] new_task The new task to be added. new_task must have a
+   * lifetime atleast till the wait on this task is complete. No copy is made
+   * as it is expensive.
+   * \param [in] new_work The function object that represents the code to be
+   * executed.
+   */ 
+  void spawn_task (void* new_task, 
+                   void* new_work)  {
+    PFUNC_START_TRY_BLOCK()
+    spawn_task (*(static_cast<task*>(new_task)),
+                default_attribute,
+                default_group,
+                *(static_cast<functor*>(new_work)));
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CATCH_AND_RETHROW(taskmgr,spawn_task)
+  }
+
+  /**
+   * spawn_task
+   *
+   * This function is used to spawn a new task -- only from the virtual base
+   * class. So, all the pointers are void* and we have to cast them back into
+   * the right type. God save the typesafety in this case.
+   *
+   * \param [in,out] new_task The new task to be added. new_task must have a
+   * lifetime atleast till the wait on this task is complete. No copy is made
+   * as it is expensive.
+   * \param [in] new_attr The attributes that dictate execution of the task.
+   * \param [in] new_work The function object that represents the code to be
+   * executed.
+   */ 
+  void spawn_task (void* new_task, 
+                   void* new_attr, 
+                   void* new_work)  {
+    PFUNC_START_TRY_BLOCK()
+    spawn_task (*(static_cast<task*>(new_task)),
+                *(static_cast<attribute*>(new_attr)),
+                default_group,
+                *(static_cast<functor*>(new_work)));
     PFUNC_END_TRY_BLOCK()
     PFUNC_CATCH_AND_RETHROW(taskmgr,spawn_task)
   }
@@ -299,6 +396,9 @@ struct taskmgr : public taskmgr_virtual_base  {
            const virtual_perf_data& perf_data,
 #endif
            const unsigned int** affinity = NULL)  :
+                      default_attribute (true /* is nested */, 
+                                         false /* grouped */),
+                      default_group () /* default constructor */,
                       num_queues (num_queues),
                       num_threads (0),
                       threads_per_queue (NULL),

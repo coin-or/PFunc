@@ -73,6 +73,22 @@ struct taskmgr_virtual_base {
    * Runs the specified task. This function call is type UNSAFE and is used 
    * when global_taskmanager is used. We cannot help it as the derived class
    * of taskmgr_virtual_base class has template arguments. So, we don't know 
+   * the type of the task or the functor.
+   */
+  virtual void spawn_task (void*, void*) = 0;
+
+  /**
+   * Runs the specified task. This function call is type UNSAFE and is used 
+   * when global_taskmanager is used. We cannot help it as the derived class
+   * of taskmgr_virtual_base class has template arguments. So, we don't know 
+   * the type of the task, attribute, or the functor.
+   */
+  virtual void spawn_task (void*, void*, void*) = 0;
+
+  /**
+   * Runs the specified task. This function call is type UNSAFE and is used 
+   * when global_taskmanager is used. We cannot help it as the derived class
+   * of taskmgr_virtual_base class has template arguments. So, we don't know 
    * the type of the task, attribute, group or the functor.
    */
   virtual void spawn_task (void*, void*, void*, void*) = 0;

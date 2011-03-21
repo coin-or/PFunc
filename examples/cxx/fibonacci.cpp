@@ -14,9 +14,6 @@ typedef generator_type::group group;
 typedef generator_type::taskmgr taskmgr;
 typedef generator_type::functor functor;
 
-taskmgr* gbl_taskmgr; 
-group gbl_default_group;
-
 struct fibonacci {
   private:
   const int n;
@@ -38,11 +35,11 @@ struct fibonacci {
       fibonacci fib_n_2 (n-2); 
 
       pfunc::attr_level_set (nested_attr, ~0x0-(n-1));
-      pfunc::spawn (*gbl_taskmgr, tsk, nested_attr, gbl_default_group, fib_n_1);
+      pfunc::spawn (tsk, nested_attr, fib_n_1);
 
       fib_n_2();
 
-      pfunc::wait (*gbl_taskmgr, tsk);
+      pfunc::wait (tsk);
 
       fib_n = fib_n_1.get_number () + fib_n_2.get_number ();
     }
@@ -68,17 +65,16 @@ int main (int argc, char**argv) {
   n = atoi (argv[3]);
  
   double time = micro_time ();
-  gbl_taskmgr = new taskmgr (num_queues, num_threads_per_queue);
+  taskmgr my_taskmgr (num_queues, num_threads_per_queue);
+  pfunc::init (my_taskmgr);
  
   fibonacci fib_n (n); 
  
   task root_task;
-  pfunc::spawn (*gbl_taskmgr,  /** Taskmgr to use */
-                root_task,     /** Task handle */
+  pfunc::spawn (root_task,     /** Task handle */
                 attribute (false), /** Non-nested task */
-                gbl_default_group, /** No use for groups */
                 fib_n); /** The functor */
-  pfunc::wait (*gbl_taskmgr, root_task);
+  pfunc::wait (root_task);
 
   time = micro_time() - time;
  
@@ -89,7 +85,7 @@ int main (int argc, char**argv) {
             << " seconds"
             << std::endl;
 
-  delete gbl_taskmgr;
+  pfunc::clear ();
   delete num_threads_per_queue;
 
   return 0;
