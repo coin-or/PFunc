@@ -24,3 +24,8 @@ Slides:
 (3) Writing and executing a simple program.
 (4) Writing your own scheduler and predicates.
 (5) How to browse the code.
+
+Code:
+-----
+(1) Atomic operations as C++ objects instead of C-style functions for 
+primitive types such as char, short, int, long.
