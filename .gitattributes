@@ -10,6 +10,7 @@ CMake/tex_to_dvi.pl -text
 /LICENSE -text
 /NEWS -text
 /README -text
+/TODO -text
 doc/doxygen.config.in -text
 examples/CMakeLists.txt -text
 examples/Makefile -text

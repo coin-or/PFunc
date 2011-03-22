@@ -1,0 +1,26 @@
+Examples for teaching:
+----------------------
+(1) Parallel for using task parallelism.
+(2) Dense matrix-matrix multiply using recursion (divide-and-conquer).
+(3) NQueens using recursion (divide-and-conquer).
+(4) Fibonacci using recursion (divide-and-conquer).
+(5) Dot-product using SPMD-style work division.
+(6) Frequent itemset mining using Apriori algorithm (candidate generation).
+(7) Demand-driven DAG execution.
+(8) Cholesky factorization.
+(9) Bounded buffer producer-consumer problem.
+(10) Performance monitoring using PAPI.
+(11) Pipelining in software using tasks.
+(12) Merge, quick, and radix sort using recursion (divide-and-conquer).
+(13) Stencil computation (Jacobi) using SPDM-style work division.
+(14) Travelling salesperson problem using simulated annealing.
+(15) Graph traversal.
+(16) Numerical integration.
+
+Slides:
+-------
+(1) Overview of PFunc.
+(2) Selecting the various features.
+(3) Writing and executing a simple program.
+(4) Writing your own scheduler and predicates.
+(5) How to browse the code.
