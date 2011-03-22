@@ -29,3 +29,4 @@ Code:
 -----
 (1) Atomic operations as C++ objects instead of C-style functions for 
 primitive types such as char, short, int, long.
+(2) Message passing among tasks using groups.
