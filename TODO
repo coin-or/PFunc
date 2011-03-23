@@ -3,10 +3,12 @@ Examples for teaching:
 (1) Parallel for using task parallelism.
 (2) Dense matrix-matrix multiply using recursion (divide-and-conquer).
 (3) NQueens using recursion (divide-and-conquer).
-(4) Fibonacci using recursion (divide-and-conquer).
-(5) Dot-product using SPMD-style work division.
-(6) Frequent itemset mining using Apriori algorithm (candidate generation).
-(7) Demand-driven DAG execution.
+(4) Fibonacci using recursion (divide-and-conquer) --- done.
+(5) Dot-product using SPMD-style work division --- done in C.
+(6) Frequent itemset mining using Apriori algorithm (candidate generation) ---
+    needs to be transported from a different code base.
+(7) Demand-driven DAG execution --- needs to be transported from a different 
+    code base.
 (8) Cholesky factorization.
 (9) Bounded buffer producer-consumer problem.
 (10) Performance monitoring using PAPI.
