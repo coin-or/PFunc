@@ -59,6 +59,10 @@
 #include <iostream>
 #include <cassert>
 
+/** 
+ * Lets do the harness required for parallelizing for within pfunc namespace
+ */
+namespace pfunc {
 /**
  * A structure that implements a 1-D iteration space --- [begin, end).
  */
@@ -119,3 +123,8 @@ struct space_1D {
               << (splittable) ? "splittable" : "NOT splittable" << std::endl;
   }
 };
+
+/**
+ * A function much akin to for_each in STL. Takes in
+
+} // end namespace pfunc

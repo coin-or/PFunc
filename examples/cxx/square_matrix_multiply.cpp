@@ -353,7 +353,7 @@ int main (int argc, char** argv) {
   const int num_elements = problem_dim*problem_dim;
   std::vector<double> A_storage (num_elements);
   std::vector<double> B_storage (num_elements);
-  std::vector<double> C_storage (problem_dim*problem_dim, 0.0);
+  std::vector<double> C_storage (num_elements, 0.0);
 
   for (int i=0; i<num_elements; ++i) {
     A_storage[i] = get_next_rand();
