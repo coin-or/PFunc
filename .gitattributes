@@ -19,6 +19,7 @@ examples/c/groups.c -text
 examples/c/simple.c -text
 examples/cxx/CMakeLists.txt -text
 examples/cxx/fibonacci.cpp -text
+examples/cxx/square_matrix_multiply.cpp -text
 examples/other/fibonacci.cilk -text
 examples/other/tbb_fibonacci.cpp -text
 lib/CMakeLists.txt -text
