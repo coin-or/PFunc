@@ -454,9 +454,43 @@ namespace pfunc {
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
 
+  /*
+   * Set the maximum number of attempts before yielding for the specified 
+   * task manager.
+   *
+   * \param [out] tmanager The task manager in question.
+   * \param [out] attempts Contains the value of max attempts.
+   */
+  template <typename TaskManager>
+  static inline void taskmgr_max_attempts_set (TaskManager& tmanager,
+                                               const unsigned int& attempts) {
+    PFUNC_START_TRY_BLOCK()
+    tmanager.set_max_attempts (attempts);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+  /*
+   * Get the maximum number of attempts before yielding for the specified 
+   * task manager.
+   *
+   * \param [out] tmanager The task manager in question.
+   * \param [out] attempts Contains the value of max attempts.
+   */
+  template <typename TaskManager>
+  static inline void taskmgr_max_attempts_get (TaskManager& tmanager,
+                                               unsigned int& attempts) {
+    PFUNC_START_TRY_BLOCK()
+    attempts = tmanager.get_max_attempts ();
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
  /**************************************************************************
   * Here are the global versions of the functions that use task manager 
+  * All these are under the 'global' namespace to avoid confusion.
   *************************************************************************/
+namespace global {
 
  /** Global variable that holds the task manager */
  detail::taskmgr_virtual_base* global_tmanager = NULL;
@@ -496,7 +530,7 @@ namespace pfunc {
     unsigned int id;
     
     PFUNC_START_TRY_BLOCK()
-    id = thread_id (*global_tmanager);
+    id = pfunc::thread_id (*global_tmanager);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
 
@@ -508,7 +542,7 @@ namespace pfunc {
    */
   static inline void group_rank (unsigned int& rank) {
     PFUNC_START_TRY_BLOCK()
-    return group_rank (*global_tmanager, rank); 
+    return pfunc::group_rank (*global_tmanager, rank); 
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -518,7 +552,7 @@ namespace pfunc {
    */
   static inline void group_size (unsigned int& size) {
     PFUNC_START_TRY_BLOCK()
-    return group_size (*global_tmanager, size); 
+    return pfunc::group_size (*global_tmanager, size); 
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -548,7 +582,7 @@ namespace pfunc {
                                ForwardIterator last,
                                int* completion_arr)  {
     PFUNC_START_TRY_BLOCK()
-    return wait_any (*global_tmanager, first, last, completion_arr);
+    return pfunc::wait_any (*global_tmanager, first, last, completion_arr);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -563,7 +597,7 @@ namespace pfunc {
   static inline void wait_all (ForwardIterator first, 
                                ForwardIterator last)  {
     PFUNC_START_TRY_BLOCK()
-    return wait_all (*global_tmanager, first, last);
+    return pfunc::wait_all (*global_tmanager, first, last);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -579,7 +613,7 @@ namespace pfunc {
     bool ret_val;
     
     PFUNC_START_TRY_BLOCK()
-    ret_val = test (*global_tmanager, task);
+    ret_val = pfunc::test (*global_tmanager, task);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
     
@@ -600,7 +634,7 @@ namespace pfunc {
     bool ret_val;
 
     PFUNC_START_TRY_BLOCK()
-    ret_val = test_all (*global_tmanager, first, last, completion_arr);
+    ret_val = pfunc::test_all (*global_tmanager, first, last, completion_arr);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
 
@@ -613,7 +647,7 @@ namespace pfunc {
   */
   static inline void barrier ()  {
     PFUNC_START_TRY_BLOCK()
-    return ::pfunc::barrier (*global_tmanager);
+    return pfunc::barrier (*global_tmanager);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -674,31 +708,15 @@ namespace pfunc {
             typename Attribute,
             typename Functor>
   static inline void spawn (Task& task,
-                          const Attribute& attr,
-                          group& grp,
-                          Functor& func)  {
+                            const Attribute& attr,
+                            group& grp,
+                            Functor& func)  {
     PFUNC_START_TRY_BLOCK()
     global_tmanager->spawn_task(reinterpret_cast<void*>(&task), 
                                 reinterpret_cast<void*>(
                                   &(const_cast<Attribute&>(attr))), 
                                 reinterpret_cast<void*>(&grp), 
                                 reinterpret_cast<void*>(&func));
-    PFUNC_END_TRY_BLOCK()
-    PFUNC_CXX_CATCH_AND_RETHROW()
-  }
-
-  /*
-   * Set the maximum number of attempts before yielding for the specified 
-   * task manager.
-   *
-   * \param [out] tmanager The task manager in question.
-   * \param [out] attempts Contains the value of max attempts.
-   */
-  template <typename TaskManager>
-  static inline void taskmgr_max_attempts_set (TaskManager& tmanager,
-                                               const unsigned int& attempts) {
-    PFUNC_START_TRY_BLOCK()
-    tmanager.set_max_attempts (attempts);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -716,22 +734,6 @@ namespace pfunc {
   }
 
   /*
-   * Get the maximum number of attempts before yielding for the specified 
-   * task manager.
-   *
-   * \param [out] tmanager The task manager in question.
-   * \param [out] attempts Contains the value of max attempts.
-   */
-  template <typename TaskManager>
-  static inline void taskmgr_max_attempts_get (TaskManager& tmanager,
-                                               unsigned int& attempts) {
-    PFUNC_START_TRY_BLOCK()
-    attempts = tmanager.get_max_attempts ();
-    PFUNC_END_TRY_BLOCK()
-    PFUNC_CXX_CATCH_AND_RETHROW()
-  }
-
-  /*
    * Get the maximum number of attempts before yielding for teh global runtime
    *
    * \param [out] attempts Contains the value of max attempts.
@@ -742,5 +744,6 @@ namespace pfunc {
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
+} // namespace global 
 } // namespace pfunc
 #endif // PFUNC_HPP

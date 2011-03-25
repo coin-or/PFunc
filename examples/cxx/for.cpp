@@ -282,7 +282,6 @@ int main (int argc, char** argv) {
 
   // Set up the base case size
   pfunc::space_1D::base_case_size = static_cast<size_t>(chunk_size);
-  std::cout << pfunc::space_1D::base_case_size << std::endl;
 
   const unsigned int nqueues = static_cast<unsigned int>(atoi(argv[4]));
   const unsigned int threads_per_queue = 

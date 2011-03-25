@@ -284,22 +284,22 @@ struct dgemm_op {
       // we will execute Q4 ourselves -- no need for a task
 
       // spawn the first four tasks
-      pfunc::spawn (q1_task, q1_op_1);
-      pfunc::spawn (q2_task, q2_op_1);
-      pfunc::spawn (q3_task, q3_op_1);
+      pfunc::global::spawn (q1_task, q1_op_1);
+      pfunc::global::spawn (q2_task, q2_op_1);
+      pfunc::global::spawn (q3_task, q3_op_1);
       q4_op_1();
-      pfunc::wait (q1_task);
-      pfunc::wait (q2_task);
-      pfunc::wait (q3_task);
+      pfunc::global::wait (q1_task);
+      pfunc::global::wait (q2_task);
+      pfunc::global::wait (q3_task);
 
       // spawn the next four tasks
-      pfunc::spawn (q1_task, q1_op_2);
-      pfunc::spawn (q2_task, q2_op_2);
-      pfunc::spawn (q3_task, q3_op_2);
+      pfunc::global::spawn (q1_task, q1_op_2);
+      pfunc::global::spawn (q2_task, q2_op_2);
+      pfunc::global::spawn (q3_task, q3_op_2);
       q4_op_2();
-      pfunc::wait (q1_task);
-      pfunc::wait (q2_task);
-      pfunc::wait (q3_task);
+      pfunc::global::wait (q1_task);
+      pfunc::global::wait (q2_task);
+      pfunc::global::wait (q3_task);
     }
   }
 };
@@ -345,15 +345,15 @@ int main (int argc, char** argv) {
 
   // Initialize PFunc
   taskmgr global_taskmgr (nqueues, threads_per_queue_array);
-  pfunc::init (global_taskmgr);
+  pfunc::global::init (global_taskmgr);
 
   // Spawn the root task
   task root_task;
   attribute root_attribute (false /*nested*/, false /*grouped*/);
   dgemm_op root_dgemm (A, B, C);
   double time = micro_time();
-  pfunc::spawn (root_task, root_attribute, root_dgemm);
-  pfunc::wait (root_task);
+  pfunc::global::spawn (root_task, root_attribute, root_dgemm);
+  pfunc::global::wait (root_task);
   time = micro_time() - time;
 
   std::cout << "Multiplication of two " << problem_dim << "x" << problem_dim 
@@ -368,7 +368,7 @@ int main (int argc, char** argv) {
   }
 
   // Clear
-  pfunc::clear ();
+  pfunc::global::clear ();
 
   return 0;
 }

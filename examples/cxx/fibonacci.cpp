@@ -35,11 +35,11 @@ struct fibonacci {
       fibonacci fib_n_2 (n-2); 
 
       pfunc::attr_level_set (nested_attr, ~0x0-(n-1));
-      pfunc::spawn (tsk, nested_attr, fib_n_1);
+      pfunc::global::spawn (tsk, nested_attr, fib_n_1);
 
       fib_n_2();
 
-      pfunc::wait (tsk);
+      pfunc::global::wait (tsk);
 
       fib_n = fib_n_1.get_number () + fib_n_2.get_number ();
     }
@@ -66,15 +66,15 @@ int main (int argc, char**argv) {
  
   double time = micro_time ();
   taskmgr my_taskmgr (num_queues, num_threads_per_queue);
-  pfunc::init (my_taskmgr);
+  pfunc::global::init (my_taskmgr);
  
   fibonacci fib_n (n); 
  
   task root_task;
-  pfunc::spawn (root_task,     /** Task handle */
+  pfunc::global::spawn (root_task,     /** Task handle */
                 attribute (false), /** Non-nested task */
                 fib_n); /** The functor */
-  pfunc::wait (root_task);
+  pfunc::global::wait (root_task);
 
   time = micro_time() - time;
  
@@ -85,7 +85,7 @@ int main (int argc, char**argv) {
             << " seconds"
             << std::endl;
 
-  pfunc::clear ();
+  pfunc::global::clear ();
   delete num_threads_per_queue;
 
   return 0;
