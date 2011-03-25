@@ -3,6 +3,7 @@
 
 #include <pfunc/config.h>
 #include <pfunc/environ.hpp>
+#include <stdlib.h>
 
 #if PFUNC_WINDOWS == 1
 #include <Windows.h>
@@ -19,6 +20,27 @@
 #if defined (c_plusplus) || defined (__cplusplus)
 extern "C" {
 #endif
+
+/**
+ * Returns a random double in the range (0.0,1.0]. Notice that the random 
+ * number generator is never initialized --- we don't really care about :).
+ * @return random double in the range (0.0,1.0].
+ */
+static const double NORMALIZER = static_cast<double>(RAND_MAX);
+static inline double get_next_rand () {
+  return (static_cast<double>(rand())/NORMALIZER);
+}
+
+/**
+ * Returns the next highest power of two for the given number.
+ * @param[in] n The number for which we want to find the next closest power.
+ * @return The power of 2 closest to 'n'. E.g., for 3, 4 is returned.
+ */
+static inline int get_closest_power_of_2 (const int n) {
+  int closest_power_of_2 = 0x1;
+  while (n > closest_power_of_2) closest_power_of_2 = closest_power_of_2 << 1;
+  return closest_power_of_2;
+}
 
 /**
  * Returns the time in seconds (as a double) to micro-second accuracy.

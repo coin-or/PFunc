@@ -58,6 +58,9 @@
  */
 #include <iostream>
 #include <cassert>
+#include <vector>
+#include <pfunc/pfunc.hpp>
+#include <pfunc/utility.h>
 
 /** 
  * Lets do the harness required for parallelizing for within pfunc namespace
@@ -67,7 +70,9 @@ namespace pfunc {
  * A structure that implements a 1-D iteration space --- [begin, end).
  */
 struct space_1D {
-  static size_t base_case_size = 1; /**< Default which we will over-ride */
+  public:
+  static size_t base_case_size; /**< Default which we will over-ride */
+
   private:
   size_t space_begin; /**< Beginning of the iteration space */
   size_t space_end; /**< End of the iteration space */
@@ -79,9 +84,9 @@ struct space_1D {
    * @param[in] begin Beginning of the iteration space.
    * @param[in] end End of the iteration space.
    */
-  space_1D (const size_t begin, const size_t end) : 
+  space_1D (const size_t space_begin, const size_t space_end) : 
     space_begin(space_begin), space_end(space_end), 
-    splittable ((end-begin)>base_case_size) {}
+    splittable ((space_end-space_begin)>base_case_size) {}
 
   /**
    * Get the beginning of the iteration space.
@@ -108,21 +113,26 @@ struct space_1D {
    */
   space_1D split () { 
     assert (splittable);
-    
-    size_t old_end = end;
-    end = (begin-end)/2;
-    splittable = ((end-begin)>base_case_size);
-    return space_1D (end, old_end);
+
+    size_t old_space_end = space_end;
+    space_end = space_begin + (space_end-space_begin)/2;
+    splittable = (space_end-space_begin)>base_case_size;
+    return space_1D (space_end, old_space_end);
   }
 
   /**
    * Pretty print
    */
   void pretty_print () const {
-    std::cout << "[" << begin << "," << end << ") -- " 
-              << (splittable) ? "splittable" : "NOT splittable" << std::endl;
+    std::cout << "[" << begin() << "," << end() << ") -- " 
+              << ((splittable) ? "splittable" : "NOT splittable") << std::endl;
   }
 };
+
+/**
+ * Initialize base_case_size to something sensible.
+ */
+size_t pfunc::space_1D::base_case_size = 100;
 
 /**
  * A function much akin to for_each in STL. Takes in a range and a functor.
@@ -132,20 +142,22 @@ struct space_1D {
  * @param[in] space The iteration space.
  * @param[in] func The function object to be applied to every element.
  *
- * NOTE: This function assumes that a global PFunc task manager has been 
- * initialized. If local task managers need to be use, we can add an extra
- * parameter for that as well.
+ * NOTE: This function currently uses a local task manager.
+ *
+ * NOTE: To use parallel_for, the Functor used in PFuncInstanceType must be 
+ * pfunc::use_default! If a definite type is given, parallel_for fails to 
+ * execute.
  */
-template <typename PFuncInstanceType>
-struct parallel_for {
+template <typename PFuncInstanceType /*type of PFunc instantiated*/,
+          typename UnaryFunctor/*type of the function*/>
+struct parallel_for : pfunc::detail::virtual_functor {
   public:
-  typedef typename PFuncInstanceType::functor FunctorType;
   typedef typename PFuncInstanceType::taskmgr TaskMgrType;
   typedef typename PFuncInstanceType::task TaskType;
 
   private:
   space_1D space; 
-  FunctorType func;
+  UnaryFunctor func;
   TaskMgrType& taskmgr;
 
   public:
@@ -155,30 +167,156 @@ struct parallel_for {
    * @param[in] func The function to execute over elements in this space
    */
   parallel_for (space_1D space, 
-                FunctorType func,
-                TaskMgrType taskmgr = NULL) : 
+                UnaryFunctor func,
+                TaskMgrType& taskmgr) : 
        space(space), func(func), taskmgr (taskmgr) {}
 
-  void operator (void) {
+  void operator() (void) {
     if (space.can_split ()) {
       space_1D right_space = space.split ();
 
       // Spawn a task for executing the right space and execute the left
       // space yourself.
       TaskType right_space_task;
-      parallel_for right_space_for (right_space, func, taskmgr);
+      parallel_for<PFuncInstanceType, UnaryFunctor> right_space_for 
+                                            (right_space, func, taskmgr);
 
-      if (NULL==taskmgr) pfunc::spawn (right_space_task, right_space_for);
-      else pfunc::spawn (taskmgr, right_space_task, right_space_for);
+      pfunc::spawn (taskmgr, right_space_task, right_space_for);
       (*this)(); // executing this loop ourselves.
-      if (NULL==taskmgr) pfunc::wait (right_space_task);
-      else pfunc::wait (taskmgr, right_space_task);
+      pfunc::wait (taskmgr, right_space_task);
 
     } else {
       // No more splitting --- simply invoke the function on the given space.
-      func (space_1D);
+      func (space);
+    }
+  }
+};
+} // end namespace pfunc
+
+/**
+ * A scaling operator for a vector.
+ */
+struct vector_scale {
+  private:
+  std::vector<double>& my_vector;
+  double scaling_factor;
+
+  public:
+  /**
+   * Constructor
+   * @param[in] 
+   * @param[in] scaling_factor The factor by which each element is scaled.
+   */
+  vector_scale (std::vector<double>& my_vector, const double scaling_factor) :
+    my_vector (my_vector), scaling_factor (scaling_factor) {}
+
+  /**
+   * Operator that takes in a space and scales the vector in this space
+   */
+  void operator() (const pfunc::space_1D& space) {
+    for (size_t i = space.begin(); i<space.end(); ++i) {
+      my_vector[i] *= scaling_factor;
     }
   }
 };
 
-} // end namespace pfunc
+/**
+ * Define the PFunc instance. Note that we HAVE TO USE PFUNC::USE_DEFAULT as
+ * the type of the FUNCTOR because of the way in which pfunc::parallel_for
+ * is defined!
+ */
+typedef 
+pfunc::generator <pfunc::cilkS, /* Cilk-style scheduling */
+                  pfunc::use_default, /* No task priorities needed */
+                  pfunc::use_default /* any function type*/> generator_type;
+typedef generator_type::attribute attribute;
+typedef generator_type::task task;
+typedef generator_type::taskmgr taskmgr;
+
+/**
+ * A function to pretty a range. The value type is double.
+ * @param[in] first Pointer to the first element.
+ * @param[in] last Pointer just past the last element.
+ */
+template <typename Iterator>
+static inline void print_vector (Iterator first, Iterator last) {
+  std::ios_base::fmtflags original_flags = std::cout.flags();
+  std::cout.precision(5);
+  std::cout.setf (std::ios_base::fixed, std::ios_base::floatfield);
+
+  while (first != last) std::cout << *first++ << " ";
+  std::cout << std::endl;
+
+  std::cout.flags(original_flags);
+}
+
+/**
+ * Main harness. Takes in the following parameters:
+ * (1) 'n': How big an array to create --- [0,n)
+ * (2) 'chunk': What is the base case size that we want to execute serially.
+ *              'chunk' <= 'n'.
+ * (3) 'scaling': The factor by which we want to scale the function.
+ * (4) 'nqueues': The number of task queues to create
+ * (5) 'nthreads': The number of threads PER QUEUE. Total number of threads is
+ *                 'nqueues'*'nthreads'.
+ * (6) 'print': Whether to print out the array before and after scaling.
+ */
+int main (int argc, char** argv) {
+  // All inputs must be given. Else, barf.
+  if (7 != argc) {
+    std::cout << "Please use this program as follows" << std::endl
+              << "./for <n> <chunksize> <scaling> <nqueues> <nthreads> "
+              << "<print(0|1)>" << std::endl;
+    exit (3);
+  }
+
+  const int n = atoi(argv[1]);
+  const int chunk_size = atoi(argv[2]);
+  const double scaling_factor = static_cast<double>(atof(argv[3]));
+
+  if (chunk_size > n) {
+    std::cout << "To demonstrate parallel for properly, please choose a "
+              << "chunk_size <= n" << std::endl;
+    exit (3);
+  }
+
+  // Set up the base case size
+  pfunc::space_1D::base_case_size = static_cast<size_t>(chunk_size);
+  std::cout << pfunc::space_1D::base_case_size << std::endl;
+
+  const unsigned int nqueues = static_cast<unsigned int>(atoi(argv[4]));
+  const unsigned int threads_per_queue = 
+                               static_cast<unsigned int>(atoi(argv[5]));
+  unsigned int* threads_per_queue_array = new unsigned int [nqueues];
+  for (int i=0; i<nqueues; ++i) threads_per_queue_array[i] = threads_per_queue;
+  const bool please_print = static_cast<bool>(atoi(argv[6]));
+
+  // Create the vector
+  std::vector<double> my_vector (n);
+  for (int i=0; i<n; ++i) my_vector[i] = get_next_rand();
+
+  if (please_print) print_vector (my_vector.begin(), my_vector.end());
+
+  // Initialize PFunc
+  taskmgr global_taskmgr (nqueues, threads_per_queue_array);
+
+  // Spawn the root task
+  task root_task;
+  attribute root_attribute (false /*nested*/, false /*grouped*/);
+  pfunc::parallel_for<generator_type, vector_scale> 
+    root_for (pfunc::space_1D (0,n), 
+              vector_scale (my_vector, scaling_factor), 
+              global_taskmgr);
+
+  double time = micro_time();
+  pfunc::spawn (global_taskmgr, root_task, root_attribute, root_for);
+  pfunc::wait (global_taskmgr, root_task);
+  time = micro_time() - time;
+
+  std::cout << "Scaling of " << n << " elements in " << chunk_size 
+            << " chunks took " << time << " seconds" << std::endl;
+
+  if (please_print) print_vector (my_vector.begin(), my_vector.end());
+
+  return 0;
+}

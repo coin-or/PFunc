@@ -91,27 +91,6 @@ static int problem_base_case_dim = 4; /* default to problem_dim */
 static bool please_print = false; /* do not print */
 
 /**
- * Returns a random double in the range (0.0,1.0]. Notice that the random 
- * number generator is never initialized --- we don't really care about :).
- * @return random double in the range (0.0,1.0].
- */
-static const double NORMALIZER = static_cast<double>(RAND_MAX);
-static inline double get_next_rand () {
-  return (static_cast<double>(rand())/NORMALIZER);
-}
-
-/**
- * Returns the next highest power of two for the given number.
- * @param[in] n The number for which we want to find the next closest power.
- * @return The power of 2 closest to 'n'. E.g., for 3, 4 is returned.
- */
-static inline int get_closest_power_of_2 (const int n) {
-  int closest_power_of_2 = 0x1;
-  while (n > closest_power_of_2) closest_power_of_2 = closest_power_of_2 << 1;
-  return closest_power_of_2;
-}
- 
-/**
  * A structure to hold the matrices. We initially have one big ROW-MAJOR 
  * representation of the matrices A, B, and C. As we continually divide 
  * each matrix into 4 equaly sized submatrices, the starting point, the 
@@ -298,7 +277,6 @@ struct dgemm_op {
       dgemm_op q4_op_1 (q3_A, q4_B, q4_C);
       dgemm_op q4_op_2 (q4_A, q4_B, q4_C);
 
-
       // Create the task objects
       task q1_task;
       task q2_task;
@@ -388,6 +366,9 @@ int main (int argc, char** argv) {
     std::cout << std::endl;
     C.pretty_print ();
   }
+
+  // Clear
+  pfunc::clear ();
 
   return 0;
 }

@@ -17,5 +17,11 @@ if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (square_matrix_multiply pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
 
+add_executable (for for.cpp)
+add_dependencies (for pfunc)
+if (NOT CMAKE_SYSTEM MATCHES "Windows")
+  target_link_libraries (for pthread)
+endif (NOT CMAKE_SYSTEM MATCHES "Windows")
+
 add_custom_target (cxx_examples ALL)
-add_dependencies (cxx_examples fibonacci square_matrix_multiply)
+add_dependencies (cxx_examples fibonacci square_matrix_multiply for)
