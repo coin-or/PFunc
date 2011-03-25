@@ -1,6 +1,7 @@
 Examples for teaching:
 ----------------------
-(1) Parallel for using task parallelism.
+(1) Parallel for  using task parallelism --- DONE.
+(1a) Parallel reduce using task parallelism.
 (2) Dense matrix-matrix multiply using recursion (divide-and-conquer) -- DONE.
 (3) NQueens using recursion (divide-and-conquer).
 (4) Fibonacci using recursion (divide-and-conquer) --- DONE.
