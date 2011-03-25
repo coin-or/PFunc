@@ -27,6 +27,9 @@ Slides:
 (3) Writing and executing a simple program.
 (4) Writing your own scheduler and predicates.
 (5) How to browse the code.
+(6) Update the tutorial to reflect the changes in the interface.
+     -- spawn() now has several variants.
+     -- namespace global has to be used in C++ for global functions.
 
 Code:
 -----
