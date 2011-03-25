@@ -125,6 +125,60 @@ struct space_1D {
 };
 
 /**
- * A function much akin to for_each in STL. Takes in
+ * A function much akin to for_each in STL. Takes in a range and a functor.
+ * The assumption is that the functor has the access to the entire container
+ * and hence all the harness needs to do is provide access to the correct 
+ * range.
+ * @param[in] space The iteration space.
+ * @param[in] func The function object to be applied to every element.
+ *
+ * NOTE: This function assumes that a global PFunc task manager has been 
+ * initialized. If local task managers need to be use, we can add an extra
+ * parameter for that as well.
+ */
+template <typename PFuncInstanceType>
+struct parallel_for {
+  public:
+  typedef typename PFuncInstanceType::functor FunctorType;
+  typedef typename PFuncInstanceType::taskmgr TaskMgrType;
+  typedef typename PFuncInstanceType::task TaskType;
+
+  private:
+  space_1D space; 
+  FunctorType func;
+  TaskMgrType& taskmgr;
+
+  public:
+  /**
+   * Constructor
+   * @param[in] space The space over which to iterate
+   * @param[in] func The function to execute over elements in this space
+   */
+  parallel_for (space_1D space, 
+                FunctorType func,
+                TaskMgrType taskmgr = NULL) : 
+       space(space), func(func), taskmgr (taskmgr) {}
+
+  void operator (void) {
+    if (space.can_split ()) {
+      space_1D right_space = space.split ();
+
+      // Spawn a task for executing the right space and execute the left
+      // space yourself.
+      TaskType right_space_task;
+      parallel_for right_space_for (right_space, func, taskmgr);
+
+      if (NULL==taskmgr) pfunc::spawn (right_space_task, right_space_for);
+      else pfunc::spawn (taskmgr, right_space_task, right_space_for);
+      (*this)(); // executing this loop ourselves.
+      if (NULL==taskmgr) pfunc::wait (right_space_task);
+      else pfunc::wait (taskmgr, right_space_task);
+
+    } else {
+      // No more splitting --- simply invoke the function on the given space.
+      func (space_1D);
+    }
+  }
+};
 
 } // end namespace pfunc
