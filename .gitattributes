@@ -49,6 +49,8 @@ pfunc/config.h.in -text
 pfunc/environ.hpp -text
 pfunc/event.hpp -text
 pfunc/exception.hpp -text
+pfunc/experimental/parallel_for.hpp -text
+pfunc/experimental/space_1D.hpp -text
 pfunc/fifo.hpp -text
 pfunc/futex.h -text
 pfunc/generator.hpp -text
