@@ -55,143 +55,16 @@
  * alternative is to split the iteration space into equal size chunks at the 
  * very beginning. In fact, this is the model used in MPI-style algorithms and
  * can be mimiced in PFunc using GROUP structures.
+ *
+ * NOTE: Please see pfunc/experimental/ directory for space_1D and parallel_for
  */
 #include <iostream>
 #include <cassert>
 #include <vector>
 #include <pfunc/pfunc.hpp>
 #include <pfunc/utility.h>
-
-/** 
- * Lets do the harness required for parallelizing for within pfunc namespace
- */
-namespace pfunc {
-/**
- * A structure that implements a 1-D iteration space --- [begin, end).
- */
-struct space_1D {
-  public:
-  static size_t base_case_size; /**< Default which we will over-ride */
-
-  private:
-  size_t space_begin; /**< Beginning of the iteration space */
-  size_t space_end; /**< End of the iteration space */
-  bool splittable; /**< Shortcut that tells us if we are splittable */
-
-  public:
-  /**
-   * Constructor.
-   * @param[in] begin Beginning of the iteration space.
-   * @param[in] end End of the iteration space.
-   */
-  space_1D (const size_t space_begin, const size_t space_end) : 
-    space_begin(space_begin), space_end(space_end), 
-    splittable ((space_end-space_begin)>base_case_size) {}
-
-  /**
-   * Get the beginning of the iteration space.
-   * @return Beginning of the iteration space.
-   */
-  size_t begin () const { return space_begin; }
-
-  /**
-   * Get the end of the iteration space.
-   * @return End of the iteration space.
-   */
-  size_t end () const { return space_end; }
-
-  /**
-   * Check if the space is splittable
-   * @return true iff splittable, false otherwise.
-   */
-  bool can_split () const { return splittable; }
-
-  /**
-   * Split the current space into two pieces.
-   * @return A new space that contains atmost half the current iteration space.
-   *         Also, current space is reduced to half its original space.
-   */
-  space_1D split () { 
-    assert (splittable);
-
-    size_t old_space_end = space_end;
-    space_end = space_begin + (space_end-space_begin)/2;
-    splittable = (space_end-space_begin)>base_case_size;
-    return space_1D (space_end, old_space_end);
-  }
-
-  /**
-   * Pretty print
-   */
-  void pretty_print () const {
-    std::cout << "[" << begin() << "," << end() << ") -- " 
-              << ((splittable) ? "splittable" : "NOT splittable") << std::endl;
-  }
-};
-
-/**
- * Initialize base_case_size to something sensible.
- */
-size_t pfunc::space_1D::base_case_size = 100;
-
-/**
- * A function much akin to for_each in STL. Takes in a range and a functor.
- * The assumption is that the functor has the access to the entire container
- * and hence all the harness needs to do is provide access to the correct 
- * range.
- * @param[in] space The iteration space.
- * @param[in] func The function object to be applied to every element.
- *
- * NOTE: This function currently uses a local task manager.
- *
- * NOTE: To use parallel_for, the Functor used in PFuncInstanceType must be 
- * pfunc::use_default! If a definite type is given, parallel_for fails to 
- * execute.
- */
-template <typename PFuncInstanceType /*type of PFunc instantiated*/,
-          typename UnaryFunctor/*type of the function*/>
-struct parallel_for : pfunc::detail::virtual_functor {
-  public:
-  typedef typename PFuncInstanceType::taskmgr TaskMgrType;
-  typedef typename PFuncInstanceType::task TaskType;
-
-  private:
-  space_1D space; 
-  UnaryFunctor func;
-  TaskMgrType& taskmgr;
-
-  public:
-  /**
-   * Constructor
-   * @param[in] space The space over which to iterate
-   * @param[in] func The function to execute over elements in this space
-   */
-  parallel_for (space_1D space, 
-                UnaryFunctor func,
-                TaskMgrType& taskmgr) : 
-       space(space), func(func), taskmgr (taskmgr) {}
-
-  void operator() (void) {
-    if (space.can_split ()) {
-      space_1D right_space = space.split ();
-
-      // Spawn a task for executing the right space and execute the left
-      // space yourself.
-      TaskType right_space_task;
-      parallel_for<PFuncInstanceType, UnaryFunctor> right_space_for 
-                                            (right_space, func, taskmgr);
-
-      pfunc::spawn (taskmgr, right_space_task, right_space_for);
-      (*this)(); // executing this loop ourselves.
-      pfunc::wait (taskmgr, right_space_task);
-
-    } else {
-      // No more splitting --- simply invoke the function on the given space.
-      func (space);
-    }
-  }
-};
-} // end namespace pfunc
+#include <pfunc/experimental/space_1D.hpp>
+#include <pfunc/experimental/parallel_for.hpp>
 
 /**
  * A scaling operator for a vector.
