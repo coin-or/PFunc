@@ -17,7 +17,7 @@ Examples for teaching:
 (12) Merge, quick, and radix sort using recursion (divide-and-conquer).
 (13) Stencil computation (Jacobi) using SPDM-style work division.
 (14) Travelling salesperson problem using simulated annealing.
-(15) Graph traversal.
+(15) Graph traversal. (Abhishek Kulkarni)
 (16) Numerical integration.
 
 Slides:
