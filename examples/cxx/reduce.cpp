@@ -56,7 +56,8 @@
  * very beginning. In fact, this is the model used in MPI-style algorithms and
  * can be mimiced in PFunc using GROUP structures.
  *
- * NOTE: Please see pfunc/experimental/ directory for space_1D and parallel_for
+ * NOTE: Please see pfunc/experimental/ directory to find out how  space_1D and 
+ * parallel_reduce are implemented.
  */
 #include <iostream>
 #include <cassert>
@@ -64,7 +65,7 @@
 #include <pfunc/pfunc.hpp>
 #include <pfunc/utility.h>
 #include <pfunc/experimental/space_1D.hpp>
-#include <pfunc/experimental/parallel_for.hpp>
+#include <pfunc/experimental/parallel_reduce.hpp>
 
 /**
  * A scaling operator for a vector.
@@ -175,7 +176,7 @@ int main (int argc, char** argv) {
   // Spawn the root task
   task root_task;
   attribute root_attribute (false /*nested*/, false /*grouped*/);
-  pfunc::parallel_for<generator_type, vector_scale, pfunc::space_1D> 
+  pfunc::parallel_for<generator_type, vector_scale> 
     root_for (pfunc::space_1D (0,n), 
               vector_scale (my_vector, scaling_factor), 
               global_taskmgr);

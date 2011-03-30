@@ -21,6 +21,7 @@ examples/cxx/CMakeLists.txt -text
 examples/cxx/fibonacci.cpp -text
 examples/cxx/for.cpp -text
 examples/cxx/matmult.cpp -text
+examples/cxx/reduce.cpp -text
 examples/other/fibonacci.cilk -text
 examples/other/tbb_fibonacci.cpp -text
 lib/CMakeLists.txt -text
@@ -49,6 +50,8 @@ pfunc/config.h.in -text
 pfunc/environ.hpp -text
 pfunc/event.hpp -text
 pfunc/exception.hpp -text
+pfunc/experimental/ForExecutable.concept.ipp -text
+pfunc/experimental/Space.concept.ipp -text
 pfunc/experimental/parallel_for.hpp -text
 pfunc/experimental/space_1D.hpp -text
 pfunc/fifo.hpp -text

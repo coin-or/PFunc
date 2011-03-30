@@ -2,17 +2,26 @@
 #define PFUNC_SPACE_1D_HPP
 
 #include <cassert>
+#include <utility>
+#include <vector>
 
-/** 
- * Lets do the harness required for parallelizing for within pfunc namespace
- */
 namespace pfunc {
 /**
  * A structure that implements a 1-D iteration space --- [begin, end).
+ * It is a model of the interface Space (see Space.concept.ipp)
  */
 struct space_1D {
   public:
+  typedef std::vector<space_1D> subspace_1D_set; /**< list of subspaces */
+  typedef subspace_1D_set::iterator subspace_1D_set_iterator;
+                                /**< Iterator to subspace_1D */
+  typedef std::pair<subspace_1D_set_iterator,subspace_1D_set_iterator>
+    subspace_1D_set_iterator_pair; /**< A pair of iterators */
+  typedef subspace_1D_set_iterator_pair subspace_iterator_pair; 
+                       /**< Needed for parallel_for and parallel_reduce */
   static size_t base_case_size; /**< Default which we will over-ride */
+  const static size_t arity = 2; /**< Number of ways in which we can split 
+                                      space_1D --- this is 2 for space_1D */
 
   private:
   size_t space_begin; /**< Beginning of the iteration space */
@@ -48,17 +57,28 @@ struct space_1D {
   bool can_split () const { return splittable; }
 
   /**
-   * Split the current space into two pieces.
-   * @return A new space that contains atmost half the current iteration space.
-   *         Also, current space is reduced to half its original space.
+   * Split the current space into two pieces and return an iterator pair that 
+   * gives the right and the left subspaces.
+   * @return A pair of iterators [begin, end) that will point to the split 
+   *         subspaces.
    */
-  space_1D split () { 
+  subspace_1D_set_iterator_pair split () const { 
+    // Make sure that the space is splittable
     assert (splittable);
 
-    size_t old_space_end = space_end;
-    space_end = space_begin + (space_end-space_begin)/2;
-    splittable = (space_end-space_begin)>base_case_size;
-    return space_1D (space_end, old_space_end);
+    // Get a vector to store the subspaces
+    subspace_1D_set subspaces;
+
+    const size_t split_point = space_begin + (space_end-space_begin)/2;
+    const size_t left_space_begin = space_begin;
+    const size_t left_space_end = split_point;
+    const size_t right_space_begin = split_point;
+    const size_t right_space_end = space_end;
+
+    subspaces.push_back (space_1D (left_space_begin, left_space_end));
+    subspaces.push_back (space_1D (right_space_begin, right_space_end));
+
+    return subspace_1D_set_iterator_pair(subspaces.begin(), subspaces.end());
   }
 
   /**
