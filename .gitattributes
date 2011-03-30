@@ -51,8 +51,10 @@ pfunc/environ.hpp -text
 pfunc/event.hpp -text
 pfunc/exception.hpp -text
 pfunc/experimental/ForExecutable.concept.ipp -text
+pfunc/experimental/ReduceExecutable.concept.ipp -text
 pfunc/experimental/Space.concept.ipp -text
 pfunc/experimental/parallel_for.hpp -text
+pfunc/experimental/parallel_reduce.hpp -text
 pfunc/experimental/space_1D.hpp -text
 pfunc/fifo.hpp -text
 pfunc/futex.h -text

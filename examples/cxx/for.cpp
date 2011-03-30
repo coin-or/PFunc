@@ -86,7 +86,7 @@ struct vector_scale {
   /**
    * Operator that takes in a space and scales the vector in this space
    */
-  void operator() (const pfunc::space_1D& space) {
+  void operator() (const pfunc::space_1D& space) const {
     for (size_t i = space.begin(); i<space.end(); ++i) {
       my_vector[i] *= scaling_factor;
     }

@@ -17,8 +17,10 @@ struct space_1D {
                                 /**< Iterator to subspace_1D */
   typedef std::pair<subspace_1D_set_iterator,subspace_1D_set_iterator>
     subspace_1D_set_iterator_pair; /**< A pair of iterators */
+
+  typedef subspace_1D_set_iterator subspace_iterator; /**< Space concept */
   typedef subspace_1D_set_iterator_pair subspace_iterator_pair; 
-                       /**< Needed for parallel_for and parallel_reduce */
+                                        /**< Space concept */
   static size_t base_case_size; /**< Default which we will over-ride */
   const static size_t arity = 2; /**< Number of ways in which we can split 
                                       space_1D --- this is 2 for space_1D */

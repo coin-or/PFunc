@@ -23,5 +23,11 @@ if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (for pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
 
+add_executable (reduce reduce.cpp)
+add_dependencies (reduce pfunc)
+if (NOT CMAKE_SYSTEM MATCHES "Windows")
+  target_link_libraries (reduce pthread)
+endif (NOT CMAKE_SYSTEM MATCHES "Windows")
+
 add_custom_target (cxx_examples ALL)
 add_dependencies (cxx_examples fibonacci matmult for)
