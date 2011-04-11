@@ -24,7 +24,6 @@
 #include <pfunc/taskmgr.hpp>
 #include <pfunc/generator.hpp>
 
-
 namespace pfunc {
 
   /* Convenience */
@@ -264,6 +263,18 @@ namespace pfunc {
    * \param [in,out] task The task to be waited on.
    */     
   template <typename TaskManager, typename TaskType>
+  static inline void wait (TaskManager& tmanager, TaskType* task)  {
+    PFUNC_START_TRY_BLOCK()                                                   
+    task->wait (tmanager);
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+  /**
+   * \param [in] taskmgr The taskmanager that is running the task.
+   * \param [in,out] task The task to be waited on.
+   */     
+  template <typename TaskManager, typename TaskType>
   static inline void wait (TaskManager& tmanager, TaskType& task)  {
     PFUNC_START_TRY_BLOCK()                                                   
     task.wait (tmanager);
@@ -482,6 +493,34 @@ namespace pfunc {
                                                unsigned int& attempts) {
     PFUNC_START_TRY_BLOCK()
     attempts = tmanager.get_max_attempts ();
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+  /*
+   * @param[in] taskmgr The task manager.
+   * @param[out] num_queues The number of task queues in the global task
+   * manager.
+   */
+  template <typename TaskMgr>
+  static inline void get_num_queues (const TaskMgr& tmanager, 
+                                     unsigned int& num_queues) {
+    PFUNC_START_TRY_BLOCK()
+    num_queues = tmanager.get_num_queues ();
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+  /*
+   * @param[in] taskmgr The task manager.
+   * @param[out] num_threads The total number of threads in the global task
+   * manager.
+   */
+  template <typename TaskMgr>
+  static inline void get_num_threads (const TaskMgr& tmanager, 
+                                      unsigned int& num_threads) {
+    PFUNC_START_TRY_BLOCK()
+    num_threads = tmanager.get_num_threads ();
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }
@@ -741,6 +780,28 @@ namespace global {
   static inline void taskmgr_max_attempts_get (unsigned int& attempts) {
     PFUNC_START_TRY_BLOCK()
     attempts = global_tmanager->get_max_attempts ();
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+  /*
+   * @param[out] num_queues The number of task queues in the global task
+   * manager.
+   */
+  static inline void get_num_queues (unsigned int& num_queues) {
+    PFUNC_START_TRY_BLOCK()
+    num_queues = global_tmanager->get_num_queues ();
+    PFUNC_END_TRY_BLOCK()
+    PFUNC_CXX_CATCH_AND_RETHROW()
+  }
+
+  /*
+   * @param[out] num_threads The total number of threads in the global task
+   * manager.
+   */
+  static inline void get_num_threads (unsigned int& num_threads) {
+    PFUNC_START_TRY_BLOCK()
+    num_threads = global_tmanager->get_num_threads ();
     PFUNC_END_TRY_BLOCK()
     PFUNC_CXX_CATCH_AND_RETHROW()
   }

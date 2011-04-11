@@ -29,5 +29,31 @@ if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (reduce pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
 
+##############################################################################
+# For parallel_while loop demonstration
+include(FindBISON)
+include(FindFLEX)
+
+find_package(BISON)
+find_package(FLEX)
+
+if (FLEX_FOUND AND BISON_FOUND)
+  BISON_TARGET (MyParser 
+                dot_reader/dot.y 
+                ${CMAKE_CURRENT_BINARY_DIR}/dot_parser.cpp)
+  FLEX_TARGET (MyScanner 
+               dot_reader/dot.l 
+               ${CMAKE_CURRENT_BINARY_DIR}/dot_lexer.cpp)
+  ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
+
+  include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+  add_executable(while while.cpp 
+                 ${BISON_MyParser_OUTPUTS} 
+                 ${FLEX_MyScanner_OUTPUTS})
+else (FLEX_FOUND AND BISON_FOUND)
+  message (STATUS "Did not find FLEX and YACC -- skipping while")
+endif (FLEX_FOUND AND BISON_FOUND)
+##############################################################################
+
 add_custom_target (cxx_examples ALL)
-add_dependencies (cxx_examples fibonacci matmult for)
+add_dependencies (cxx_examples fibonacci matmult for while)

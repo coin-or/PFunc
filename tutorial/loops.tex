@@ -1,0 +1,352 @@
+\section{Loop Constructs}
+\label{sec:loops}
+
+Loop parallelism is an important form of parallelism that often results in
+dramatic speedups. 
+%
+In fact, constructs such as OpenMP's "parallel for" have been exclusively
+dedicated to parallelizing for loops, which occur frequently in HPC
+applications.
+%
+Task parallelism is a powerful form of parallelism that subsumes loop
+parallelism. 
+%
+In this section, we discuss four experimental constructs provided in PFunc 
+to simplify parallelizing various loop constructs.
+%
+
+\subsection{For Loops}
+\label{subsec:for}
+Consider a standard \code{for} statement that iterates over a \textit{randomly
+accessible} set of elements. 
+%
+It is quite important that the elements be randomly accessible because
+parallelization may fail to yield significant performance boost if iteration
+(that is, ``advancing the pointer'') takes longer than the computation itself.
+%
+We can devise an elegant divide and conquer mechanism to parallelize the 
+computations in the following manner:
+
+\begin{itemize}
+\item At each level (starting with level 0), inspect the iteration space to
+determine benefit of parallelization.
+\item If parallelization will help, split the interval into two and execute
+iterations over the split iteration space in parallel.
+\item Repeat until the number of iterations in the iteration space are too few
+to benefit from parallelization --- execute this space serially.
+\end{itemize}
+
+\paragraph{Space} In the true spirit of generic design, we devise the concept
+of \code{Space} to as follows:
+
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+concept Space<typename Model> : CopyAssignable <Model> {
+  /**< Associated types */
+  typename subspace_iterator;/**< type of the subspace iterator */
+  typename subspace_iterator_pair;/**< return type of split () */
+  
+  /**< Associated values */
+  const static size_t arity;/**< Number of ways in which a space is split */
+  const static size_t dimension;/**< Dimensionality of the space */
+
+  /**< Associated functions */
+  size_t Model::begin() const;
+  size_t Model::end() const;
+  bool Model::can_split() const;
+  subspace_iterator_pair split() const;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+In other words, a ``space'' must define how many ways it can be split
+(\code{arity}) and its dimension (eg., 1-D, 2-D, etc).
+%
+Furthermore, it must define \func{begin} and \func{end}, which provide 
+iterators to the beginning and end of the iteration space.
+%
+To help parallelization, every model of space must provide \func{can_split}
+and \func{split} that help split the iteration space into \code{arity} chunks.
+%
+For example, consider a 1-D space, which provides a 2-way split and has a 
+base case of 25 elements (i.e., if there are fewer than 25 elements in the 
+iteration space, they are executed serially).
+%
+If such a space is initialized with the half-open interval $[0, 100)$, the 
+following execution sequence occurs.
+
+\begin{center}
+\begin{minipage}{0.6\textwidth}
+\begin{itemize}
+\item[] $[0,100)$ --- split.
+\item[] $[0,50)$, $[50,100)$ --- split.
+\item[] $[0,25)$, $[25,50)$, $[50,75)$, $[75,100)$ --- no split.
+\end{itemize}
+\end{minipage}
+\end{center}
+
+\paragraph{\code{pfunc::parallel_for}} This is a function object akin to 
+\func{for_each} in STL.
+%
+\code{pfunc::parallel_for} Takes in a space and a functor, and executes the 
+functor over the given space in parallel.
+%
+The assumption is that the functor has the access to the entire container
+and hence all the harness needs to do is provide access to the correct 
+iteration range.
+%
+The functor must be a model of the \code{ForExecutable} concept given below:
+
+\begin{center}
+\begin{minipage}{0.6\textwidth}
+\begin{lstlisting}
+concept ForExecutable<typename Model, typename SpaceType> : 
+  Space<SpaceType>, CopyAssignable <Model> {
+ void operator()(const SpaceType&) const;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\paragraph{Example} Consider the task of scaling each element of a 
+\code{std::vector} by a constant factor.
+%
+The functor that is needed to execute this scaling operation is given below:
+%
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{lstlisting}
+struct vector_scale {
+  private:
+  std::vector<double>& my_vector;
+  double scaling_factor;
+
+  public:
+  vector_scale (std::vector<double>& my_vector, const double scaling_factor) :
+    my_vector (my_vector), scaling_factor (scaling_factor) {}
+
+  void operator() (const pfunc::space_1D& space) const {
+    for (size_t i = space.begin(); i<space.end(); ++i) {
+      my_vector[i] *= scaling_factor;
+    }
+  }
+};
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+Notice that \code{vector_scale} is a model of \code{ForExecutable} concept,
+and can be used with \code{pfunc::parallel_for}.
+%
+As the iteration space defined by \code{std::vector} is 1-D, we use PFunc's 
+built-in \code{space_1D}, which is a model of \code{Space} concept.
+%
+Next, we define the PFunc instance to be used in parallelization of the
+\code{for} loop:
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{lstlisting}
+typedef 
+pfunc::generator <pfunc::cilkS, /* Cilk-style scheduling */
+                  pfunc::use_default, /* No task priorities needed */
+                  pfunc::use_default /* any function type*/> generator_type;
+typedef generator_type::attribute attribute;
+typedef generator_type::task task;
+typedef generator_type::taskmgr taskmgr;
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+Notice that we have to use \code{pfunc::use_default} as the type of the functor
+because of the way in which \code{pfunc::parallel_for} is defined.
+%
+Finally, we invoke \code{pfunc::parallel_for} on the entire iteration space in
+the following manner:
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+taskmgr global_taskmgr (/*nqueues*/, /*nthreads-per-queue*/);
+task for_loop_task;
+attribute for_loop_attribute (false /*nested*/, false /*grouped*/);
+pfunc::parallel_for<generator_type, vector_scale, pfunc::space_1D> 
+  for_loop (pfunc::space_1D (0,n), 
+            vector_scale (my_vector, scaling_factor), 
+            global_taskmgr);
+pfunc::spawn (global_taskmgr, for_loop_task, for_loop_attribute, for_loop);
+pfunc::wait (global_taskmgr, for_loop_task);
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+For the complete example, please see \code{examples/for.cpp}.
+
+\paragraph{\code{pfunc::parallel_reduce}} An important variation of a simple 
+\code{for} loop is the ability to \textit{reduce} the values in a collection
+to a single value.
+%
+Examples for such operation include finding the sum of element in a vector, 
+finding the minimum element in a vector, etc.
+%
+To execute such loops in parallel, PFunc provides \code{pfunc::parallel_reduce} 
+construct, which is a slight variation of \code{pfunc::parallel_for}.
+%
+Firstly, the functor that executes the reduction operation is required to be
+a model of \code{ReduceExecutable} concept that is defined below:
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{lstlisting}
+concept ReduceExecutable<typename Model, typename SpaceType> : 
+             Space<SpaceType>, Assignable<Model>, CopyAssignable <Model> {
+  /**< Associated functions */
+  Model split () const;
+  void join (const Model&);
+  void operator () (const SpaceType&);
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+Notice that \code{ReduceExecutable} requires \func{split} and \func{join} 
+functions in addition to \func{operator()}.
+%
+Furthermore, \func{operator()} is non-\code{const} to allow it to modify 
+internal state of the functor.
+%
+To better understand, let us consider the example of computing the sum of 
+elements in a \code{std::vector}; the code is given below.
+%
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+struct accumulate {
+  private:
+  std::vector<double>& my_vector;
+  double sum;
+
+  public:
+  accumulate (std::vector<double>& my_vector, const double init) :
+    my_vector (my_vector), sum (init) {}
+  void operator() (const pfunc::space_1D& space) {
+    for (size_t i = space.begin(); i<space.end(); ++i) sum += my_vector[i];
+  }
+  accumulate split () const { return accumulate (my_vector, 0.0); }
+  void join (const accumulate& other) { sum += other.get_sum (); }
+  double get_sum () const { return sum; }
+};
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+As expected, \func{operator()} simply accumulates the sum of elements in its 
+iteration space.
+%
+The crucial portion functions required for parallelization are \func{split} 
+and \func{join}.
+%
+When \code{pfunc::parallel_reduce} determines that the iteration space needs 
+to be split because there is an oppotunity for parallelism, it calls
+\func{split} on the functor; \func{split} is expected to create a properly 
+initialized copy of the functor.
+%
+In the case of \code{accumulate}, proper initialization is done by setting the 
+\code{sum} to \code{0.0}.
+%
+Similarly, when all the parallel chunks have completed iteration, the partial 
+results are added up using the \func{join} operation.
+%
+In the case of \code{accumulate}, \func{join} merely adds up the partial 
+sums. 
+%
+Finally, we invoke \code{pfunc::parallel_reduce} on the entire iteration space
+in the following manner:
+
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+taskmgr global_taskmgr (nqueues, threads_per_queue_array);
+
+task accumulate_task;
+attribute accumulate_attribute (false /*nested*/, false /*grouped*/);
+accumulate root_accumulate (my_vector, 0.0);
+pfunc::parallel_reduce<generator_type, accumulate, pfunc::space_1D> 
+  root_reduce (pfunc::space_1D (0,n), root_accumulate, global_taskmgr);
+
+pfunc::spawn (global_taskmgr, accumulate_task, 
+              accumulate_attribute, root_reduce);
+pfunc::wait (global_taskmgr, accumulate_task);
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+For the complete example, please see \code{examples/reduce.cpp}.
+
+\subsection{While Loop}
+\label{subsec:while}
+%
+\code{pfunc::parallel_for} operates when the collection of elements over which
+we iterate allows random access. 
+%
+That is, if A is the collection of elements, then, we can access A[i] in
+constant time. 
+%
+This property does not hold true for many data structures such as linked lists
+and trees. 
+%
+If the computation involved when processing every element in such data
+structures is sufficiently large, then it is benefical to parallelize the
+execution of such loops.
+%
+Due to the nature of the data structures involved, we do not think of 
+parallelizing over the iteration space, but rather in terms of processing 
+each element in parallel. 
+%
+Since we do not know the number of elements that need to be processed, we the 
+parallelization resembles a \code{while} loop; hence, the control structure 
+is called \code{pfunc::parallel_while}.
+%
+The operation performed by \code{pfunc::parallel_while} is equivalent to the 
+operation performed by \func{serial_while} given below:;
+%
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+template <typename InputIterator, typename Functor>
+void serial_while (InputIterator first, InputIterator last, Functor func) {
+  while (first != last) func (*first++);
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+Similar to \func{serial_while}, \code{parallel_while} takes as input, a pair
+of iterators (\code{first} and \code{last}) and a functor in addition to the
+PFunc library instance that is used for parallelization.
+%
+\code{pfunc::parallel_while} iterates through the collection contained in
+(\code{first}, \code{last}] and spawns a task to process each element in 
+the collection.
+%
+Of course, this scheme assumes that processing each task is independent of one
+another.
+%
+For a functor to be parallelized using \code{pfunc::parallel_while}, it has to 
+model \code{WhileExecutable} given below:
+%
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+concept WhileExecutable <typename Model, typename ArgumentType> : 
+                                           CopyAssignable <Model> {
+  typename argument_type;
+  is_convertible <argument_type, ArgumentType>;
+  void operator() (ArgumentType) const;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+To better understand parallelizing while loops, 

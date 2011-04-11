@@ -17,6 +17,8 @@ set (TUTORIAL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pack.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/group.tex 
+    ${CMAKE_CURRENT_SOURCE_DIR}/sync.tex 
+    ${CMAKE_CURRENT_SOURCE_DIR}/loops.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/exception.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/perf.tex)
 

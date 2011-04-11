@@ -767,6 +767,16 @@ struct taskmgr : public taskmgr_virtual_base  {
     PFUNC_END_TRY_BLOCK()
     PFUNC_CATCH_AND_RETHROW(taskmgr,progress_wait)
   }
+
+  /**
+   * @return the total number of queues created.
+   */
+  unsigned int get_num_queues () { return num_queues; }
+
+  /**
+   * @return the total number of threads created.
+   */
+  unsigned int get_num_threads () { return num_threads; }
 };
 } /* namespace detail */ }  /* namespace pfunc */
 #endif // PFUNC_TASKMGR_HPP

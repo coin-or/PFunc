@@ -18,10 +18,16 @@ examples/c/CMakeLists.txt -text
 examples/c/groups.c -text
 examples/c/simple.c -text
 examples/cxx/CMakeLists.txt -text
+examples/cxx/dot_reader/README -text
+examples/cxx/dot_reader/dag.h -text
+examples/cxx/dot_reader/dot.l -text
+examples/cxx/dot_reader/dot.y -text
 examples/cxx/fibonacci.cpp -text
 examples/cxx/for.cpp -text
+examples/cxx/inputs/test.dot -text
 examples/cxx/matmult.cpp -text
 examples/cxx/reduce.cpp -text
+examples/cxx/while.cpp -text
 examples/other/fibonacci.cilk -text
 examples/other/tbb_fibonacci.cpp -text
 lib/CMakeLists.txt -text
@@ -53,8 +59,10 @@ pfunc/exception.hpp -text
 pfunc/experimental/ForExecutable.concept.ipp -text
 pfunc/experimental/ReduceExecutable.concept.ipp -text
 pfunc/experimental/Space.concept.ipp -text
+pfunc/experimental/WhileExecutable.concept.ipp -text
 pfunc/experimental/parallel_for.hpp -text
 pfunc/experimental/parallel_reduce.hpp -text
+pfunc/experimental/parallel_while.hpp -text
 pfunc/experimental/space_1D.hpp -text
 pfunc/fifo.hpp -text
 pfunc/futex.h -text
@@ -92,6 +100,7 @@ tutorial/generate.tex -text
 tutorial/group.tex -text
 tutorial/initialize.tex -text
 tutorial/introduction.tex -text
+tutorial/loops.tex -text
 tutorial/opencl/Makefile -text
 tutorial/opencl/figs/Makefile -text
 tutorial/opencl/figs/host_program.fig -text
@@ -116,5 +125,6 @@ tutorial/presentation/figs/overview.eps -text
 tutorial/presentation/figs/pfunc.eps -text
 tutorial/presentation/presentation.tex -text
 tutorial/spawn.tex -text
+tutorial/sync.tex -text
 tutorial/tutorial-defs.tex -text
 tutorial/tutorial.tex -text
