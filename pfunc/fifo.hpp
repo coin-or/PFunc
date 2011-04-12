@@ -19,6 +19,7 @@ namespace pfunc { namespace detail {
   struct scheduler <fifoS, ValueType> {
     typedef std::queue<ValueType> queue_type; /**< queue type */
     typedef typename queue_type::value_type value_type; /**< value type */
+    typedef unsigned int queue_index_type; /**< type to index into the list */
     typedef sched_data<queue_type> data_type; /**< scheduler data */
 
     ALIGN128 data_type* data; /**< Holds all the data required */
@@ -100,8 +101,8 @@ namespace pfunc { namespace detail {
      *
      */
     template <typename ConditionPair>
-    value_type get (const unsigned int& queue_num, 
-                    ConditionPair cnd) {
+    value_type get (queue_index_type queue_num, 
+                    const ConditionPair& cnd) {
       value_type task = NULL;
 
       PFUNC_START_TRY_BLOCK()
@@ -123,11 +124,11 @@ namespace pfunc { namespace detail {
     /**
      * Store the value at the front of the given queue
      *
-     * \param [in] value The value (task ptr) to be stored.
      * \param [in] queue_num The task queue to use.
+     * \param [in] value The value (task ptr) to be stored.
      *
      */
-    void put (const value_type& value, const unsigned int& queue_num) {
+    void put (queue_index_type queue_num, const value_type& value) {
       PFUNC_START_TRY_BLOCK()
       queue_type& queue = data[queue_num].queue;
       mutex& lock = data[queue_num].lock;

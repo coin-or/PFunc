@@ -102,6 +102,18 @@ struct taskmgr_virtual_base {
    * Gets the maximum number of attempts made by a thread before yielding.
    */
   virtual unsigned int get_max_attempts () const = 0;
+
+  /**
+   * Gets the total number of threads in this taskmgr.
+   * @return Number of threads.
+   */
+  virtual unsigned int get_num_threads () const = 0;
+
+  /**
+   * Gets the number of queues in this taskmgr.
+   * @return Number of queues.
+   */
+  virtual unsigned int get_num_queues () const = 0;
 };
 
 /***********************************************************************/

@@ -298,7 +298,7 @@ struct taskmgr : public taskmgr_virtual_base  {
     if (QUEUE_CURRENT_THREAD == task_queue_number) /* current thread's queue*/
       task_queue_number=(thread_manager.tls_get())->get_task_queue_number();
     
-    task_queue->put (&new_task, task_queue_number);
+    task_queue->put (task_queue_number, &new_task);
     PFUNC_END_TRY_BLOCK()
     PFUNC_CATCH_AND_RETHROW(taskmgr,spawn_task)
   }
@@ -771,12 +771,12 @@ struct taskmgr : public taskmgr_virtual_base  {
   /**
    * @return the total number of queues created.
    */
-  unsigned int get_num_queues () { return num_queues; }
+  unsigned int get_num_queues () const { return num_queues; }
 
   /**
    * @return the total number of threads created.
    */
-  unsigned int get_num_threads () { return num_threads; }
+  unsigned int get_num_threads () const { return num_threads; }
 };
 } /* namespace detail */ }  /* namespace pfunc */
 #endif // PFUNC_TASKMGR_HPP
