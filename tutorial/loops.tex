@@ -14,6 +14,10 @@ parallelism.
 In this section, we discuss four experimental constructs provided in PFunc 
 to simplify parallelizing various loop constructs.
 %
+As they are experimentatl, these features are made available under the special
+header files: \code{pfunc/experimental/parallel_for.hpp>},
+\code{pfunc/experimental/parallel_reduce.hpp>}, and
+\code{pfunc/experimental/parallel_while.hpp>}.
 
 \subsection{For Loops}
 \label{subsec:for}
@@ -349,4 +353,43 @@ concept WhileExecutable <typename Model, typename ArgumentType> :
 \end{minipage}
 \end{center}
 %
-To better understand parallelizing while loops, 
+To better understand parallelizing while loops, consider a simple example of
+parallelizing a loop that applies \func{big_func} to each element of a
+\code{std::list}.
+%
+From our discussion above, \func{big_func} must be a model of
+\code{WhileExecutable} and is defined as follows:
+%
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+\begin{lstlisting}
+template <typename T>
+struct big_func { 
+  typedef T* argument_type;
+  void operator() (T* arg) const { ... }
+};
+\end{lstlisting}
+\end{minipage}
+\end{center}
+%
+Once we have defined \func{big_func}, we can parallelize application of 
+\code{big_func} to the elements of an \code{std::list} as follows:
+%
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+struct object {...};
+std::list <object*> my_list;
+// populate my_list
+
+taskmgr global_taskmgr (nqueues, threads_per_queue_array);
+task while_task;
+attribute while_attribute (false /*nested*/, false /*grouped*/);
+pfunc::parallel_while<generator_type, std::list<object*>::iterator, foo<object> > 
+  root_while (my_list.begin(), my_list.end(), big_func<object>(), global_taskmgr);
+
+pfunc::spawn (global_taskmgr, while_task, while_attribute, root_while);
+pfunc::wait (global_taskmgr, accumulate_task);
+\end{lstlisting}
+\end{minipage}
+\end{center}
