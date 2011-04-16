@@ -1,3 +1,9 @@
+#ifndef PFUNC_PARALLEL_WHILE_HPP
+#define PFUNC_PARALLEL_WHILE_HPP
+
+#include <pfunc/pfunc.hpp>
+#include <iostream>
+
 namespace pfunc {
 /**
  * A structure that implements the parallel_while loop. To initialize, a 
@@ -15,7 +21,7 @@ namespace pfunc {
 template <typename PFuncInstanceType, /*type of PFunc instance*/
           typename InputIterator, /*type of the iterator*/
           typename WhileExecutable> /*type of the function object*/
-struct parallel_while : pfunc::detail::virtual_functor {
+struct parallel_while : pfunc::virtual_functor {
   public:
   typedef typename PFuncInstanceType::taskmgr TaskMgrType;
   typedef typename PFuncInstanceType::task TaskType;
@@ -33,7 +39,7 @@ struct parallel_while : pfunc::detail::virtual_functor {
    * need void operator()(const ValueType&). This is the wrapper that 
    * allows execution by PFunc.
    */
-  struct while_wrapper : pfunc::detail::virtual_functor {
+  struct while_wrapper : pfunc::virtual_functor {
     private:
     const WhileExecutable& func;
     const ValueType& value;
@@ -101,3 +107,5 @@ struct parallel_while : pfunc::detail::virtual_functor {
   }
 };
 }
+
+#endif // PFUNC_PARALLEL_WHILE_HPP

@@ -2,7 +2,7 @@
 #define PFUNC_CILK_HPP
 
 #ifndef PFUNC_SCHEDULER_HPP
-#error "This file can only be included from scheduler.hpp"
+#error "This file can only be included from task_queue_set.hpp"
 #endif
 
 #include <deque> 
@@ -13,14 +13,14 @@
 namespace pfunc { namespace detail {
 
   /**
-   * Specialization of scheduler for Cilk-style queues.
+   * Specialization of task_queue_set for Cilk-style queues.
    */
   template <typename ValueType>
-  struct scheduler <cilkS, ValueType> {
-    typedef std::deque<ValueType> queue_type; /**< queue type */
+  struct task_queue_set <cilkS, ValueType> {
+    typedef std::deque<ValueType*> queue_type; /**< queue type */
     typedef typename queue_type::value_type value_type; /**< value type */
     typedef unsigned int queue_index_type; /**< type to index into the queue */
-    typedef sched_data<queue_type> data_type; /**< scheduler data */
+    typedef task_queue_set_data<queue_type> data_type; /**< task_queue_set data */
 
     ALIGN128 data_type* data; /**< Holds all the data required */
     ALIGN128 unsigned int num_queues; /**< Number of queues */
@@ -31,24 +31,24 @@ namespace pfunc { namespace detail {
      *
      * \param [in] num_queues Number of task queues to create.
      */
-    scheduler (const unsigned int& num_queues) PFUNC_CONSTRUCTOR_TRY_BLOCK() :
+    task_queue_set (unsigned int num_queues) PFUNC_CONSTRUCTOR_TRY_BLOCK() :
           num_queues (num_queues) PFUNC_EXCEPT_PTR_INIT() {
       PFUNC_START_TRY_BLOCK()
       data = new data_type [num_queues];
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,scheduler)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,task_queue_set)
     }
-    PFUNC_CATCH_AND_RETHROW(scheduler,scheduler)
+    PFUNC_CATCH_AND_RETHROW(task_queue_set,task_queue_set)
 
     /**
      * Destructor
      */
-    ~scheduler ( ) { 
+    ~task_queue_set ( ) { 
       PFUNC_START_TRY_BLOCK() 
       delete [] data; 
       PFUNC_EXCEPT_PTR_CLEAR()
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,~scheduler)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,~task_queue_set)
     }
 
     /**
@@ -64,9 +64,9 @@ namespace pfunc { namespace detail {
      * \return true If a suitable task is found.
      * \return false If no suitable tasks could be found.
      */
-    template <typename Condition>
-    bool test_and_get_front (const unsigned int& queue_num, 
-                             Condition cnd, 
+    template <typename TaskPredicatePair>
+    bool test_and_get_front (queue_index_type queue_num, 
+                             const TaskPredicatePair& cnd, 
                              value_type& value) {
       bool ret_val = false;
 
@@ -75,7 +75,7 @@ namespace pfunc { namespace detail {
       mutex& lock = data[queue_num].lock;
 
       lock.lock ();
-      if (!queue.empty () && cnd(queue.front())) {
+      if (!queue.empty () && cnd.own_pred (queue.front())) {
         value = queue.front ();
         queue.pop_front ();
         ret_val = true;
@@ -83,7 +83,7 @@ namespace pfunc { namespace detail {
       lock.unlock ();
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,test_and_get_front)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,test_and_get_front)
 
       return ret_val;
     }
@@ -101,9 +101,9 @@ namespace pfunc { namespace detail {
      * \return true If a suitable task is found.
      * \return false If no suitable tasks could be found.
      */
-    template <typename Condition>
-    bool test_and_get_back (const unsigned int& queue_num, 
-                            Condition cnd, 
+    template <typename TaskPredicatePair>
+    bool test_and_get_back (queue_index_type queue_num, 
+                            const TaskPredicatePair& cnd, 
                             value_type& value) {
       bool ret_val = false;
 
@@ -112,7 +112,7 @@ namespace pfunc { namespace detail {
       mutex& lock = data[queue_num].lock;
 
       lock.lock ();
-      if (!queue.empty () && cnd(queue.back())) {
+      if (!queue.empty () && cnd.steal_pred (queue.back())) {
         value = queue.back ();
         queue.pop_back ();
         ret_val = true;
@@ -120,7 +120,7 @@ namespace pfunc { namespace detail {
       lock.unlock ();
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,test_and_get_back)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,test_and_get_back)
 
       return ret_val;
     }
@@ -139,9 +139,9 @@ namespace pfunc { namespace detail {
      * \return NULL If no suitable task is found.
      *
      */
-    template <typename ConditionPair>
+    template <typename TaskPredicatePair>
     value_type get (queue_index_type queue_num, 
-                    const ConditionPair& cnd) {
+                    const TaskPredicatePair& cnd) {
       value_type task = NULL;
 
       PFUNC_START_TRY_BLOCK()
@@ -150,12 +150,12 @@ namespace pfunc { namespace detail {
            ++i, ++num_attempts) {
         const unsigned int real_i = i % num_queues;
         if (real_i == queue_num) {
-          if (test_and_get_front (real_i, cnd.first, task)) break;
-        } else if (test_and_get_back (real_i, cnd.second, task)) break;
+          if (test_and_get_front (real_i, cnd, task)) break;
+        } else if (test_and_get_back (real_i, cnd, task)) break;
       }
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,get)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,get)
 
       return task;
     }
@@ -177,7 +177,7 @@ namespace pfunc { namespace detail {
       lock.unlock ();
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,scheduler)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,task_queue_set)
     }
   };
 } /* namespace detail */ }  /* namespace pfunc */

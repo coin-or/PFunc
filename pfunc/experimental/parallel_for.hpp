@@ -28,7 +28,7 @@ namespace pfunc {
 template <typename PFuncInstanceType /*type of PFunc instantiated*/,
           typename ForExecutable/*type of the function*/,
           typename SpaceType /*type of the space*/>
-struct parallel_for : pfunc::detail::virtual_functor {
+struct parallel_for : pfunc::virtual_functor {
   public:
   typedef typename PFuncInstanceType::taskmgr TaskMgrType;
   typedef typename PFuncInstanceType::task TaskType;

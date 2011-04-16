@@ -30,7 +30,7 @@
 #include <pfunc/attribute.hpp>
 #include <pfunc/task.hpp>
 #include <pfunc/trampolines.hpp>
-#include <pfunc/scheduler.hpp>
+#include <pfunc/task_queue_set.hpp>
 #include <pfunc/predicate.hpp>
 #include <pfunc/environ.hpp>
 
@@ -49,7 +49,7 @@ namespace pfunc { namespace detail {
 /** 
  * \brief Main class that implements the tasking aspect
  *
- * @param SchedPolicy The scheduling policy to use.
+ * @param SchedPolicyName The scheduling policy to use.
  * @param Task The type of the task to use.
  *
  * This is the main struct that implements the functionality provided
@@ -60,26 +60,20 @@ namespace pfunc { namespace detail {
  * 3. Wait for completions for those added tasks.
  *
  */    
-template <typename SchedPolicy,
+template <typename SchedPolicyName,
           typename Task>
 struct taskmgr : public taskmgr_virtual_base  {
   typedef Task task; /**< type of task */
-  typedef Task* task_ptr; /**< pointer to it */
   typedef typename task::functor functor; /**< Type of the functor */
-  typedef SchedPolicy sched_policy; /**< Type of scheduler in use */
-  typedef scheduler<sched_policy, task_ptr> queue_type; /**< scheduler */
+  typedef SchedPolicyName sched_policy_name; /**< Type of scheduler in use */
+  typedef task_queue_set<sched_policy_name, task> queue_type; /**< scheduler */
   typedef typename task::attribute attribute; /**< To know the attribute */
   typedef typename attribute::priority_type priority_type; /**< To know what priority exit_job */
   typedef thread::native_thread_id_type native_thread_id_type; /**< used for storage */
-  typedef regular_get_own_predicate<task_ptr> regular_own_predicate;
-  typedef regular_get_steal_predicate<task_ptr> regular_steal_predicate;
-  typedef waiting_get_own_predicate<sched_policy, task_ptr> waiting_own_predicate;
-  typedef waiting_get_steal_predicate<sched_policy, task_ptr> waiting_steal_predicate;
-  typedef barrier_get_own_predicate<sched_policy, task_ptr> barrier_own_predicate;
-  typedef barrier_get_steal_predicate<sched_policy, task_ptr> barrier_steal_predicate;
-  typedef std::pair<regular_own_predicate, regular_steal_predicate> regular_predicate;
-  typedef std::pair<waiting_own_predicate, waiting_steal_predicate> waiting_predicate;
-  typedef std::pair<barrier_own_predicate, barrier_steal_predicate> barrier_predicate;
+
+  typedef regular_predicate_pair<sched_policy_name, task> regular_predicate_pair;
+  typedef waiting_predicate_pair<sched_policy_name, task> waiting_predicate_pair;
+  typedef group_predicate_pair<sched_policy_name, task> group_predicate_pair;
   typedef typename thread::thread_handle_type thread_handle_type;
 
   /* Default values for attribute and group */
@@ -168,8 +162,8 @@ struct taskmgr : public taskmgr_virtual_base  {
    *
    * \return Pointer to the task being currently executed.
    */ 
-  task_ptr current_task_information ()  {
-    task_ptr tptr;
+  task* current_task_information ()  {
+    task* tptr;
     PFUNC_START_TRY_BLOCK()
     tptr = &(task_cache[current_thread_id()]);
     PFUNC_END_TRY_BLOCK()
@@ -650,7 +644,7 @@ struct taskmgr : public taskmgr_virtual_base  {
     while (NULL != (my_task = get_task ((thread_state[my_thread_id]),
                                         task_max_attempts,
                                         my_task_queue_number,
-                                        regular_predicate()))) {
+                                        regular_predicate_pair(NULL)))) {
       task_cache [my_thread_id].shallow_copy(*my_task); /* Set the cache */
       my_task->run (); /* Now, lets run the job */
       my_task->notify (); /* signal whoever was waiting */
@@ -705,9 +699,7 @@ struct taskmgr : public taskmgr_virtual_base  {
       while (NULL != (my_task = get_task (completion_pred,
                                           task_max_attempts,
                                           my_task_queue_number,
-                                          waiting_predicate
-                                     (waiting_own_predicate(&current_task),
-                                      waiting_steal_predicate(&current_task))))) {
+                                          waiting_predicate_pair (&current_task)))) {
      
         /* This task might steal again, set it to be in the cache */
         task_cache[my_thread_id].shallow_copy(*my_task);
@@ -746,9 +738,7 @@ struct taskmgr : public taskmgr_virtual_base  {
     current_task.shallow_copy (task_cache[my_thread_id]);
 
     task* my_task = task_queue->get (my_task_queue_number, 
-                                     barrier_predicate
-                                  (barrier_own_predicate(&current_task),
-                                   barrier_steal_predicate(&current_task)));
+                                     group_predicate_pair (&current_task));
 
     if (NULL == my_task) return;
 

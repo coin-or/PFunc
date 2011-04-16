@@ -7,223 +7,289 @@
  * \author Prabhanjan Kambadur.
  */
 
-#include <pfunc/scheduler.hpp>
+#include <pfunc/task_queue_set.hpp>
 
 namespace pfunc { namespace detail {
 
   /**
-   * Predicate type for getting task out of your own queue. ValueType is 
-   * the pointer to the task that we are checking the predicate for. This
-   * predicate is always true for ALL scheduling policies.
+   * Predicate type for getting tasks out at a "regular" scheduling point.
+   * ValueType is task and PolicyName can be anything.
    */
-  template <typename ValueType>
-  struct regular_get_own_predicate {
-    /** Can this task be given to the calling thread? */
-    bool operator ()(const ValueType&) const { return true; }
+  template <typename PolicyName, typename ValueType>
+  struct regular_predicate_pair {
+    typedef bool result_type;
+    typedef ValueType* value_type;
+
+    /**
+     * Initialize the previous task.
+     */
+    regular_predicate_pair (value_type previous_task=NULL) {}
+
+    /** 
+     * Can this task be given to the calling thread? The answer is YES,
+     * always YES, by default. If you like to change it, specialize!
+     * @param[in] arg Pointer to the task that is being chosen.
+     */
+    bool own_pred (value_type current_task) const { return true; }
+
+    /** 
+     * Same as own_pred ()
+     * @param[in] arg Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    }
   };
 
   /**
-   * Predicates are always given in pairs -- one for the thread's own 
-   * queue -- this one is for the steal. 
-   *
-   * Regular stealing means that a thread is trying to pick up a task 
-   * because its queue is empty -- NOT because its waiting on another 
-   * task to complete. For that, we use the "waiting" predicates.
-   *
-   * The value of this predicate is always true.
+   * Predicate type for getting tasks out at a "waiting" scheduling point.
+   */
+  template <typename PolicyName, typename ValueType>
+  struct waiting_predicate_pair {
+    typedef bool result_type;
+    typedef ValueType* value_type;
+
+    /**
+     * Initialize the previous task.
+     */
+    waiting_predicate_pair (value_type previous_task=NULL) {}
+
+    /** 
+     * Can this task be given to the calling thread? The answer is YES,
+     * always YES, by default. If you like to change it, specialize!
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool own_pred (value_type current_task) const { return true; }
+
+    /** 
+     * Same as own_pred ()
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    }
+  };
+
+  /**
+   * Predicate type for getting tasks out at a "group" scheduling point.
+   */
+  template <typename PolicyName, typename ValueType>
+  struct group_predicate_pair {
+    typedef bool result_type;
+    typedef ValueType* value_type;
+    value_type previous_task;
+
+    /**
+     * Initialize the previous task.
+     */
+    group_predicate_pair (value_type previous_task) : 
+                                  previous_task (previous_task) {}
+
+    /** 
+     * Can this task be given to the calling thread? The answer is "As 
+     * long as the previous and current task's are not in the same 
+     * group". If they are in the same group, there can be a deadlock.
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool own_pred (value_type current_task) const {
+      return !(previous_task->get_group() == current_task->get_group()) ; 
+    } 
+
+    /** 
+     * Same as own_pred ()
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    } 
+  };
+
+  /*************************************************************************
+   * MODIFICATIONS FOR CILKS 
+   *************************************************************************/
+
+  /**
+   * Define the waiting predicates for the cilkS task_queue_set. 
    */
   template <typename ValueType> 
-  struct regular_get_steal_predicate { \
-    /** Can this task be given to the calling thread? */
-    bool operator () (const ValueType&) const { return true; }
+  struct waiting_predicate_pair <cilkS, ValueType> { 
+    typedef typename task_traits<ValueType>::attribute attribute; 
+    typedef typename attribute::level_type level_type; 
+    typedef bool result_type;
+    typedef ValueType* value_type; 
+   
+    value_type previous_task; 
+  
+    /**
+     * Initialize the previous task.
+     */
+    waiting_predicate_pair (value_type previous_task) : 
+                                  previous_task (previous_task) {}
+
+    /** 
+     * have to ensure that we are only stealing a task that is at the same 
+     * level in the spawn tree or lower. This is important to prevent thread
+     * stack explosion.
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool own_pred (value_type current_task) const { 
+      bool ret_val = false; 
+      level_type previous_task_level = previous_task->get_attr().get_level (); 
+      level_type current_task_level = current_task->get_attr().get_level (); 
+      if (previous_task_level <= current_task_level) ret_val = true; 
+      return ret_val; 
+    } 
+
+    /**
+     * Same as own_pred()
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    }
   };
 
-/**
- * generate the stealing predicate for a task given a particular 
- * scheduling policy.
- */
-#define PFUNC_DEFINE_STEAL_FOR_SCHED(policy,struct_name) \
-  template <typename ValueType> \
-  struct struct_name <policy,ValueType> { \
-    struct_name (const ValueType&) {} \
-    bool operator () (const ValueType&) const { return true; } \
-  };
-
-  /** 
-   * Predicate template for getting tasks from the calling thread's own 
-   * queue when waiting on a task.
+  /**
+   * Define the group stealing predicate for the cilk queue type. We
+   * have to ensure that we are only stealing a task that is at the same 
+   * level in the spawn tree or lower. This is important to prevent thread
+   * stack explosion. Also important is to not steal anything in the same 
+   * group as the task executing the group.
    */
-  template <typename SchedPolicyType, typename ValueType>
-  struct waiting_get_own_predicate { };
+  template <typename ValueType> 
+  struct group_predicate_pair <cilkS, ValueType> { 
+    typedef typename task_traits<ValueType>::attribute attribute; 
+    typedef typename attribute::level_type level_type; 
+    typedef bool result_type;
+    typedef ValueType* value_type; 
+   
+    value_type previous_task; 
+  
+    /**
+     * Initialize the previous task.
+     */
+    group_predicate_pair (value_type previous_task) : 
+                                  previous_task (previous_task) {}
 
-  /** 
-   * Predicate template for getting tasks from the another thread's 
-   * queue when waiting on a task.
+    /**
+     * Return true only if the current_task is lower in the execution tree 
+     * and is not of the same group as the previous_task that we were executing
+     * @param[in] current_task The candidate task that we want to check for 
+     *                         suitability.
+     */
+    bool own_pred (value_type current_task) const { 
+      bool ret_val = false; 
+      level_type previous_task_level = previous_task->get_attr().get_level (); 
+      level_type current_task_level = current_task->get_attr().get_level (); 
+      if (previous_task_level <= current_task_level) 
+        if (previous_task->get_group() != current_task->get_group()) 
+          ret_val = true; 
+      return ret_val; 
+    } 
+
+    /**
+     * Same as own_pred()
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    }
+  };
+
+  /*************************************************************************
+   * MODIFICATIONS FOR PRIOS
+   *************************************************************************/
+  
+  /**
+   * Define the waiting stealing predicate for the priority queue type. We
+   * have to ensure that we are stealing a task, which has at least the same
+   * priority as the one that we are waiting on. This prevents deadlocks from
+   * occuring.
    */
-  template <typename SchedPolicyType, typename ValueType>
-  struct waiting_get_steal_predicate { };
+  template <typename ValueType> 
+  struct waiting_predicate_pair <prioS, ValueType> { 
+    typedef typename task_traits<ValueType>::attribute attribute; 
+    typedef typename task_traits<ValueType>::functor functor; 
+    typedef compare_task_ptr<attribute, functor> compare_type; 
+    typedef bool result_type;
+    typedef ValueType* value_type; 
+   
+    value_type previous_task; 
+    compare_type comp;  
+  
+    /**
+     * Initialize the previous task.
+     */
+    waiting_predicate_pair (value_type previous_task) : 
+                                  previous_task (previous_task) {}
+   
+    /**
+     * Only pick a task that has lower priority than the task which we are
+     * waiting to complete.
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool own_pred (value_type current_task) const { 
+      bool ret_val = false; 
+      if (comp (previous_task, current_task)) 
+        ret_val = true; 
+      return ret_val; 
+    } 
 
-  PFUNC_DEFINE_STEAL_FOR_SCHED(lifoS,waiting_get_own_predicate)
-  PFUNC_DEFINE_STEAL_FOR_SCHED(lifoS,waiting_get_steal_predicate)
-  PFUNC_DEFINE_STEAL_FOR_SCHED(fifoS,waiting_get_own_predicate)
-  PFUNC_DEFINE_STEAL_FOR_SCHED(fifoS,waiting_get_steal_predicate)
-
-/**
- * \def Define the waiting stealing predicate for the cilk queue type. We
- * have to ensure that we are only stealing a task that is at the same 
- * level in the spawn tree or lower. This is important to prevent thread
- * stack explosion.
- */
-#define PFUNC_DEFINE_WAITING_STEAL_FOR_CILKS(struct_name) \
-  template <typename ValueType> \
-  struct struct_name <cilkS, ValueType> { \
-    typedef typename task_traits<ValueType>::attribute attribute; \
-    typedef typename attribute::level_type level_type; \
-    typedef ValueType value_type; \
-   \
-    const value_type current; \
-  \
-    struct_name (const value_type& value) : current (value) {} \
-   \
-    bool operator ()(const value_type& next) const { \
-      bool ret_val = false; \
-      level_type current_level = current->get_attr().get_level (); \
-      level_type next_level = next->get_attr().get_level (); \
-      if (current_level <= next_level) ret_val = true; \
-      return ret_val; \
-    } \
+    /**
+     * Same as own_pred()
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    }
   };
 
-  PFUNC_DEFINE_WAITING_STEAL_FOR_CILKS(waiting_get_own_predicate)
-  PFUNC_DEFINE_WAITING_STEAL_FOR_CILKS(waiting_get_steal_predicate)
 
-
-/**
- * \def Define the waiting stealing predicate for the priority queue type. We
- * have to ensure that we are stealing a task, which has at least the same
- * priority as the one that we are waiting on. This prevents deadlocks from
- * occuring.
- */
-#define PFUNC_DEFINE_WAITING_STEAL_FOR_PRIOS(struct_name) \
-  template <typename ValueType> \
-  struct struct_name <prioS, ValueType> { \
-    typedef typename task_traits<ValueType>::attribute attribute; \
-    typedef typename task_traits<ValueType>::functor functor; \
-    typedef compare_task_ptr<attribute, functor> compare_type; \
-    typedef ValueType value_type; \
-   \
-    const value_type current; \
-    compare_type comp;  \
-  \
-    struct_name (const value_type& value) : current (value) {} \
-   \
-    bool operator ()(const value_type& next) const { \
-      bool ret_val = false; \
-      if (comp (current, next)) \
-        ret_val = true; \
-      return ret_val; \
-    } \
-  };
-
-  PFUNC_DEFINE_WAITING_STEAL_FOR_PRIOS(waiting_get_own_predicate)
-  PFUNC_DEFINE_WAITING_STEAL_FOR_PRIOS(waiting_get_steal_predicate)
-
-  /** 
-   * Predicate template for getting tasks from the calling thread's own 
-   * queue when waiting on a barrier for a task.
+  /**
+   * Define the group stealing predicate for the priority queue type. We
+   * have to ensure that we are stealing a task, which has at least the same
+   * priority as the one that we are waiting on. This prevents deadlocks from
+   * occuring.
    */
-  template <typename SchedPolicyType, typename ValueType>
-  struct barrier_get_own_predicate { };
+  template <typename ValueType> 
+  struct group_predicate_pair <prioS, ValueType> { 
+    typedef typename task_traits<ValueType>::attribute attribute; 
+    typedef typename task_traits<ValueType>::functor functor; 
+    typedef compare_task_ptr<attribute, functor> compare_type; 
+    typedef bool result_type;
+    typedef ValueType* value_type; 
+   
+    value_type previous_task; 
+    compare_type comp;  
 
-  /** 
-   * Predicate template for getting tasks from the a different task 
-   * queue when waiting on a barrier for a task.
-   */
-  template <typename SchedPolicyType, typename ValueType>
-  struct barrier_get_steal_predicate { };
+    /**
+     * Initialize the previous task.
+     */
+    group_predicate_pair (value_type previous_task) : 
+                                  previous_task (previous_task) {}
+  
+    /**
+     * First, check that the task we are trying to pick is not in our group.
+     * Then pick the task only if it has lower priority than the task which we
+     * are waiting to complete. 
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool own_pred (value_type current_task) const { 
+      bool ret_val = false; 
+      if (comp (previous_task, current_task)) 
+        if (previous_task->get_group() != current_task->get_group()) 
+          ret_val = true; 
+      return ret_val; 
+    } 
 
-/**
- * \def Define barrier steal for the most scheduling policies.
- */
-#define PFUNC_DEFINE_BARRIER_STEAL_FOR_SCHED(policy,struct_name) \
-  template <typename ValueType> \
-  struct struct_name <policy,ValueType> { \
-    \
-    ValueType current; \
-    \
-    struct_name (const ValueType& value) : current (value) {} \
-    \
-    bool operator () (const ValueType& value=NULL) const { \
-      return !(current->get_group() == value->get_group()) ; \
-    } \
+    /**
+     * Same as own_pred()
+     * @param[in] current_task Pointer to the task that is being chosen.
+     */
+    bool steal_pred (value_type current_task) const { 
+      return own_pred (current_task); 
+    }
   };
-
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_SCHED(lifoS,barrier_get_own_predicate)
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_SCHED(lifoS,barrier_get_steal_predicate)
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_SCHED(fifoS,barrier_get_own_predicate)
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_SCHED(fifoS,barrier_get_steal_predicate)
-
-/**
- * \def Define the barrier stealing predicate for the cilk queue type. We
- * have to ensure that we are only stealing a task that is at the same 
- * level in the spawn tree or lower. This is important to prevent thread
- * stack explosion. Also important is to not steal anything in the same 
- * group as the task executing the barrier.
- */
-#define PFUNC_DEFINE_BARRIER_STEAL_FOR_CILKS(struct_name) \
-  template <typename ValueType> \
-  struct struct_name <cilkS, ValueType> { \
-    typedef typename task_traits<ValueType>::attribute attribute; \
-    typedef typename attribute::level_type level_type; \
-    typedef ValueType value_type; \
-   \
-    const value_type current; \
-  \
-    struct_name (const value_type& value) : current (value) {} \
-   \
-    bool operator ()(const value_type& next) const { \
-      bool ret_val = false; \
-      level_type current_level = current->get_attr().get_level (); \
-      level_type next_level = next->get_attr().get_level (); \
-      if (current_level <= next_level) \
-        if (current->get_group() != next->get_group()) ret_val = true; \
-      return ret_val; \
-    } \
-  };
-
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_CILKS(barrier_get_own_predicate)
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_CILKS(barrier_get_steal_predicate)
-
-/**
- * \def Define the barrier stealing predicate for the priority queue type. We
- * have to ensure that we are stealing a task, which has at least the same
- * priority as the one that we are waiting on. This prevents deadlocks from
- * occuring.
- */
-#define PFUNC_DEFINE_BARRIER_STEAL_FOR_PRIOS(struct_name) \
-  template <typename ValueType> \
-  struct struct_name <prioS, ValueType> { \
-    typedef typename task_traits<ValueType>::attribute attribute; \
-    typedef typename task_traits<ValueType>::functor functor; \
-    typedef compare_task_ptr<attribute, functor> compare_type; \
-    typedef ValueType value_type; \
-   \
-    const value_type current; \
-    compare_type comp;  \
-  \
-    struct_name (const value_type& value) : current (value) {} \
-   \
-    bool operator ()(const value_type& next) const { \
-      bool ret_val = false; \
-      if (comp (current, next)) \
-        if (current->get_group() != next->get_group()) \
-          ret_val = true; \
-      return ret_val; \
-    } \
-  };
-
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_PRIOS(barrier_get_own_predicate)
-  PFUNC_DEFINE_BARRIER_STEAL_FOR_PRIOS(barrier_get_steal_predicate)
 
 } /* namespace detail */ } /* namespace pfunc */
 

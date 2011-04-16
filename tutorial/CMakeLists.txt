@@ -20,6 +20,8 @@ set (TUTORIAL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sync.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/loops.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/exception.tex 
+    ${CMAKE_CURRENT_SOURCE_DIR}/design.tex 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/perf.tex)
 
 set (TUTORIAL_CLEAN
@@ -39,6 +41,7 @@ set (TUTORIAL_FIGS
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/life-cycle.eps
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/organization.eps
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/pfunc.eps
+    ${CMAKE_CURRENT_SOURCE_DIR}/figs/custom.eps
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/overview.eps)
 
 # Print out all the things that were found

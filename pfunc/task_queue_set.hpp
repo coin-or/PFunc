@@ -12,27 +12,20 @@
 
 
 namespace pfunc { 
-  
-  /** Common base class for all the scheduling mechanisms */
-  struct schedS {};
-
   /** Error scheduling class */
-  struct errorS : public schedS {};
+  struct errorS {};
 
   /** FIFO scheduling offering queue semantics */
-  struct fifoS : public schedS {};
+  struct fifoS {};
 
   /** LIFO scheduling offering stack semantics */
-  struct lifoS : public schedS {};
+  struct lifoS {};
 
   /** PRIORITY support for tasks */
-  struct prioS : public schedS {};
+  struct prioS {};
 
   /** CILK schedling for tasks */
-  struct cilkS : public schedS {};
-
-  /** Hash multimap based schedling for tasks */
-  struct hashS : public schedS {};
+  struct cilkS {};
 
   namespace detail {
     /**
@@ -40,17 +33,18 @@ namespace pfunc {
      * policy based task queues. SchedPolicyType is one of the schedS 
      * specializations and ValueType is always a pointer to a task. 
      */
-    template <typename SchedPolicyType, 
+    template <typename PolicyName, 
               typename ValueType>
-    struct scheduler {
+    struct task_queue_set {
+      typedef errorS queue_index_type; /**< Declare error if no specialization is found */
       typedef errorS queue_type; /**< Declare error if no specialization is found */
     };
 
     /**
-     * Data stored in a scheduler. QueueType is one of schedS.
+     * Data stored in a task_queue_set. QueueType is one of schedS.
      */
     template <typename QueueType>
-    struct sched_data {
+    struct task_queue_set_data {
       ALIGN128 QueueType queue; /**< Internal queue */
       ALIGN128 mutex lock; /**< Lock associated with this internal queue */
     };

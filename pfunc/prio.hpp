@@ -2,7 +2,7 @@
 #define PFUNC_PRIO_T_HPP
 
 #ifndef PFUNC_SCHEDULER_HPP
-#error "This file can only be included from scheduler.hpp"
+#error "This file can only be included from task_queue_set.hpp"
 #endif
 
 #include <queue> 
@@ -19,15 +19,6 @@ namespace pfunc { namespace detail {
    */
   template <typename T>
   struct task_traits {
-    typedef typename T::attribute attribute; /**< Type of the attribute */
-    typedef typename T::functor functor; /**< Type of the functor */
-  };
-
-  /**
-   * Specialization of task_traits for pointers to "task" type.
-   */
-  template <typename T>
-  struct task_traits <T*> {
     typedef typename T::attribute attribute; /**< Type of the attribute */
     typedef typename T::functor functor; /**< Type of the functor */
   };
@@ -64,19 +55,19 @@ namespace pfunc { namespace detail {
   };
 
   /**
-   * Specialization of scheduler for priority queues.
+   * Specialization of task_queue_set for priority queues.
    */
   template <typename ValueType>
-  struct scheduler <prioS, ValueType> {
+  struct task_queue_set <prioS, ValueType> {
     typedef typename task_traits<ValueType>::attribute attribute; /**< Type of the task attribute */
     typedef typename task_traits<ValueType>::functor functor; /**< Type of the task functor */
     typedef compare_task_ptr<attribute, functor> compare_type; /**< Type of the priority comparison operator */
-    typedef std::priority_queue<ValueType, 
-                                std::vector<ValueType>, 
+    typedef std::priority_queue<ValueType*, 
+                                std::vector<ValueType*>, 
                                 compare_type> queue_type; /**< Type of the priority_queue */
     typedef typename queue_type::value_type value_type; /**< Type of the items stored in the priority_queue */
     typedef unsigned int queue_index_type; /**< type to index into the queue */
-    typedef sched_data<queue_type> data_type; /**< scheduler data */
+    typedef task_queue_set_data<queue_type> data_type; /**< task_queue_set data */
 
     ALIGN128 data_type* data; /**< Holds all the data required */
     ALIGN128 unsigned int num_queues; /**< Number of queues */
@@ -87,24 +78,24 @@ namespace pfunc { namespace detail {
      *
      * \param [in] num_queues Number of task queues to create.
      */
-    scheduler (const unsigned int& num_queues) PFUNC_CONSTRUCTOR_TRY_BLOCK() : 
+    task_queue_set (unsigned int num_queues) PFUNC_CONSTRUCTOR_TRY_BLOCK() : 
       num_queues (num_queues) PFUNC_EXCEPT_PTR_INIT() {
       PFUNC_START_TRY_BLOCK()
       data = new data_type [num_queues];
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,scheduler)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,task_queue_set)
     }
-    PFUNC_CATCH_AND_RETHROW(scheduler,scheduler)
+    PFUNC_CATCH_AND_RETHROW(task_queue_set,task_queue_set)
 
     /**
      * Destructor
      */
-    ~scheduler ( ) { 
+    ~task_queue_set () { 
       PFUNC_START_TRY_BLOCK()
       delete [] data; 
       PFUNC_EXCEPT_PTR_CLEAR()
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,~scheduler)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,~task_queue_set)
     }
 
     /**
@@ -116,14 +107,16 @@ namespace pfunc { namespace detail {
      * \param [in] queue_num The task queue to check for tasks.
      * \param [in] cnd The predicate to be satisfied.
      * \param [out] value If a suitable task is found, its put here.
+     * \param [in] own_queue Is true if removing element from own_queue.
      * 
      * \return true If a suitable task is found.
      * \return false If no suitable tasks could be found.
      */
-    template <typename Condition>
-    bool test_and_get (const unsigned int& queue_num, 
-                       Condition cnd, 
-                       value_type& value) {
+    template <typename TaskPredicatePair>
+    bool test_and_get (queue_index_type queue_num, 
+                       const TaskPredicatePair& cnd, 
+                       value_type& value,
+                       bool own_queue) {
       bool ret_val = false;
 
       PFUNC_START_TRY_BLOCK()
@@ -131,7 +124,8 @@ namespace pfunc { namespace detail {
       mutex& lock = data[queue_num].lock;
 
       lock.lock ();
-      if (!queue.empty () && cnd(queue.top())) {
+      if (!queue.empty () &&
+          ((own_queue)?cnd.own_pred(queue.top()):cnd.steal_pred(queue.top()))) {
         value = queue.top ();
         queue.pop ();
         ret_val = true;
@@ -139,7 +133,7 @@ namespace pfunc { namespace detail {
       lock.unlock ();
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,test_and_get)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,test_and_get)
 
       return ret_val;
     }
@@ -158,9 +152,9 @@ namespace pfunc { namespace detail {
      * \return NULL If no suitable task is found.
      *
      */
-    template <typename ConditionPair>
+    template <typename TaskPredicatePair>
     value_type get (queue_index_type queue_num, 
-                    const ConditionPair& cnd) {
+                    const TaskPredicatePair& cnd) {
       value_type task = NULL;
 
       PFUNC_START_TRY_BLOCK()
@@ -168,13 +162,11 @@ namespace pfunc { namespace detail {
            num_attempts < static_cast<int>(num_queues);
            ++i, ++num_attempts) {
         const unsigned int real_i = i % num_queues;
-        if (real_i == queue_num) {
-          if (test_and_get (real_i, cnd.first, task)) break; 
-        } else if (test_and_get (real_i, cnd.second, task)) break;
+        if (test_and_get (real_i, cnd, task, (real_i==queue_num))) break;
       }
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,get)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,get)
 
       return task;
     }
@@ -196,7 +188,7 @@ namespace pfunc { namespace detail {
       lock.unlock ();
 
       PFUNC_END_TRY_BLOCK()
-      PFUNC_CATCH_AND_RETHROW(scheduler,scheduler)
+      PFUNC_CATCH_AND_RETHROW(task_queue_set,task_queue_set)
     }
   };
 } /* namespace detail */ } /* namespace pfunc */

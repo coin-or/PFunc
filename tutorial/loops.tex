@@ -59,7 +59,7 @@ concept Space<typename Model> : CopyAssignable <Model> {
   size_t Model::begin() const;
   size_t Model::end() const;
   bool Model::can_split() const;
-  subspace_iterator_pair split() const;
+  subspace_iterator_pair Model::split() const;
 }
 \end{lstlisting}
 \end{minipage}
@@ -108,7 +108,7 @@ The functor must be a model of the \code{ForExecutable} concept given below:
 \begin{lstlisting}
 concept ForExecutable<typename Model, typename SpaceType> : 
   Space<SpaceType>, CopyAssignable <Model> {
- void operator()(const SpaceType&) const;
+ void Model::operator()(const SpaceType&) const;
 }
 \end{lstlisting}
 \end{minipage}
@@ -206,9 +206,9 @@ a model of \code{ReduceExecutable} concept that is defined below:
 concept ReduceExecutable<typename Model, typename SpaceType> : 
              Space<SpaceType>, Assignable<Model>, CopyAssignable <Model> {
   /**< Associated functions */
-  Model split () const;
-  void join (const Model&);
-  void operator () (const SpaceType&);
+  Model Model::split () const;
+  void Model::join (const Model&);
+  void Model::operator () (const SpaceType&);
 }
 \end{lstlisting}
 \end{minipage}
@@ -347,7 +347,7 @@ concept WhileExecutable <typename Model, typename ArgumentType> :
                                            CopyAssignable <Model> {
   typename argument_type;
   is_convertible <argument_type, ArgumentType>;
-  void operator() (ArgumentType) const;
+  void Model::operator() (ArgumentType) const;
 }
 \end{lstlisting}
 \end{minipage}

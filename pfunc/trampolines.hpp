@@ -141,6 +141,7 @@ struct reroute_function_arg {
                                      taskmgr_ptr (taskmgr_ptr),
                                      thd_attr (thd_attr) {}
 };
+} /* namespace detail */
 
 /** 
  * \brief Virtual base class that is the default functor used.
@@ -151,8 +152,7 @@ struct virtual_functor {
   virtual ~virtual_functor() {} ; 
   virtual void operator() (void) = 0; 
 };
-
-} /* namespace detail */ } /* namespace pfunc */
+} /* namespace pfunc */
 
 /*************************************************************************/
 

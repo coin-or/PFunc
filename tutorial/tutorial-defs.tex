@@ -29,6 +29,8 @@
 
 \newcommand{\Cpp}{C\kern-0.05em\texttt{+\kern-0.03em+}}
 \newcommand{\conceptCpp}{Concept\Cpp}
+\newcommand{\concept}[1]{\textsf{#1}}
+\newcommand{\halfline}{\vspace{-1.5ex}}
 
 \newenvironment{commentenv}[1]{\begin{list}{}{}\item[]{\sc [#1:}
 }{{\rm {\sc End of comment.]}} \end{list}}
@@ -48,14 +50,11 @@
 \newcommand{\tablefont}{\fontsize{9}{15}\selectfont}
 \renewcommand{\emph}{\textit}
 
-
-\newcommand{\concept}[1]{{\sc #1}}
-
 \lstdefinestyle{basic}{showstringspaces=false,columns=fullflexible,language=C++,escapechar=@,xleftmargin=1pc,%
 basicstyle=\small\sffamily,
 commentstyle=\mdseries,
 moredelim=**[is][\color{white}]{~}{~},
-morekeywords={concept,model,require,where,reduction},
+morekeywords={concept,model,requires,where,reduction},
 literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}}1,
 }
 
