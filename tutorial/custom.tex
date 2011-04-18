@@ -331,7 +331,7 @@ concept TaskQueueSet <typename PolicyName, typename QueueSet> {
   requires TaskPredicatePair<PredPair, PolicyName> &&
            SameType<TaskPredicatePair<PredPair, PolicyName>::value_type, value_type>
   value_type QueueSet::get (queue_index_type, const PredPair&);
-};
+}
 \end{lstlisting}
 
 The \concept{Task Queue Set} concept takes two parameters: \code{PolicyName}
