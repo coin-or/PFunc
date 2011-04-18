@@ -5,29 +5,36 @@ cmake_minimum_required (VERSION 2.6)
 # This is done so that the generated header files can also be found.
 include_directories (BEFORE ${PFUNC_SOURCE_DIR} ${PFUNC_BINARY_DIR})
 
+# Create a custom target for all the executables
+add_custom_target (cxx_examples ALL)
+
 add_executable (fibonacci fibonacci.cpp)
 add_dependencies (fibonacci pfunc)
 if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (fibonacci pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
+add_dependencies (cxx_examples fibonacci)
 
 add_executable (matmult matmult.cpp)
 add_dependencies (matmult pfunc)
 if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (matmult pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
+add_dependencies (cxx_examples matmult)
 
 add_executable (for for.cpp)
 add_dependencies (for pfunc)
 if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (for pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
+add_dependencies (cxx_examples for)
 
 add_executable (reduce reduce.cpp)
 add_dependencies (reduce pfunc)
 if (NOT CMAKE_SYSTEM MATCHES "Windows")
   target_link_libraries (reduce pthread)
 endif (NOT CMAKE_SYSTEM MATCHES "Windows")
+add_dependencies (cxx_examples reduce)
 
 ##############################################################################
 # For parallel_while loop demonstration
@@ -50,10 +57,8 @@ if (FLEX_FOUND AND BISON_FOUND)
   add_executable(while while.cpp 
                  ${BISON_MyParser_OUTPUTS} 
                  ${FLEX_MyScanner_OUTPUTS})
+  add_dependencies (cxx_examples while)
 else (FLEX_FOUND AND BISON_FOUND)
   message (STATUS "Did not find FLEX and YACC -- skipping while")
 endif (FLEX_FOUND AND BISON_FOUND)
 ##############################################################################
-
-add_custom_target (cxx_examples ALL)
-add_dependencies (cxx_examples fibonacci matmult for while)
