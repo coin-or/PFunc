@@ -52,9 +52,16 @@ pfunc/cmake_tests/futex.cpp -text
 pfunc/cmake_tests/inline.c -text
 pfunc/cmake_tests/sched_affinity.cpp -text
 pfunc/cmake_tests/tls.cpp -text
+pfunc/concepts/AdaptableCallableN.concept.ipp -text
 pfunc/concepts/ForExecutable.concept.ipp -text
+pfunc/concepts/Generator.concept.ipp -text
+pfunc/concepts/PFuncTask.concept.ipp -text
+pfunc/concepts/PartialOrder.concept.ipp -text
 pfunc/concepts/ReduceExecutable.concept.ipp -text
+pfunc/concepts/SchedulingPolicy.concept.ipp -text
 pfunc/concepts/Space.concept.ipp -text
+pfunc/concepts/TaskPredicate.concept.ipp -text
+pfunc/concepts/TaskQueueSet.concept.ipp -text
 pfunc/concepts/WhileExecutable.concept.ipp -text
 pfunc/cond.hpp -text
 pfunc/config.h.in -text
