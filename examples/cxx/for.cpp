@@ -56,15 +56,15 @@
  * very beginning. In fact, this is the model used in MPI-style algorithms and
  * can be mimiced in PFunc using GROUP structures.
  *
- * NOTE: Please see pfunc/experimental/ directory for space_1D and parallel_for
+ * NOTE: Please see pfunc/ directory for space_1D and parallel_for
  */
 #include <iostream>
 #include <cassert>
 #include <vector>
 #include <pfunc/pfunc.hpp>
 #include <pfunc/utility.h>
-#include <pfunc/experimental/space_1D.hpp>
-#include <pfunc/experimental/parallel_for.hpp>
+#include <pfunc/space_1D.hpp>
+#include <pfunc/parallel_for.hpp>
 
 /**
  * A scaling operator for a vector.

@@ -11,8 +11,8 @@
  *   typename argument_type;
  *
  *   /**< Associated type requirements */
- *   is_convertible <argument_type, ArgumentType>;
+ *   Model::is_convertible <argument_type, ArgumentType>;
  *
  *   /**< Associated functions */  
- *   void operator() (ArgumentType) const;
+ *   void Model::operator() (ArgumentType) const;
  * }

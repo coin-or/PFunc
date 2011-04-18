@@ -8,8 +8,8 @@
 #include <vector>
 #include <pfunc/pfunc.hpp>
 #include <pfunc/utility.h>
-#include <pfunc/experimental/space_1D.hpp>
-#include <pfunc/experimental/parallel_reduce.hpp>
+#include <pfunc/space_1D.hpp>
+#include <pfunc/parallel_reduce.hpp>
 
 /**
  * A scaling operator for a vector.

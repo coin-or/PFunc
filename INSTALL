@@ -90,9 +90,6 @@ Given below is a list of the most important options.
     this option is turned OFF. Enabling this option builds in-code 
     documentation. "Doxygen" is needed in-order to build PFunc's docs.
 
- g) BUILD_PAPERS: The available choices are "ON" or "OFF". By default, this 
-    option is turned off.
-
 Basic Installation:
 -------------------
 For a clean installation process, we recommend an out-of-source build. However,

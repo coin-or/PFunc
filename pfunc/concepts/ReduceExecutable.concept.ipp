@@ -8,8 +8,8 @@
  * concept ReduceExecutable<typename Model, typename SpaceType> : 
  *              Space<SpaceType>, Assignable<Model>, CopyAssignable <Model> {
  *   /**< Associated functions */
- *   Model split () const;
- *   void join (const Model&);
- *   void operator () (const SpaceType&);
+ *   Model Model::split () const;
+ *   void Model::join (const Model&);
+ *   void Model::operator () (const SpaceType&);
  * }
  */

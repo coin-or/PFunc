@@ -7,6 +7,6 @@
  * concept ForExecutable<typename Model, typename SpaceType> : 
  *                            Space<SpaceType>, CopyAssignable <Model> {
  *   /**< Associated functions */
- *   void operator()(const SpaceType&) const;
+ *   void Model::operator()(const SpaceType&) const;
  * }
  */

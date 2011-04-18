@@ -26,7 +26,7 @@
 #include <pfunc/pfunc.hpp>
 #include <pfunc/utility.h>
 #include <pfunc/pfunc_atomics.h>
-#include <pfunc/experimental/parallel_while.hpp>
+#include <pfunc/parallel_while.hpp>
 
 /**< A global list of all the nodes */
 vertex_list_t HEAD = {NULL, NULL};
