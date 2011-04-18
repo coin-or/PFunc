@@ -1,56 +1,60 @@
-\section{Generating PFunc's interface}
+\section{Choosing The Right PFunc}
 \label{sec:generate}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.90\textwidth]{figs/pfunc}
-\caption{Feature diagram of the PFunc library showing the various features.
-The features colored grey (scheduling policy, function object, compare and
-priority) are generated based on user input.}
-\label{fig:pfunc}
-\end{figure}
-
-As mentioned in Section~\ref{sec:introduction}, PFunc offers a wide variety
-customizations to its users without incurring any runtime penalties. The first
-step in using PFunc is to generate a customized library instance description
-that best suits their needs (\Cpp{} only).  Then, the generated library
-instance description is used to parallelize user applications. A feature
-diagram of PFunc is shown in Figure~\ref{fig:pfunc}. The shaded blocks
-represent features that can be customized and are described below.
-
-\begin{list}{\labelitemi}{\leftmargin=1em}
+%
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+Feature & Default \\
+\hline
+\code{Scheduling policy} & \code{cilkS} \\
+\hline
+\code{Compare} & \func{std::less<int>} \\
+\hline 
+\code{Function object} & \code{struct \{ virtual void operator()() = 0; \};} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Default values for PFunc's template parameters.}
+\label{tbl:default}
+\end{table}
+%
+PFunc is a templated library; the first step is, therefore, to generate the 
+concrete type that will be used as the library instance (\Cpp{} only).
+%
+PFunc takes three template parameters: \code{scheduling policy},
+\code{compare}, and \code{function object}.
+%
+For most users, it is sufficient to provide default values to the template 
+parameters that are used in PFunc; Table~\ref{tbl:default} lists the default
+values for each of the three template parameters.
+%
+We briefly describe the roles of each of these template parameters; for a more
+detailed description, please see Sections~\ref{sec:design} and~\ref{sec:custom}.
+%
+\begin{list}{\labelitemi}{\leftmargin=0em}
 % Scheduling policy
-\item \textbf{Scheduling policy:}
-The value provided to this feature determines the scheduling policy that is
-used in the generated library instance description.  Figure~\ref{fig:pfunc}
-enumerates all the built-in values that can be provided for this feature.
-PFunc's users can also define custom scheduling polices and use them as the
-value of this feature at instance generation time.
+\item \code{Scheduling policy:}
+This template parameter names the scheduling policy to be used; the built-in
+values that can be used are \code{cilkS}, \code{lifoS}, \code{fifoS}, and
+\code{prioS}.
+
 % Compare
-\item \textbf{Compare:}
-This feature represents the ordering function for task priorities and is used
-only if the chosen scheduling policy requires task priorities (eg.,
-\code{prioS}).  PFunc also allows customization of the \textbf{priority}
-feature as it is inherited from the \textbf{compare} feature.
+\item \code{Compare:}
+This template parameter represents the ordering operator for task priorities; 
+for the built-in scheduling policies, it is used only for \code{prioS}.
+
 % Functor
-\item \textbf{Function object:}
-This feature allows users to specify the type of the function object that is
-executed by the tasks.  By allowing the type of the function object to be
-specified as a feature, PFunc successfully avoids paying the cost of virtual
-function calls in the spawned tasks.~\footnote{This is true only when there is 
-one function object that needs to be parallelized. In general, virtual function
-call cannot be avoided if more than one type of function objects needs to be 
-parallelized.} This is unlike other library-based approaches such as Intel's
-Threading Building Blocks, where spawning a new task involves a virtual
-function call.  
+\item \code{Function object:}
+This template parameter determines the type of the function objects that are 
+parallelized; when default value is choosen for this parameter, all function 
+objects the need to be parallelized are required to inherit from a abstract
+base class.
 \end{list}
-
-\subsection{\Cpp{}}
-\label{sec:cxx:gen}
-In \Cpp{}, the required library instance description can be generated using
-template parameters to PFunc's \code{generator} interface. For example,
-consider the following piece of code:
-
+%
+The code below summarizes how a library instance description can be 
+generated.
+%
 \begin{center}
 \begin{minipage}{0.75\textwidth}
 \begin{lstlisting}
@@ -60,44 +64,32 @@ typedef pfunc::generator<cilkS, /* scheduling policy */
 \end{lstlisting}
 \end{minipage}
 \end{center}
-
-\begin{figure}
-\begin{center}
-\begin{tabular}{|c|c|}
-\hline
-Feature & Default \\
-\hline
-\textbf{Scheduling policy} & \code{cilkS} \\
-\hline
-\textbf{Compare} & \func{std::less<int>} \\
-\hline 
-\textbf{Function object} & \code{struct \{ virtual void operator()() = 0; \};} \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Default values for features.}
-\label{fig:default}
-\end{figure}
-
+%
 Here, we have generated an new library instance description of PFunc by
-choosing the Cilk-style scheduling policy. The values for the \textbf{compare}
-and \textbf{function object} features are allowed to be defaults. It is
-possible to use \code{pfunc::use_default} for all the features
-(Figure~\ref{fig:default}).  PFunc automatically chooses sensible values for the
-features in this case.  The type \code{my\_pfunc} thus generated in our example
-is a custom instance that can be used to parallelize user applications. In
-PFunc, there are four important types that users are exposed to.  These are:
-\code{attribute}, \code{group}, \code{task} and \code{taskmgr}.  Once the
-required library instance description has been generated, these types can be
-accessed as follows:
+choosing the Cilk-style scheduling policy. 
+%
+The values for the \code{compare} and \code{function object} features are
+allowed to be defaults; In fact, It is possible to use
+\code{pfunc::use_default} for all the features (Figure~\ref{tbl:default}).  
+%
+PFunc automatically chooses sensible values for the features in this case.  
+%
+The type \code{my\_pfunc} thus generated in our example
+is a custom instance that can be used to parallelize user applications. 
+%
+In PFunc, there are four important types that users are exposed to:
+\code{attribute}, \code{group}, \code{task} and \code{taskmgr}.  
+%
+Once the required library instance description has been generated, these types
+can be accessed as follows:
 
 \begin{center}
 \begin{minipage}{0.4\textwidth}
 \begin{lstlisting}
-my_pfunc::attribute attribute; 
-my_pfunc::group group; 
-my_pfunc::task task; 
-my_pfunc::taskmgr taskmgr; 
+typedef my_pfunc::attribute attribute; 
+typedef my_pfunc::group group; 
+typedef my_pfunc::task task; 
+typedef my_pfunc::taskmgr taskmgr; 
 \end{lstlisting}
 \end{minipage}
 \end{center}
@@ -122,41 +114,45 @@ queues, and are responsible for task scheduling (see Section~\ref{sec:spawn}).
 \subsection{C}
 In C, both because of the lack of support for generic programming and the
 pitfalls of over-using preprocessor macros, PFunc pre-generates the library
-instance descriptions for the users. The users are merely required
-to then select the right library instance description from the avaible set of 
-pre-generated descriptions. The currently available library instance
-descriptions for C programmers are:
-
+instance descriptions for the users; the definitions for these are present in
+\code{pfunc/pfunc.h}.
+%
+The users are merely required to then select the right set of functions from
+the available sets of pre-generated functions; each set is denoted by a 
+common prefix and is given in the table below:
+%
 \begin{center}
 \begin{tabular}{|c|c|c|c|}
 \hline
 Instance description & Scheduling policy & Compare, priority & Function type \\
 \hline
-\code{pfunc_cilk_*} & Cilk-style & \textbf{unused} & \code{void (*)(void*)} \\
+\code{pfunc_cilk_*} & Cilk-style & \code{unused} & \code{void (*)(void*)} \\
 \hline
-\code{pfunc_lifo_*} & Queue & \textbf{unused} & \code{void (*)(void*)} \\
+\code{pfunc_lifo_*} & Queue & \code{unused} & \code{void (*)(void*)} \\
 \hline
-\code{pfunc_fifo_*} & Stack & \textbf{unused} & \code{void (*)(void*)} \\
+\code{pfunc_fifo_*} & Stack & \code{unused} & \code{void (*)(void*)} \\
 \hline
 \code{pfunc_prio_*} & Priority-based & \code{<} op, \code{int} & \code{void (*)(void*)} \\
 \hline
 \end{tabular}
 \end{center}
-
-The above table describes the four library instance descriptions that are
-available to the C programmers.  Like in \Cpp{}, there are four important
-types: \code{attribute}, \code{group}, \code{task} and \code{taskmgr}, which
-are exposed to the users.  For example, consider the Cilk-style library
-instance description.  The names by which these types can be accessed for the
-Cilk-style instance description are \code{pfunc_cilk_attr_t},
+%
+Like in \Cpp{}, there are four important types exposed to the users:
+\code{attribute}, \code{group}, \code{task} and \code{taskmgr}.
+%
+For example, for the Cilk-style library instance description, the names by
+which these types can be accessed are \code{pfunc_cilk_attr_t},
 \code{pfunc_cilk_group_t}, \code{pfunc_cilk_task_t} and
 \code{pfunc_cilk_taskmgr_t}. 
 
-\paragraph{Caveat} As PFunc is implemented completely in \Cpp{}, the C types
-(\code{attribute, group, task, taskmgr}) are mere typed pointers to their
-\Cpp{} counterparts. Consequently, before using these types (eg.,
-\code{pfunc_cilk_attr_t}, \code{pfunc_cilk_group_t}, \code{pfunc_cilk_task_t}
-and \code{pfunc_cilk_taskmgr_t}), they need to be initialized and cleared
-explicility using calls to their respective \func{init} and \func{clear}
-functions. This notion of initializing and clearing PFunc's C types will be
-reinforced throughout the C examples described in this tutorial.
+\paragraph{Caveat} 
+As PFunc is implemented completely in \Cpp{}, the C types (\code{attribute,
+group, task, taskmgr}) are mere typed pointers to their \Cpp{} counterparts. 
+%
+Consequently, these types (eg., \code{pfunc_cilk_attr_t},
+\code{pfunc_cilk_group_t}, \code{pfunc_cilk_task_t} and
+\code{pfunc_cilk_taskmgr_t}) need to be initialized and cleared explicility
+using calls to their respective \func{init} and \func{clear} functions. 
+%
+This notion of initializing and clearing PFunc's C types will be reinforced
+throughout the C examples described in this tutorial.

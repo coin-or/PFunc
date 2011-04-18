@@ -1,6 +1,6 @@
 \section{Exception handling}
 \label{sec:exception}
-
+%
 Checking for errors following function calls has traditionally been
 under-rated. Many bugs in programs are due to improper handling of these errors
 or the failure to detect the errors as soon as they occur. This problem is more
@@ -16,15 +16,11 @@ task throwing the exception has more than one task waiting on it, the thrown
 exception object is delivered to each of the waiting tasks.  All exceptions
 thrown by PFunc are derived from the base type \code{pfunc::exception}. The
 following example shows the use of PFunc's exception handling.
-
-\begin{center}
-\begin{minipage}{0.60\textwidth}
+%
 \begin{lstlisting}
 struct my_fn_object { 
   void operator () { 
-    try { 
-      ... 
-    }
+    try { ...  }
     catch (const pfunc::exception& error) { 
       std::cout << "Description: " << error.what () << std::endl;
       std::cout << "Trace: " << error.trace () << std::endl; 
@@ -33,13 +29,11 @@ struct my_fn_object {
   }
 };
 \end{lstlisting}
-\end{minipage}
-\end{center}
-
+%
 PFunc's exceptions extend \code{std::exception} to provide useful information
 to the users. There are three primary methods that help users in determining
 the cause of the error. These are:
-
+%
 \begin{center}
 \tablefont
 \begin{tabular}{|c|l|}
@@ -58,7 +52,7 @@ Method & Explanation \\
 \hline
 \end{tabular}
 \end{center}
-                                
+%                               
 It is important to note that PFunc takes care to ensure that exceptions are
 transported across thread boundaries so that the exception is delivered to the
 calling function without loss of any information. This is an important as it
@@ -78,15 +72,11 @@ necessary to propogate this exception all the way to the top-level task. In orde
 to propogate exceptions up the stack, it is necessary to first convert them 
 into objects of type \code{pfunc::exception}. Consider the following example
 that demonstrates this use case:
-
-\begin{center}
-\begin{minipage}{0.60\textwidth}
+%
 \begin{lstlisting}
 struct my_fn_object { 
   void operator () { 
-    try { 
-      ... 
-    }
+    try { ...  }
     catch (const pfunc::exception& error) { 
       pfunc::exception* clone = error.clone();
       clone->add_to_trace (": from my_fn_object at " PFUNC_FILE_AND_LINE()); 
@@ -95,13 +85,11 @@ struct my_fn_object {
   }
 };
 \end{lstlisting}
-\end{minipage}
-\end{center}
-
+%
 In the above example, any error that is caught by \code{my_fn_object} is 
 rethrown for higher-level tasks to catch. This is achieved using the following
 functions:
-
+%
 \begin{center}
 \tablefont
 \begin{tabular}{|c|l|}
@@ -127,9 +115,7 @@ the return value of the preceeding calls, it is unable to detect presence of
 earlier errors. For more information, refer to the function documentation to
 check the possible errors that can be returned by each call.  Here is an
 example of how one might check for errors in C.
-
-\begin{center}
-\begin{minipage}{0.60\textwidth}
+%
 \begin{lstlisting}
 void my_fn (void*) {
   if (PFUNC_SUCCESS != (error = pfunc_init (...))) {
@@ -145,9 +131,8 @@ void my_fn (void*) {
   }
 }
 \end{lstlisting}
-\end{minipage}
-\end{center}
 
+%
 Note that all the error values returned by the C interface are less than zero
 and \textbf{do not} clash with the system error codes such as EINVAL, EBUSY,
 etc.  

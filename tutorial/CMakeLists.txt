@@ -9,6 +9,7 @@ include (FindPerl)
 set (TUTORIAL_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/tutorial.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/tutorial-defs.tex 
+    ${CMAKE_CURRENT_SOURCE_DIR}/install.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/introduction.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/generate.tex 
     ${CMAKE_CURRENT_SOURCE_DIR}/initialize.tex 
@@ -36,13 +37,12 @@ set (TUTORIAL_CLEAN
 # Set the fig files for the tutorial 
 set (TUTORIAL_FIGS
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/attributes.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/figs/functors.eps
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/group.eps
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/life-cycle.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/figs/organization.eps
     ${CMAKE_CURRENT_SOURCE_DIR}/figs/pfunc.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/figs/custom.eps
-    ${CMAKE_CURRENT_SOURCE_DIR}/figs/overview.eps)
+    ${CMAKE_CURRENT_SOURCE_DIR}/figs/scheduling.eps
+    ${CMAKE_CURRENT_SOURCE_DIR}/figs/architecture.eps
+    ${CMAKE_CURRENT_SOURCE_DIR}/figs/custom.eps)
 
 # Print out all the things that were found
 if (LATEX_COMPILER AND DVIPS_CONVERTER AND PS2PDF_CONVERTER AND PERL_FOUND)
