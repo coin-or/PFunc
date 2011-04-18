@@ -202,7 +202,8 @@ struct divisible_matrix {
 static inline void dgemm_three_loop (const divisible_matrix& A,
                                      const divisible_matrix& B,
                                      divisible_matrix& C) {
-  assert (A.dimension() == B.dimension() == C.dimension());
+  assert (A.dimension() == B.dimension());
+  assert (A.dimension() == C.dimension());
   const register int dim = A.dimension();
   for (int i=0; i<dim; ++i) {
     for (int j=0; j<dim; ++j) {
@@ -242,7 +243,8 @@ struct dgemm_op {
    * Otherwise, directly multiply the two matrices.
    */
   void operator()(void) {
-    assert (A.dimension() == B.dimension() == C.dimension());
+    assert (A.dimension() == B.dimension());
+    assert (A.dimension() == C.dimension());
 
     // Multiply directly if we have small enough matrices
     if (A.dimension() <= problem_base_case_dim) {
@@ -312,7 +314,7 @@ int main (int argc, char** argv) {
   // All inputs must be given. Else, barf.
   if (6 != argc) {
     std::cout << "Please use this program as follows" << std::endl
-              << "./square_matrix_multiply <n> <x> <nqueues> <nthreads> "
+              << "./matmult <n> <x> <nqueues> <nthreads> "
               << "<print(0|1)>" << std::endl;
     exit(3);
   }
