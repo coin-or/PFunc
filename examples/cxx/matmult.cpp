@@ -12,10 +12,10 @@
  *                 ---------
  *                 C21 | C22
  * 
- * Where, C11 = B11*A11 + B11*A21
- *        C21 = B21*A21 + B21*A22
- *        C12 = B12*A11 + B12*A21
- *        C22 = B22*A21 + B22*A22
+ * Where, C11 = B11*A11 + B21*A12
+ *        C21 = B11*A21 + B21*A22
+ *        C12 = B12*A11 + B22*A12
+ *        C22 = B12*A21 + B22*A22
  *
  * Therefore, we recursively divide the computation of C = A*B into four 
  * quadrants, each of which require 2 matrix matrix multiplications. These
@@ -24,13 +24,13 @@
  * following manner:
  *
  * spawn C11 = B11*A11 
- * spawn C21 = B21*A21 
+ * spawn C21 = B21*A12 
  * spawn C12 = B12*A11 
- * spawn C22 = B22*A21 
+ * spawn C22 = B12*A21 
  * sync
- * spawn C11 += B11*A21
+ * spawn C11 += B21*A12
  * spawn C21 += B21*A22
- * spawn C12 += B12*A21
+ * spawn C12 += B22*A12
  * spawn C22 += B22*A22
  * sync 
  *
@@ -135,10 +135,10 @@ struct divisible_matrix {
   divisible_matrix split (const int quadrant) const {
     const int new_dim = dim/2;
     const int new_start_index = start_index + 
-                                (1==quadrant) ? 0 :
+                                ((1==quadrant) ? 0 :
                                   (2==quadrant) ? new_dim :
-                                    (3==quadrant) ? (dim*dim)/2:
-                                      (dim*dim)/2 + new_dim;
+                                    (3==quadrant) ? new_dim*stride:
+                                      new_dim*stride + new_dim);
     return divisible_matrix (new_dim, 
                              stride, 
                              new_start_index, 
@@ -205,6 +205,7 @@ static inline void dgemm_three_loop (const divisible_matrix& A,
   assert (A.dimension() == B.dimension());
   assert (A.dimension() == C.dimension());
   const register int dim = A.dimension();
+
   for (int i=0; i<dim; ++i) {
     for (int j=0; j<dim; ++j) {
       register double sum=0.0;
@@ -263,20 +264,20 @@ struct dgemm_op {
       divisible_matrix q2_C = C.split (2);
       divisible_matrix q3_C = C.split (3);
       divisible_matrix q4_C = C.split (4);
-      
+
       // Create the task functors
       //
-      // q1_C | q2_C    q1_A | q2_A      q1_B | q2_B
-      // -----|----- =  -----|------  *  -----|------
-      // q3_C | q4_C    q3_A | q4_A      q3_B | q4_B
+      //q1_A | q2_A  q1_B | q2_B  (q1_A*q1_B+q2_A*q3_B)|(q1_A*q2_B+q2_A*q4_B)
+      //-----|------*-----|------=---------------------|---------------------
+      //q3_A | q4_A  q3_B | q4_B  (q3_A*q1_B+q4_A*q3_B)|(q3_A*q2_B+q4_A*q4_B)
       //
       dgemm_op q1_op_1 (q1_A, q1_B, q1_C);
-      dgemm_op q1_op_2 (q2_A, q1_B, q1_C);
+      dgemm_op q1_op_2 (q2_A, q3_B, q1_C);
       dgemm_op q2_op_1 (q1_A, q2_B, q2_C);
-      dgemm_op q2_op_2 (q2_A, q2_B, q2_C);
-      dgemm_op q3_op_1 (q3_A, q3_B, q3_C);
+      dgemm_op q2_op_2 (q2_A, q4_B, q2_C);
+      dgemm_op q3_op_1 (q3_A, q1_B, q3_C);
       dgemm_op q3_op_2 (q4_A, q3_B, q3_C);
-      dgemm_op q4_op_1 (q3_A, q4_B, q4_C);
+      dgemm_op q4_op_1 (q3_A, q2_B, q4_C);
       dgemm_op q4_op_2 (q4_A, q4_B, q4_C);
 
       // Create the task objects
@@ -342,7 +343,8 @@ int main (int argc, char** argv) {
 
   // Set up the matrices
   divisible_matrix A (problem_dim,problem_dim,0,A_storage);
-  divisible_matrix B (problem_dim,problem_dim,0,B_storage, true/*transposed*/);
+  //divisible_matrix B (problem_dim,problem_dim,0,B_storage, true/*transposed*/);
+  divisible_matrix B (problem_dim,problem_dim,0,B_storage, false/*transposed*/);
   divisible_matrix C (problem_dim,problem_dim,0,C_storage);
 
   // Initialize PFunc
