@@ -62,6 +62,8 @@ struct parallel_reduce : pfunc::virtual_functor {
       // Create a vector of tasks for each subspace but the first one.
       const int num_tasks = SpaceType::arity-1;
       TaskType subspace_tasks [num_tasks];
+      parallel_reduce<PFuncInstanceType, ReduceExecutable, SpaceType>*
+        subspace_parallel_reducers [num_tasks];
 
       // Split func and create a vector of functors one for each task.
       std::vector<ReduceExecutable> split_funcs;
@@ -75,13 +77,14 @@ struct parallel_reduce : pfunc::virtual_functor {
       // Iterate and launch the tasks
       int task_index = 0;
       while (first != subspaces.end()) {
-        parallel_reduce<PFuncInstanceType, ReduceExecutable, SpaceType> 
-            current_subspace_reduce (*first++, 
-                                     split_funcs[task_index], 
-                                     taskmgr);
+        subspace_parallel_reducers [task_index] = new 
+          parallel_reduce<PFuncInstanceType, ReduceExecutable, SpaceType> 
+            (*first++, split_funcs[task_index], taskmgr);
         pfunc::spawn (taskmgr, // the task manager to use
-                      subspace_tasks[task_index++], // task handle
-                      current_subspace_reduce); // the subspace for this comptn
+                      subspace_tasks[task_index], // task handle
+                      *(subspace_parallel_reducers[task_index])); 
+                        // the subspace for this comptn
+        ++task_index;
       }
 
       (*this)(); // executing this loop ourselves.
@@ -92,7 +95,10 @@ struct parallel_reduce : pfunc::virtual_functor {
                        subspace_tasks+num_tasks); // end
 
       // Join everything
-      for (int i=0; i<num_tasks; ++i) func.join (split_funcs[i]);
+      for (int i=0; i<num_tasks; ++i) { 
+        func.join (split_funcs[i]);
+        delete subspace_parallel_reducers[i];
+      }
     } else {
       // No more splitting --- simply invoke the function on the given space.
       func (space);
