@@ -90,6 +90,13 @@ Given below is a list of the most important options.
     this option is turned OFF. Enabling this option builds in-code 
     documentation. "Doxygen" is needed in-order to build PFunc's docs.
 
+ g) USE EXCEPTIONS: This option is used to turn on exception handling in PFunc. 
+    by default, this option is turned "Off".
+    
+ h) USE PAPI: This option is used to turn on hardware performance profiling
+    in PFunc; by default, this option is turned "Off". Note that PAPI needs to
+    be installed in order for performance profiling to work.
+
 Basic Installation:
 -------------------
 For a clean installation process, we recommend an out-of-source build. However,
