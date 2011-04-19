@@ -45,3 +45,7 @@ derive from \code{perf\_data} to communicate the required
 measurements to PFunc. PFunc stores the requested event values in
 \code{my\_perf\_data} and these values can subsequently be used for performance
 tuning.
+
+\paragraph{Caveat} To enable performance profiling, please ensure that PAPI 
+is installed on your system and that \code{USE_PAPI} flag is turned 
+\code{ON|On} during configuration using CMake.

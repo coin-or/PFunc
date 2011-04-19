@@ -136,3 +136,6 @@ void my_fn (void*) {
 Note that all the error values returned by the C interface are less than zero
 and \textbf{do not} clash with the system error codes such as EINVAL, EBUSY,
 etc.  
+
+\paragraph{Caveat} To enable exception handling, \code{USE_EXCEPTIONS} flag
+must be turned \code{ON|On} during configuration using CMake.
