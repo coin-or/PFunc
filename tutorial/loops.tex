@@ -47,19 +47,16 @@ of \code{Space} to as follows:
 \begin{minipage}{0.7\textwidth}
 \begin{lstlisting}
 concept Space<typename Model> : CopyAssignable <Model> {
-  /**< Associated types */
-  typename subspace_iterator;/**< type of the subspace iterator */
-  typename subspace_iterator_pair;/**< return type of split () */
-  
-  /**< Associated values */
-  const static size_t arity;/**< Number of ways in which a space is split */
-  const static size_t dimension;/**< Dimensionality of the space */
-
-  /**< Associated functions */
+  typename subspace_container;
+  requires Sequence<subspace_container>;
+@\halfline@ 
+  const static size_t arity;
+  const static size_t dimension;
+@\halfline@ 
   size_t Model::begin() const;
   size_t Model::end() const;
   bool Model::can_split() const;
-  subspace_iterator_pair Model::split() const;
+  subspace_container split() const;
 }
 \end{lstlisting}
 \end{minipage}
@@ -126,11 +123,11 @@ struct vector_scale {
   private:
   std::vector<double>& my_vector;
   double scaling_factor;
-
+@\halfline@
   public:
   vector_scale (std::vector<double>& my_vector, const double scaling_factor) :
     my_vector (my_vector), scaling_factor (scaling_factor) {}
-
+@\halfline@
   void operator() (const pfunc::space_1D& space) const {
     for (size_t i = space.begin(); i<space.end(); ++i) {
       my_vector[i] *= scaling_factor;
@@ -205,7 +202,6 @@ a model of \code{ReduceExecutable} concept that is defined below:
 \begin{lstlisting}
 concept ReduceExecutable<typename Model, typename SpaceType> : 
              Space<SpaceType>, Assignable<Model>, CopyAssignable <Model> {
-  /**< Associated functions */
   Model Model::split () const;
   void Model::join (const Model&);
   void Model::operator () (const SpaceType&);
@@ -230,7 +226,7 @@ struct accumulate {
   private:
   std::vector<double>& my_vector;
   double sum;
-
+@\halfline@
   public:
   accumulate (std::vector<double>& my_vector, const double init) :
     my_vector (my_vector), sum (init) {}
@@ -272,15 +268,14 @@ in the following manner:
 \begin{minipage}{0.7\textwidth}
 \begin{lstlisting}
 taskmgr global_taskmgr (nqueues, threads_per_queue_array);
-
+@\halfline@
 task accumulate_task;
 attribute accumulate_attribute (false /*nested*/, false /*grouped*/);
 accumulate root_accumulate (my_vector, 0.0);
 pfunc::parallel_reduce<generator_type, accumulate, pfunc::space_1D> 
   root_reduce (pfunc::space_1D (0,n), root_accumulate, global_taskmgr);
-
-pfunc::spawn (global_taskmgr, accumulate_task, 
-              accumulate_attribute, root_reduce);
+@\halfline@
+pfunc::spawn (global_taskmgr, accumulate_task, accumulate_attribute, root_reduce);
 pfunc::wait (global_taskmgr, accumulate_task);
 \end{lstlisting}
 \end{minipage}
@@ -381,13 +376,13 @@ Once we have defined \func{big_func}, we can parallelize application of
 struct object {...};
 std::list <object*> my_list;
 // populate my_list
-
+@\halfline@
 taskmgr global_taskmgr (nqueues, threads_per_queue_array);
 task while_task;
 attribute while_attribute (false /*nested*/, false /*grouped*/);
 pfunc::parallel_while<generator_type, std::list<object*>::iterator, foo<object> > 
   root_while (my_list.begin(), my_list.end(), big_func<object>(), global_taskmgr);
-
+@\halfline@
 pfunc::spawn (global_taskmgr, while_task, while_attribute, root_while);
 pfunc::wait (global_taskmgr, accumulate_task);
 \end{lstlisting}
