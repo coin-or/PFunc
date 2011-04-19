@@ -12,18 +12,11 @@ namespace pfunc {
  */
 struct space_1D {
   public:
-  typedef std::vector<space_1D> subspace_1D_set; /**< list of subspaces */
-  typedef subspace_1D_set::iterator subspace_1D_set_iterator;
-                                /**< Iterator to subspace_1D */
-  typedef std::pair<subspace_1D_set_iterator,subspace_1D_set_iterator>
-    subspace_1D_set_iterator_pair; /**< A pair of iterators */
-
-  typedef subspace_1D_set_iterator subspace_iterator; /**< Space concept */
-  typedef subspace_1D_set_iterator_pair subspace_iterator_pair; 
-                                        /**< Space concept */
+  typedef std::vector<space_1D> subspace_container; /**< Container type */
   static size_t base_case_size; /**< Default which we will over-ride */
-  const static size_t arity = 2; /**< Number of ways in which we can split 
-                                      space_1D --- this is 2 for space_1D */
+
+  const static size_t arity = 2;/**< Number of ways in which a space is split */
+  const static size_t dimension = 1;/**< Dimensionality of the space */
 
   private:
   size_t space_begin; /**< Beginning of the iteration space */
@@ -64,12 +57,12 @@ struct space_1D {
    * @return A pair of iterators [begin, end) that will point to the split 
    *         subspaces.
    */
-  subspace_1D_set_iterator_pair split () const { 
+  subspace_container split () const { 
     // Make sure that the space is splittable
     assert (splittable);
 
     // Get a vector to store the subspaces
-    subspace_1D_set subspaces;
+    subspace_container subspaces;
 
     const size_t split_point = space_begin + (space_end-space_begin)/2;
     const size_t left_space_begin = space_begin;
@@ -80,7 +73,7 @@ struct space_1D {
     subspaces.push_back (space_1D (left_space_begin, left_space_end));
     subspaces.push_back (space_1D (right_space_begin, right_space_end));
 
-    return subspace_1D_set_iterator_pair(subspaces.begin(), subspaces.end());
+    return subspaces;
   }
 
   /**

@@ -32,8 +32,6 @@ struct parallel_for : pfunc::virtual_functor {
   public:
   typedef typename PFuncInstanceType::taskmgr TaskMgrType;
   typedef typename PFuncInstanceType::task TaskType;
-  typedef typename SpaceType::subspace_iterator subspace_iterator;
-  typedef typename SpaceType::subspace_iterator_pair subspace_iterator_pair;
 
   private:
   SpaceType space; 
@@ -58,27 +56,25 @@ struct parallel_for : pfunc::virtual_functor {
   void operator() (void) {
     if (space.can_split ()) {
       // Split into subspaces.
-      subspace_iterator_pair subspaces = space.split ();
+      typename SpaceType::subspace_container subspaces = space.split ();
+      assert (1<=SpaceType::arity);
 
       // Create a vector of tasks for each subspace but the first one.
       const int num_tasks = SpaceType::arity-1;
       TaskType subspace_tasks [num_tasks];
 
       // Save the first task to execute yourself, but do this last.
-      assert (SpaceType::arity>=1);
-      space = *(subspaces.first);
-      ++(subspaces.first);
+      typename SpaceType::subspace_container::iterator first=subspaces.begin();
+      space = *first++;
 
       // Iterate and launch the tasks
       int task_index = 0;
-      while (subspaces.first != subspaces.second) {
+      while (first != subspaces.end()) {
         parallel_for<PFuncInstanceType, ForExecutable, SpaceType> 
-            current_subspace_for (*(subspaces.first), func, taskmgr);
+            current_subspace_for (*first++, func, taskmgr);
         pfunc::spawn (taskmgr, // the task manager to use
-                      subspace_tasks[task_index], // task handle
+                      subspace_tasks[task_index++], // task handle
                       current_subspace_for); // the subspace for this comptn
-        ++(subspaces.first);
-        ++task_index;
       }
 
       (*this)(); // executing this loop ourselves.

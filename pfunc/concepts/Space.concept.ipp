@@ -8,10 +8,10 @@
  */
 concept Space<typename Model> : CopyAssignable <Model> {
   /**< Associated types */
-  typename subspace_iterator;/**< type of the subspace iterator */
-  typename subspace_iterator_pair;/**< return type of split () */
+  typename subspace_container;/**< type of the subspace container */
+  requires Sequence<subspace_container>; /**< See SGI STL definition. 
+                                              Required for iterability */
   
-  /**< Associated values */
   const static size_t arity;/**< Number of ways in which a space is split */
   const static size_t dimension;/**< Dimensionality of the space */
 
@@ -19,7 +19,5 @@ concept Space<typename Model> : CopyAssignable <Model> {
   size_t Model::begin() const;
   size_t Model::end() const;
   bool Model::can_split() const;
-  subspace_iterator_pair split() const;
-  
+  subspace_container split() const;
 }
-

@@ -32,8 +32,6 @@ struct parallel_reduce : pfunc::virtual_functor {
   public:
   typedef typename PFuncInstanceType::taskmgr TaskMgrType;
   typedef typename PFuncInstanceType::task TaskType;
-  typedef typename SpaceType::subspace_iterator subspace_iterator;
-  typedef typename SpaceType::subspace_iterator_pair subspace_iterator_pair;
 
   private:
   SpaceType space; 
@@ -58,7 +56,8 @@ struct parallel_reduce : pfunc::virtual_functor {
   void operator() (void) {
     if (space.can_split ()) {
       // Split into subspaces.
-      subspace_iterator_pair subspaces = space.split ();
+      typename SpaceType::subspace_container subspaces = space.split ();
+      assert (SpaceType::arity>=1);
 
       // Create a vector of tasks for each subspace but the first one.
       const int num_tasks = SpaceType::arity-1;
@@ -70,22 +69,19 @@ struct parallel_reduce : pfunc::virtual_functor {
         split_funcs.push_back (func.split ());
 
       // Save the first task to execute yourself, but do this last.
-      assert (SpaceType::arity>=1);
-      space = *(subspaces.first);
-      ++(subspaces.first);
+      typename SpaceType::subspace_container::iterator first=subspaces.begin();
+      space = *first++;
 
       // Iterate and launch the tasks
       int task_index = 0;
-      while (subspaces.first != subspaces.second) {
+      while (first != subspaces.end()) {
         parallel_reduce<PFuncInstanceType, ReduceExecutable, SpaceType> 
-            current_subspace_reduce (*(subspaces.first), 
+            current_subspace_reduce (*first++, 
                                      split_funcs[task_index], 
                                      taskmgr);
         pfunc::spawn (taskmgr, // the task manager to use
-                      subspace_tasks[task_index], // task handle
+                      subspace_tasks[task_index++], // task handle
                       current_subspace_reduce); // the subspace for this comptn
-        ++(subspaces.first);
-        ++task_index;
       }
 
       (*this)(); // executing this loop ourselves.
