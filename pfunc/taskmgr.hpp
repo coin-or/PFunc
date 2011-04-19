@@ -71,9 +71,9 @@ struct taskmgr : public taskmgr_virtual_base  {
   typedef typename attribute::priority_type priority_type; /**< To know what priority exit_job */
   typedef thread::native_thread_id_type native_thread_id_type; /**< used for storage */
 
-  typedef regular_predicate_pair<sched_policy_name, task> regular_predicate_pair;
-  typedef waiting_predicate_pair<sched_policy_name, task> waiting_predicate_pair;
-  typedef group_predicate_pair<sched_policy_name, task> group_predicate_pair;
+  typedef regular_predicate_pair<sched_policy_name, task> regular_predicate;
+  typedef waiting_predicate_pair<sched_policy_name, task> waiting_predicate;
+  typedef group_predicate_pair<sched_policy_name, task> group_predicate;
   typedef typename thread::thread_handle_type thread_handle_type;
 
   /* Default values for attribute and group */
@@ -644,7 +644,7 @@ struct taskmgr : public taskmgr_virtual_base  {
     while (NULL != (my_task = get_task ((thread_state[my_thread_id]),
                                         task_max_attempts,
                                         my_task_queue_number,
-                                        regular_predicate_pair(NULL)))) {
+                                        regular_predicate(NULL)))) {
       task_cache [my_thread_id].shallow_copy(*my_task); /* Set the cache */
       my_task->run (); /* Now, lets run the job */
       my_task->notify (); /* signal whoever was waiting */
@@ -656,10 +656,12 @@ struct taskmgr : public taskmgr_virtual_base  {
       printf ("%u: Could not stop counting\n", my_thread_id);
 #endif
 
-    thread_manager.exit_thread ();
-
     PFUNC_END_TRY_BLOCK()
     PFUNC_CATCH_AND_RETHROW(taskmgr,op_paranthesis)
+
+    // We do not return from here --- so it has to be outside the
+    // try catch block!
+    thread_manager.exit_thread ();
   }
 
   /**
@@ -699,7 +701,7 @@ struct taskmgr : public taskmgr_virtual_base  {
       while (NULL != (my_task = get_task (completion_pred,
                                           task_max_attempts,
                                           my_task_queue_number,
-                                          waiting_predicate_pair (&current_task)))) {
+                                          waiting_predicate (&current_task)))) {
      
         /* This task might steal again, set it to be in the cache */
         task_cache[my_thread_id].shallow_copy(*my_task);
@@ -738,7 +740,7 @@ struct taskmgr : public taskmgr_virtual_base  {
     current_task.shallow_copy (task_cache[my_thread_id]);
 
     task* my_task = task_queue->get (my_task_queue_number, 
-                                     group_predicate_pair (&current_task));
+                                     group_predicate (&current_task));
 
     if (NULL == my_task) return;
 
