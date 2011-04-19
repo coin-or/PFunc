@@ -81,3 +81,63 @@ Section~\ref{sec:custom} & Customizing PFunc. \\
 \hline
 \end{tabular}
 \end{center}
+
+\subsection{Salient Features}
+\label{subsec:salient}
+%
+\paragraph{Customizable}
+%
+PFunc can be used ``out-of-the-box''; however, for the more adventerous users,
+most of PFunc's features are completely customizable.
+%
+PFunc is the first task parallel library to offer STL-like customization of
+task scheduling policy, task stealing policy, task priorities, and task
+affinities.
+%
+As a result, PFunc is a great fit in an academic environment.
+
+%
+\paragraph{Generic}
+%
+PFunc is unique in its heavy use of generic programming --- a programming
+paradigm for developing efficient and reusable software libraries.
+% Continued
+While developing PFunc, we applied the process of ``lifting'' to find both
+commonality and missing features among existing task parallelism
+implementations such as Cilk, Intel's Threading Building Blocks, and OpenMP
+tasks.
+%
+The use of generic programming allows PFunc to be flexible and yet highly 
+efficient as most of its customizations are done at compile-time.
+
+%
+\paragraph{Task parallelism}
+%
+PFunc provides a super-set of the features offered by other task parallel
+solutions.
+%
+For example, it introduces the ability to deliver multiple task completion
+notifications and the notion of task groups.
+%
+Multiple task completion notifications allow users to execute arbitrary DAG 
+computations instead of the traditional tree-based model supported in most 
+other solutions.
+%
+On the other hand, groups allow users to seamlessly incorporate SPMD-style
+semantics into their task parallel algorithms.
+
+%
+\paragraph{Loop parallelism}
+%
+A vast majority of algorithms can be parallelized by merely parallelizing the 
+loops in these algorithms.
+%
+PFunc offers three high-level parallel loop structures: \code{for},
+\code{while}, and \code{reduce}, which can be used without delving into the
+details of task parallelism. 
+
+%
+\paragraph{Production-grade}
+%
+Finally, PFunc provides production-grade exception handling and performance
+monitoring mechanisms to assist software developers.
