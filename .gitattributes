@@ -2,6 +2,8 @@
 /CMakeLists.txt -text
 /pfunc-defs.tex -text
 /pfunc.tex -text
+presentation/PFunc-EduPar-11.pdf -text
+presentation/PFunc-EduPar-11.pptx -text
 /refs.bib -text
 /squeeze.tex -text
 /template.txt -text
