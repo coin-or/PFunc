@@ -531,7 +531,7 @@ namespace pfunc { namespace detail {
 #elif PFUNC_SCHED_YIELD == 1
       sched_yield();
 #else
-      /** Do nothing */
+#warning " No implementation of yield exists ... beware!"
 #endif
     }
   };
