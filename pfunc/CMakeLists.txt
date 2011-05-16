@@ -185,22 +185,24 @@ else (PFUNC_WINDOWS AND MSVC)
     message (STATUS "Yielding thread using pthread_yield")
     set (PFUNC_PTHREAD_YIELD 1)
   else (PFUNC_PTHREAD_YIELD_CODE)
+    message (STATUS "pthread_yield failed!")
     set (YIELD_FLAGS "-DTEST_NAME=3")
     try_compile (PFUNC_PTHREAD_YIELD_NP_CODE
                  ${CMAKE_CURRENT_BINARY_DIR}
                  ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/yield.c
                  COMPILE_DEFINITIONS ${YIELD_FLAGS})
     if (PFUNC_PTHREAD_YIELD_NP_CODE)
-      message (STATUS "Yielding thread using pthread_yield")
+      message (STATUS "Yielding thread using pthread_yield_np")
       set (PFUNC_PTHREAD_YIELD_NP 1)
     else (PFUNC_PTHREAD_YIELD_NP_CODE)
+      message (STATUS "pthread_yield_np failed!")
       set (YIELD_FLAGS "-DTEST_NAME=4")
       try_compile (PFUNC_SCHED_YIELD_CODE
                    ${CMAKE_CURRENT_BINARY_DIR}
                    ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/yield.c
                    COMPILE_DEFINITIONS ${YIELD_FLAGS})
       if (PFUNC_SCHED_YIELD_CODE)
-        message (STATUS "Yielding thread using pthread_yield")
+        message (STATUS "Yielding thread using sched_yield")
         set (PFUNC_SCHED_YIELD 1)
       else (PFUNC_SCHED_YIELD_CODE)
         message (WARN " No suitable function to yield a thread not found!")
