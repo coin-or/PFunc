@@ -574,7 +574,7 @@ struct taskmgr : public taskmgr_virtual_base  {
 
     /** Decrease the number of attempts, yield and start back again */
     if (!completion_pred()) { 
-      thread_manager.yield ();
+      pfunc::detail::thread::yield ();
       return_value =  get_task (completion_pred,
                                 (0==(max_attempts/2)) ? 1 : (max_attempts/2),
                                 queue_number,
@@ -691,7 +691,7 @@ struct taskmgr : public taskmgr_virtual_base  {
         for now, simply keep yielding and testing till the task is complete.
         There seems to be no other good solution for now */
     if (num_threads == my_thread_id) {
-      while (!completion_pred()) thread_manager.yield ();
+      while (!completion_pred()) pfunc::detail::thread::yield ();
     } else { /** PFunc's thread */
       task current_task;
      

@@ -521,14 +521,14 @@ namespace pfunc { namespace detail {
     /**
      * Yield the execution of the current thread
      */
-    void yield () {
-#if PFUNC_LINUX == 1 
-      pthread_yield();
-#elif PFUNC_DARWIN == 1
+    static void yield () {
+#if PFUNC_SWITCHTOTHREAD_YIELD == 1
+      SwitchToThread ();
+#elif PFUNC_PTHREAD_YIELD == 1
+      pthread_yield ();
+#elif PFUNC_PTHREAD_YIELD_NP == 1
       pthread_yield_np();
-#elif PFUNC_WINDOWS == 1
-      SwitchToThread();
-#elif PFUNC_AIX == 1 && PFUNC_HAVE_SCHED_H
+#elif PFUNC_SCHED_YIELD == 1
       sched_yield();
 #else
       /** Do nothing */

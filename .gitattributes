@@ -52,6 +52,7 @@ pfunc/cmake_tests/futex.cpp -text
 pfunc/cmake_tests/inline.c -text
 pfunc/cmake_tests/sched_affinity.cpp -text
 pfunc/cmake_tests/tls.cpp -text
+pfunc/cmake_tests/yield.c -text
 pfunc/concepts/AdaptableCallableN.concept.ipp -text
 pfunc/concepts/ForExecutable.concept.ipp -text
 pfunc/concepts/Generator.concept.ipp -text

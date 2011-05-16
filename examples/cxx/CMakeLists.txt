@@ -57,6 +57,9 @@ if (FLEX_FOUND AND BISON_FOUND)
   add_executable(while while.cpp 
                  ${BISON_MyParser_OUTPUTS} 
                  ${FLEX_MyScanner_OUTPUTS})
+  if (NOT CMAKE_SYSTEM MATCHES "Windows")
+    target_link_libraries (while pthread)
+  endif (NOT CMAKE_SYSTEM MATCHES "Windows")
   add_dependencies (cxx_examples while)
 else (FLEX_FOUND AND BISON_FOUND)
   message (STATUS "Did not find FLEX and YACC -- skipping while")

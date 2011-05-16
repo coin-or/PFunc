@@ -308,17 +308,7 @@ namespace pfunc {
      * minimum resolution of the Sleep() function is 1 MilliSecond. So, we
      * always sleep for that amount of time since its quite large.
      */
-#if PFUNC_LINUX == 1 
-      pthread_yield();
-#elif PFUNC_DARWIN == 1
-      pthread_yield_np();
-#elif PFUNC_WINDOWS == 1
-      SwitchToThread();
-#elif PFUNC_AIX == 1 && PFUNC_HAVE_SCHED_H
-      sched_yield();
-#else
-      /** Do nothing */
-#endif
+      pfunc::detail::thread::yield ();
       loop_count = 1;
     }
     PFUNC_END_TRY_BLOCK()

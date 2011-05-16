@@ -76,6 +76,18 @@
 /** Do we have __inline__ support in C compiler */
 #cmakedefine PFUNC_HAVE_UNDERSCORE_INLINE_UNDERSCORE 1
 
+/** Do we have SwitchToThread () */
+#cmakedefine PFUNC_SWITCHTOTHREAD 1
+
+/** Do we have pthread_yield () */
+#cmakedefine PFUNC_PTHREAD_YIELD 1
+
+/** Do we have pthread_yield_np () */
+#cmakedefine PFUNC_PTHREAD_YIELD_NP 1
+
+/** Do we have sched_yield () */
+#cmakedefine PFUNC_SCHED_YIELD 1
+
 /** Does the user want to compile with exceptions */
 #cmakedefine PFUNC_USE_EXCEPTIONS 1
 
