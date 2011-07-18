@@ -1,0 +1,95 @@
+/** Do we have errno.h */
+#cmakedefine PFUNC_HAVE_ERRNO_H 1
+
+/** Do we have limits.h */
+#cmakedefine PFUNC_HAVE_LIMITS_H 1
+
+/** Do we have sys/sysctl.h */
+#cmakedefine PFUNC_HAVE_SYSCTL_H 1
+
+/** Do we have sys/resource.h */
+#cmakedefine PFUNC_HAVE_SYS_RESOURCE_H 1
+
+/** Do we have syscall.h */
+#cmakedefine PFUNC_HAVE_SYSCALL_H 1
+
+/** Do we have unistd.h */
+#cmakedefine PFUNC_HAVE_UNISTD_H 1
+
+/** Do we have time.h */
+#cmakedefine PFUNC_HAVE_TIME_H 1
+
+/** Do we have sys/time.h */
+#cmakedefine PFUNC_HAVE_SYS_TIME_H 1
+
+/** Do we have sched.h */
+#cmakedefine PFUNC_HAVE_SCHED_H 1
+
+/** Do we have stdint.h */
+#cmakedefine PFUNC_HAVE_STDINT_H 1
+
+/** Do we have hash_map.h */
+#cmakedefine PFUNC_HAVE_HASH_MAP_H 1
+
+/** Do we have pthread.h */
+#cmakedefine PFUNC_HAVE_PTHREAD_H 1
+
+/** Are we running under Intel x86 architecture */
+#cmakedefine PFUNC_X86 1
+
+/** Are we running on powerpc */
+#cmakedefine PFUNC_PPC 1
+
+/** Are we running Linux */
+#cmakedefine PFUNC_LINUX 1
+
+/** Are we running Windows */
+#cmakedefine PFUNC_WINDOWS 1
+
+/** Are we running Darwin */
+#cmakedefine PFUNC_DARWIN 1
+
+/** Are we running AIX */
+#cmakedefine PFUNC_AIX 1
+
+/** Do we have Windows threads */
+#cmakedefine PFUNC_HAVE_WINDOWS_THREADS 1
+
+/** Do we have pthreads */
+#cmakedefine PFUNC_HAVE_PTHREADS 1
+
+/** Do we have futexes (Linux 2.6 and later) */
+#cmakedefine PFUNC_HAVE_FUTEX 1
+
+/** Do we have thread local storage (__thread). Compiler specific */
+#cmakedefine PFUNC_HAVE_TLS 1
+
+/** Do we have a means of setting the scheduler affinities */
+#cmakedefine PFUNC_HAVE_SCHED_AFFINITY 1
+
+/** Do we have inline support in C compiler */
+#cmakedefine PFUNC_HAVE_INLINE 1
+
+/** Do we have __inline support in C compiler */
+#cmakedefine PFUNC_HAVE_UNDERSCORE_INLINE 1
+
+/** Do we have __inline__ support in C compiler */
+#cmakedefine PFUNC_HAVE_UNDERSCORE_INLINE_UNDERSCORE 1
+
+/** Do we have SwitchToThread () */
+#cmakedefine PFUNC_SWITCHTOTHREAD 1
+
+/** Do we have pthread_yield () */
+#cmakedefine PFUNC_PTHREAD_YIELD 1
+
+/** Do we have pthread_yield_np () */
+#cmakedefine PFUNC_PTHREAD_YIELD_NP 1
+
+/** Do we have sched_yield () */
+#cmakedefine PFUNC_SCHED_YIELD 1
+
+/** Does the user want to compile with exceptions */
+#cmakedefine PFUNC_USE_EXCEPTIONS 1
+
+/** Does the user want to compile with PAPI */
+#cmakedefine PFUNC_USE_PAPI 1
