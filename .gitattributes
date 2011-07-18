@@ -1,0 +1,4 @@
+* text=auto !eol
+/CMakeLists.txt -text
+/pfunc_c.cpp -text
+/pfunc_pack.cpp -text
