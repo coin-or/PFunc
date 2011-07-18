@@ -1,0 +1,10 @@
+Here are a few things that you need to know:
+1. Define "struct dag_list_node_t HEAD = {NULL, NULL}" in all the applications.
+   This is used in libdag as the HEAD node for the DAG that it constructs from
+   the DOT file. 
+
+2. Define "int num_vertices". This is used to hold the number of vertices in 
+   libdag.
+
+3. Before calling yyparse(), please ensure that you have opened the desired 
+   DOT file as "stdin".

@@ -1,0 +1,19 @@
+* text=auto !eol
+/CMakeLists.txt -text
+/Makefile -text
+c/CMakeLists.txt -text
+c/groups.c -text
+c/simple.c -text
+cxx/CMakeLists.txt -text
+cxx/dot_reader/README -text
+cxx/dot_reader/dag.h -text
+cxx/dot_reader/dot.l -text
+cxx/dot_reader/dot.y -text
+cxx/fibonacci.cpp -text
+cxx/for.cpp -text
+cxx/inputs/test.dot -text
+cxx/matmult.cpp -text
+cxx/reduce.cpp -text
+cxx/while.cpp -text
+other/fibonacci.cilk -text
+other/tbb_fibonacci.cpp -text

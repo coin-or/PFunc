@@ -1,0 +1,54 @@
+#include <cilk.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <stdlib.h>
+
+double wsmprtc(void) {
+  struct timeval tp;
+  static long start=0, startu;
+
+  if (!start) {
+    gettimeofday(&tp, NULL);
+    start = tp.tv_sec;
+    startu = tp.tv_usec;
+    return(0.0);
+  }
+  gettimeofday(&tp, NULL);
+  return( ((double) (tp.tv_sec - start)) + (tp.tv_usec-startu)*1.e-6);
+}
+
+
+cilk int fibonacci (int n) {
+  if (0==n | 1==n) return n;
+  else {
+    int x,y;
+
+    x = spawn fibonacci (n-1);
+    y = spawn fibonacci (n-2);
+
+    sync;
+
+    return (x+y);
+  }
+}
+
+cilk int main (int argc, char** argv) {
+  int n, fib;
+  double time;
+
+  if (2 != argc) {
+    printf ("Run the program like so\n  \
+             ./cilk_fibonacci --nproc <nthreads> <number>\n");
+  }
+
+  n = atoi (argv[1]);
+
+  time = wsmprtc();
+  fib = spawn fibonacci (n);
+  sync;
+  time = wsmprtc () - time;
+
+  printf ("The fibonacci number is: %d in %lf seconds \n", fib, time);
+
+  return 0;
+}
