@@ -1,0 +1,5 @@
+* text=auto !eol
+/BuildDocs.cmake -text
+/cmake_uninstall.cmake.in -text
+/copy_tex_sources.pl -text
+/tex_to_dvi.pl -text
