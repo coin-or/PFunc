@@ -1,0 +1,929 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\lstdefinestyle{basic}{showstringspaces=false,
+                       columns=fullflexible,
+                       language=C++,
+                       escapechar=@,
+                       basicstyle=\tiny\sffamily,
+classoffset=1,
+morekeywords={char2,char4,char8,char16},
+morekeywords={cl_char2,cl_char4,cl_char8,cl_char16},
+morekeywords={pfunc_cilk_task_init, pfunc_cilk_task_clear},
+morekeywords={pfunc_cilk_spawn_c, pfunc_cilk_wait, pfunc_cilk_task_t},
+keywordstyle=[1]\color{blue}, 
+classoffset=0,
+moredelim=**[is][\color{white}]{~}{~},
+literate={->}{{$\rightarrow\;$}}1 {<-}{{$\leftarrow\;$}}1 {=>}{{$\Rightarrow\;$}}1,
+}
+\lstset{language=C++,style=basic}
+
+\newenvironment{discuss}{\begin{list}{}{}\item[]{\it Discussion item:}
+\addcontentsline{toc}{subsection}{Discussion Item}
+}{{\rm ({\it End of discussion item.})} \end{list}}
+\newcommand{\code}[1]{\lstinline[basicstyle=\sffamily]{#1}}
+\newcommand{\func}[1]{\lstinline[basicstyle=\sffamily]{#1()}}
+\newcommand{\Cpp}{C\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\MPIpp}{MPI\kern-0.05em\texttt{+\kern-0.03em+}}
+\newcommand{\tablefont}{\fontsize{8}{13}\selectfont}
+\newcommand{\halfline}{\vspace{-1.0ex}}
+
+\mode<presentation>
+{
+  \usetheme{Warsaw}
+  \setbeamercovered{transparent}
+  \definecolor{TUCGreen}{RGB}{0,100,50}
+  \definecolor{TUCGreenlight}{RGB}{120,200,150}
+  \definecolor{IURed}{RGB}{255,0,0}
+  \definecolor{IURedlight}{RGB}{255,204,204}
+  \definecolor{OMPIBlue}{RGB}{80,130,255}
+  \definecolor{OMPIBluelight}{RGB}{240,240,255}
+  \definecolor{white}{RGB}{255,255,255}
+  \definecolor{black}{RGB}{0,0,0}
+  \setbeamercolor*{palette primary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette secondary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette tertiary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette quartenary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar primary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar secondary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar tertiary}{fg=white, bg=IURed}
+  \setbeamercolor*{palette sidebar quartenary}{fg=white, bg=IURed}
+  \setbeamercolor*{normal text}{fg=black, bg=white}
+  \setbeamercolor*{example text}{fg=black, bg=white}
+  \setbeamercolor*{titlelike}{fg=white, bg=IURed}
+  \setbeamercolor*{separation line}{fg=white, bg=IURed}
+  \setbeamercolor*{item projected}{fg=white, bg=IURed}
+  \setbeamercolor*{block title}{fg=white, bg=IURed}
+  \setbeamercolor*{block title alerted}{fg=IURed, bg=white}
+  \setbeamercolor*{block title example}{fg=IURed, bg=white}
+  \setbeamercolor{block body}{fg=black, bg=IURedlight}
+  \setbeamercolor*{structure}{fg=IURed, bg=white}
+  \setbeamercolor*{sidebar}{fg=IURed, bg=white}
+}
+
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\title{OpenCL: Enabling Heterogeneous Parallelism}
+
+\author{Prabhanjan ``Anju'' Kambadur}
+
+\date{{\small IBM T J Watson Research Center}\\
+{\footnotesize Yorktown Heights, NY}\\
+$19^{th}$ August 2009}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{First ....}
+
+  \textcolor{blue}{Acknowledgements}
+  \begin{itemize}
+  \item Business Analytics and Mathematical Sciences.
+    \begin{itemize}
+    \item J. Gunnels, A. Gupta, A. Ghoting and G. Swirczsz.
+    \end{itemize}
+  \item X10 Group.
+    \begin{itemize}
+    \item D. Cunningham, I. Peshansky, V. Saraswat and S. Sur.
+    \end{itemize}
+  \end{itemize}
+
+  \textcolor{blue}{Resources}
+
+  \begin{itemize}
+  \item \code{http://www.khronos.org/}
+  \item \code{http://developer.amd.com/gpu/ATIStreamSDK}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivation}
+\begin{itemize}
+\item Emergence of heterogeneous architectures.
+  \begin{itemize}
+  \item CPUs, GPUs, Accelerators, etc.
+  \end{itemize}
+\item Different parallel programming models.
+  \begin{itemize}
+  \item CPUs programmed with standardised APIs.
+    \begin{itemize}
+    \item \textcolor{red}{No vector operations.}
+    \item Assume uniform memory access.
+    \end{itemize}
+  \item GPUs programmed with vendor-specific APIs.
+    \begin{itemize}
+    \item Vector operations.
+    \item \textcolor{red}{Non-portable across GPUs.}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+\begin{center}
+\textcolor{blue}{Uniform and portable parallel programming model.}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{What does OpenCL give?}
+\begin{itemize}
+  \item Portable heterogeneous parallel programming.
+    \begin{itemize}
+      \item Data and task parallelism.
+      \item Language, runtime and API.
+    \end{itemize}
+  \item Support from \textcolor{blue}{most} hardware vendors.
+    \begin{itemize}
+      \item Headed by the Khronos group.
+    \end{itemize}
+  \item Interoperability with OpenGL.
+    \begin{itemize}
+    \item \textcolor{red}{Not covered in this talk.}
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Talk Overview}
+
+
+  \begin{center}
+\textcolor{blue}{Writing ``Hello World'' in OpenCL.}
+  \end{center}
+
+  \begin{itemize}
+  \item Discuss OpenCL's features.
+    \begin{itemize}
+    \item Platform Model.
+    \item Execution Model.
+    \item Language Model (\textcolor{blue}{briefly}).
+    \end{itemize}
+  \item Work through ``Hello World''.
+  \end{itemize}
+
+  \begin{center}
+\textcolor{red}{We will not be comparing OpenCL with CUDA.}
+  \end{center}
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Platform model.}
+  \begin{center}
+  \begin{figure}
+  \includegraphics[angle=270,width=0.75\textwidth]{figs/platform}
+  \end{figure}
+  \end{center}
+  \begin{itemize}
+  \item Device $\rightarrow{}$ CPU, GPU, Accerelator.
+  \item \textcolor{blue}{Macbook(1,1): CPU Devices=1, Units=2, Elements=1.}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+  \begin{itemize}
+  \item Maps one-to-one to the platform model.
+  \item Split execution.
+    \begin{itemize}
+    \item A single \textcolor{blue}{host program} manages execution.
+      \begin{itemize}
+      \item Written in C or \Cpp{}.
+      \item Responsible for portability and performance.
+      \item Uses OpenCL APIs.
+      \end{itemize}
+    \item \textcolor{blue}{Kernels} compute on OpenCL devices.
+      \begin{itemize}
+      \item Written in \textcolor{blue}{C for Compute Kernels}.
+      \item Restricted subset of C99.
+      \item Non-portably vendor extensible.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution Model.}
+\framesubtitle{Host program.}
+  \begin{center}
+  \begin{figure}
+  \includegraphics[angle=270,width=0.50\textwidth]{figs/host_program}
+  \end{figure}
+  \end{center}
+  \begin{itemize}
+  \item Written in C/C++.
+  \item Utilizes the OpenCL APIs.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution Model.}
+\framesubtitle{Host program: Discovering hardware.}
+  \begin{center}
+  \textcolor{blue}{Discover platforms, devices and their capabilities.}
+  \end{center}
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+  \begin{lstlisting}
+cl_uint num_platforms;
+clGetPlatformIDs (0, NULL, &num_platforms);
+
+cl_platform_id* platform_ids = new cl_platform_id[num_platforms];
+clGetPlatformIDs (num_platforms, platform_ids, NULL); 
+
+for (int i=0; i<num_platforms; ++i) {
+  cl_uint num_cpus;
+  cl_uint num_gpus;
+
+  clGetDeviceIDs (platform_ids[i], CL_DEVICE_TYPE_CPU, 0, NULL, &num_cpus);
+  cl_device_id* cpu_device_ids = new cl_device_id[num_cpus];
+  clGetDeviceIDs (platform_ids[i], CL_DEVICE_TYPE_CPU, num_cpus, cpu_device_ids, NULL);
+
+  clGetDeviceIDs (platform_ids[i], CL_DEVICE_TYPE_GPU, 0, NULL, &num_gpus);
+  cl_device_id* gpu_device_ids = new cl_device_id[num_gpus];
+  clGetDeviceIDs (platform_ids[i], CL_DEVICE_TYPE_GPU, num_gpus, gpu_device_ids, NULL);
+
+  delete [] cpu_device_ids;
+  delete [] gpu_device_ids;
+}
+delete [] platform_ids;
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution Model.}
+\framesubtitle{Host program: Discovering hardware.}
+  \begin{center}
+  \textcolor{blue}{Discover platforms, devices and their capabilities.}
+  \end{center}
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+  \begin{lstlisting}
+const size_t BUFFER_SIZE = 1024;
+char name_buffer[BUFFER_SIZE];
+for (int i=0; i<num_platforms; ++i) {
+  clGetPlatformInfo (platform_ids[i], CL_PLATFORM_NAME, BUFFER_SIZE, name_buffer, NULL);
+  ...
+  const size_t BUFFER_SIZE = 1024;
+  char name_buffer[BUFFER_SIZE];
+  for (int j=0; i<num_cpus; ++j) {
+    cl_device_exec_capabilities cpu_exec_capability;
+    clGetDeviceInfo (cpu_device_ids[i], CL_DEVICE_EXECUTION_CAPABILITIES, 
+                   sizeof(cl_device_exec_capabilities), &cpu_exec_capability, NULL);
+  
+    if (CL_EXEC_NATIVE_KERNEL & cpu_exec_capability)
+      std::cout << "CPU: " << i << " can execute native kernels" << std::endl;
+  }
+}
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+\begin{center}
+\textcolor{red}{\func{clGetDeviceInfo} $\rightarrow{}$ Critical for portability.}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Create execution context.}
+
+  \begin{itemize}
+  \item OpenCL \textcolor{blue}{contexts} encapsulate a \textcolor{blue}{set of devices.}
+  \item Used by the runtime to manage.
+    \begin{itemize}
+    \item Command queues.
+    \item Memory objects.
+    \item Program objects.
+    \end{itemize}
+  \end{itemize}
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+  \begin{lstlisting}
+void notify (const char* errinfo, const void* private_info, size_t cb, void* user_data) {
+  std::cout << "The following error occured: " << errinfo << std::endl;
+}
+...
+cl_int error;
+cl_context cpu_context = clCreateContext (NULL, num_cpus, cpu_device_ids, notify, NULL, &error);
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+\begin{center}
+\textcolor{red}{All devices must belong to the same platform.}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Create command queues.}
+
+  \begin{itemize}
+  \item Encapsulates a work queue (\textcolor{red}{Not a thread}).
+  \item Used to execute operations on devices.
+  \end{itemize}
+
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+  \begin{lstlisting}
+cl_command_queue cpu_command_queue = 
+ clCreateCommandQueue (cpu_context, cpu_device_ids[j], 
+                          CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &error);
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+
+  \begin{itemize}
+  \item \textcolor{red}{The context must encapsulate the device used.}
+  \item Each device can have many command queues.
+  \item Each command queue can have only one device.
+  \item Device can fail after command queue creation.
+    \begin{itemize}
+    \item Implementation dependent behavior.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Create command queues.}
+
+  \begin{itemize}
+  \item Out-of-order execution of commands is supported.
+    \begin{itemize}
+    \item \textcolor{red}{If the underlying device supports it.}
+    \end{itemize}
+  \item For synchronization in out-of-order queues:
+    \begin{itemize}
+    \item Wait on events previously enqueued.
+    \item Barrier operation on the command queue.
+    \item Waiting on a special \textcolor{blue}{marker} command.
+    \end{itemize}
+  \item OpenCL also allows:
+    \begin{itemize}
+    \item Flushing of all issued commands to the device.
+    \item Flushing and waiting on all issued commands.
+    \end{itemize}
+  \end{itemize}
+
+  \begin{center}
+  \textcolor{red}{No fine-grained control over execution of commands!}
+  \end{center}
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Memory objects.}
+  \begin{itemize}
+  \item Host and kernel memory are decoupled.
+  \item Hierarchical memory layout.
+  \end{itemize}
+
+  \begin{center}
+  \begin{figure}
+  \includegraphics[angle=270,width=0.75\textwidth]{figs/memory}
+  \end{figure}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Memory objects.}
+  
+  \tablefont
+  \begin{center}
+  \begin{tabular}{|c|l|l|l|l|}
+  \hline
+  Code & Global & Constant & Local & Private \\
+  \hline
+  Host & Dynamic & Dynamic & Dynamic & No allocation \\
+       & RW & RW & No access & No access \\
+  \hline
+  Kernel & No allocation & Static & Static & Static \\
+         & RW & R & RW & RW \\
+  \hline
+  \end{tabular}
+  \end{center}
+
+  \normalsize 
+  \begin{itemize}
+  \item Memory objects couple host and kernel memories.
+    \begin{itemize}
+    \item Explicit read/write operations.
+    \item Memory mapping.
+    \item Similar to C/C++ file interface.
+    \end{itemize}
+  \item Two types of memory objects.
+    \begin{itemize}
+    \item Buffer $\rightarrow{}$ stored sequentially.
+    \item Image $\rightarrow{}$ texture or frames.
+    \end{itemize} 
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Buffer memory objects.}
+  
+\begin{center}
+\textcolor{red}{Kernels operate only on memory objects.}
+\end{center}
+
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+  \begin{lstlisting}
+const size_t buffer_size = strlen("Hello World");
+cl_mem hello_buffer = 
+  clCreateBuffer (cpu_context, CL_MEM_READ_WRITE, buffer_size, NULL, &error);
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+
+  \begin{itemize}
+  \item Flags indicate usage of the buffer by the kernel.
+  \item Same host memory cannot be used for multiple buffers.
+  \item Control placement of memory objects.
+    \begin{itemize}
+    \item Device memory or host memory.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Buffer memory objects.}
+  
+  \begin{itemize}
+  \item Buffer ops issued using command queues.
+    \begin{itemize}
+    \item Command queue must have same context.
+    \end{itemize}
+  \item OpenCL provides blocking and non-blocking ops:
+    \begin{itemize}
+    \item Read $\rightarrow{}$ \textcolor{blue}{\func{clEnqueueReadBuffer}}.
+    \item Write $\rightarrow{}$ \textcolor{blue}{\func{clEnqueueWriteBuffer}}.
+    \item Copy $\rightarrow{}$ \textcolor{blue}{\func{clEnqueueCopyBuffer}}.
+    \item Map $\rightarrow{}$ \textcolor{blue}{\func{clEnqueueMapBuffer}}.
+    \end{itemize}
+  \item Buffer operations can be set to trigger after certain events.
+    \begin{itemize}
+    \item Eg., read a buffer when a kernel completes.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Setting up the kernel.}
+
+  \begin{center}
+  \begin{figure}
+  \includegraphics[angle=270,width=0.75\textwidth]{figs/kernel}
+  \end{figure}
+  \end{center}
+
+  \begin{itemize}
+  \item Pre-compiled binaries can be used.
+    \begin{itemize}
+    \item Saves time wasted on repeated compilation.
+    \end{itemize}
+  \item Kernels can be \textcolor{blue}{native} (in C/C++).
+    \begin{itemize}
+    \item Device should support execution.
+    \item Native kernels can reside in host programs.
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Setting up the kernel.}
+
+  \begin{center}
+  \begin{minipage}{0.70\textwidth}
+  \begin{lstlisting}
+const char* hello_cl = "\
+__constant char hw[] = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'}; 
+__kernel void hello_world (__global char* out) {\
+  for (int i=0; i<12; ++i) out[i] = hw[i];\
+}";
+
+cl_int error;
+size_t hello_cl_size = strlen (hello_cl);
+
+cl_program hello_program = 
+  clCreateProgramWithSource (cpu_context, 1, &hello_cl, &hello_size, &error);
+
+clBuildProgram (hello_program, num_cpus, cpu_device_ids, NULL, NULL, NULL);
+
+cl_kernel hello_kernel = clCreateKernel (hello_program, "hello_world", &error);
+  \end{lstlisting}
+  \end{minipage}
+  \end{center}
+
+  \begin{center}
+  \textcolor{blue}{Program and Kernel info can be retrieved post-build!}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Setting up the kernel.}
+
+  \begin{center}
+  \textcolor{blue}{We need to pass the argument to hello\_world!}
+  \end{center}
+
+  \begin{center}
+  \begin{minipage}{0.75\textwidth}
+  \begin{lstlisting}
+const size_t buffer_size = sizeof (hello_buffer);
+cl_mem hello_buffer = 
+  clCreateBuffer (cpu_context, CL_MEM_WRITE_ONLY, buffer_size, NULL, &error);
+
+clSetKernelArg (hello_kernel, 0, sizeof(cl_mem), static_cast<void*>(&hello_buffer));
+  \end{lstlisting}
+  \end{minipage}
+  \end{center}
+
+  \begin{itemize}
+  \item Scalar arguments need not be allocated buffers.
+  \item Pointer arguments \textcolor{red}{must} be buffers.
+  \item Use OpenCL's platform layer to figure out memory limits.
+    \begin{itemize}
+    \item \textcolor{red}{Remember, we are not always running on a CPU!}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Launching the kernel.}
+
+  \begin{center}
+  \textcolor{blue}{Launch the kernel and reap the results!}
+  \end{center}
+
+  \begin{center}
+  \begin{minipage}{0.75\textwidth}
+  \begin{lstlisting}
+cl_event hello_event;
+char* hello_output_string = new char[buffer_size];
+
+clEnqueueTask (cpu_command_queue, hello_kernel, 0, NULL, &hello_event);
+
+clEnqueueReadBuffer (cpu_command_queue, hello_buffer, CL_TRUE, 0, buffer_size, 
+                     hello_output_string, 1, &hello_event, NULL);
+  \end{lstlisting}
+  \end{minipage}
+  \end{center}
+
+  \begin{itemize}
+  \item Demonstrates OpenCL's task parallelism.
+  \item Reading the buffer ensures completion of the task.
+  \item Read itself is blocking, so waiting not necessary.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Data parallelism.}
+
+  \begin{itemize}
+  \item Kernels can be executed over an index space.
+  \item An instance of kernel (\textcolor{blue}{work-item}) executes at each point.
+  \item Work-items can be organized into \textcolor{blue}{work-groups}.
+  \item Each work-group has a unique \textcolor{blue}{work-group ID}.
+  \item Each work-item has:
+    \begin{itemize}
+    \item A unique \textcolor{blue}{global ID}.
+    \item A unique \textcolor{blue}{local ID} within the group.
+    \end{itemize}
+  \item Work-items in a group can synchronize (\textcolor{blue}{barrier}).
+  \end{itemize}
+
+  \begin{center}
+\textcolor{blue}{Enables data-parallel and SPMD-style programming.}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Execution model.}
+\framesubtitle{Host Program: Data parallelism.}
+
+  \begin{center}
+  \begin{figure}
+  \includegraphics[angle=270,width=0.80\textwidth]{figs/work_groups}
+  \end{figure}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{OpenCL C Language}
+\framesubtitle{Overview}
+  
+  \begin{itemize}
+  \item Derived from ISO C99.
+    \begin{itemize}
+    \item A few restrictions and extensions.
+    \end{itemize}
+  \item Built-in data types.
+    \begin{itemize}
+    \item Scalar, vector, pointer and image types.
+    \item Data-type conversion functions.
+    \end{itemize}
+  \item Built-in functions.
+    \begin{itemize}
+    \item Replacement to GLIBC of C.
+    \item Relational, geometric, work-item related, math, etc.
+    \end{itemize}
+  \item Optional extensions such as atomics.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{OpenCL C Language}
+\framesubtitle{Restrictions}
+
+  \begin{center}
+\textcolor{red}{Do not include C/C++ header files!}
+  \end{center}
+  
+  \begin{itemize}
+  \item No function pointers.
+  \item Pointers to pointers only allowed within kernels.
+  \item Dynamic memory allocation not allowed.
+    \begin{itemize}
+    \item No variable length arrays or structures.
+    \end{itemize}
+  \item \textcolor{red}{No recursion!}
+    \begin{itemize}
+    \item Compiler can detect it.
+    \end{itemize}
+  \item No doubles, writes to pointers of types less than 32-bits.
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{OpenCL C Language}
+\framesubtitle{Basics}
+
+  \begin{center}
+\textcolor{red}{No STDIN, STDERR, STDOUT!}
+  \end{center}
+  
+  \begin{itemize}
+  \item \textcolor{blue}{Program} $\rightarrow{}$ a collection of functions.
+    \begin{itemize}
+    \item Can span multiple files.
+    \end{itemize}
+  \item Functions can only be:
+    \begin{itemize}
+    \item User-defined functions (kernels or regular).
+    \item Language provided functions.
+    \end{itemize}
+  \item \textcolor{blue}{Kernels} $\rightarrow{}$ functions accessible to host.
+  \item Kernels can call each other.
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{OpenCL C Language}
+\framesubtitle{Memory model}
+
+  \begin{center}
+\textcolor{red}{Memory is global, local, constant or private.}
+  \end{center}
+  
+  \tablefont
+
+  \begin{center}
+  \begin{tabular}{|c|l|}
+  \hline
+  Memory & Feature \\
+  \hline
+  \textcolor{blue}{Global} & Allocated by the host \textcolor{red}{only}. \\
+         & Pointer to scalar, vector or struct (buffer objects). \\
+         & Accessible to all elements across work-groups. \\
+         & Optional \code{const} qualifier can be used. \\
+  \hline
+  \textcolor{blue}{Local} & Allocated by the host or kernel. \\
+         & Shared across work-items in a work-group. \\
+  \hline
+  \textcolor{blue}{Constant} & Allocated by the host or kernel. \\
+         & Accessible to all elements across work-groups. \\
+  \hline
+  \textcolor{blue}{Private} & Allocated by the kernel \textcolor{red}{only}. \\
+         & Default type for function-scope variables and arguments. \\
+         & Accessible to the particular work-item. \\
+  \hline
+  \end{tabular}
+  \end{center}
+
+  \normalsize
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{OpenCL C Language}
+\framesubtitle{Datatypes 101}
+
+  \begin{itemize}
+  \item Usual suspects are all there.
+    \begin{itemize}
+    \item \code{int, char, short, float}, etc. (no \code{double}).
+    \item Floating-point conforms to IEEE-754 and 754-2008.
+    \item Pointers to scalar types are allowed.
+    \end{itemize}
+  \item Vector datatypes are introduced.
+    \begin{itemize}
+    \item Eg., \code{char2, char4, char8, char16}.
+    \item Corresponding host types supported.
+      \begin{itemize}
+      \item Eg., \code{cl_char2, cl_char4, cl_char8, cl_char16}.
+      \end{itemize}
+    \item Rich set of functions for operating on vector datatypes.
+      \begin{itemize}
+      \item Initialize, convert, load, store, etc.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+
+\begin{center}
+\begin{minipage}{0.35\textwidth}
+  \begin{lstlisting}[frame=trlb]
+float4 flt = (float4) (1.0f, 2.0f, 3.0f, 4.0f);
+flt.y = 5.0f;
+float4 dup = flt.xxyy;
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{OpenCL C Language}
+\framesubtitle{Writing a kernel}
+
+  \begin{itemize}
+  \item Return type must be \textcolor{blue}{\code{void}}.
+  \item Arguments \textcolor{blue}{cannot} be pointers to pointers.
+  \item Pointer arguments cannot be \textcolor{blue}{private}.
+    \begin{itemize}
+    \item Can only be \textcolor{blue}{global, local, constant}.
+    \end{itemize}
+  \item Pointer traversals must be avoided.
+  \end{itemize}
+
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+  \begin{lstlisting}
+typedef struct { int data; node* next; } node;
+
+/* Illegal */
+__kernel void foobar (__global const node* n) { n = n->next; }
+
+/* Legal */
+__kernel void foobar (__global const node* n, __private ptrdiff_t base) {
+  n = base + n->next; 
+}
+  \end{lstlisting}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{OpenCL C Language}
+\framesubtitle{Important built-in functions}
+
+  \tablefont
+
+  \begin{center}
+  \begin{tabular}{|c|l|}
+  \hline
+  Function & Explanation \\
+  \hline
+  \textcolor{blue}{\func{get_work_dim}} & Number of dimensions in use. \\
+  \hline
+  \textcolor{blue}{\func{get_global_size}} & Total number of work-items along a dimension. \\
+  \hline
+  \textcolor{blue}{\func{get_global_id}} & Work-item's global ID along a dimension. \\
+  \hline
+  \textcolor{blue}{\func{get_local_size}} & Work-group size along a dimension. \\
+  \hline
+  \textcolor{blue}{\func{get_local_id}} & Work-item's local ID along a dimension. \\
+  \hline
+  \textcolor{blue}{\func{get_num_groups}} & Number of work-groups kernel. \\
+  \hline
+  \textcolor{blue}{\func{get_group_id}} & Group's ID along a dimension. \\
+  \hline
+  \end{tabular}
+  \end{center}
+
+  \normalsize
+
+  \begin{center}
+\textcolor{blue}{Plus a bunch of math functions.}
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}
+\frametitle{OpenCL C Language}
+\framesubtitle{Important built-in functions}
+
+  \tablefont
+
+  \begin{center}
+  \begin{tabular}{|c|l|}
+  \hline
+  Function & Explanation \\
+  \hline
+  \textcolor{blue}{\func{barrier}} & Work-group scope barrier.\\
+  \hline
+  \textcolor{blue}{\func{mem_fence}} & Orders loads/stores of a work-item.\\
+  \hline
+  \textcolor{blue}{\func{read_mem_fence}} & Read-memory barrier for loads only.\\
+  \hline
+  \textcolor{blue}{\func{write_mem_fence}} & Write-memory barrier for stores only. \\
+  \hline
+  \end{tabular}
+  \end{center}
+
+  \normalsize
+
+  \begin{center}
+\textcolor{blue}{Synchronization can be effected at global or work-group level.}
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}
+\frametitle{Portability}
+
+  \begin{itemize}
+  \item Different architectures have different sweetspots.
+    \begin{itemize}
+    \item CPUs work well with latency sensitive algorithms.
+    \item GPUs encounter long latencies.
+    \end{itemize}
+  \item Endianness needs to be taken into account.
+    \begin{itemize}
+    \item Host and kernel might have different endianness.
+    \item Always use OpenCL primitives to access vector elements.
+      \begin{itemize}
+      \item Operators \code{.xyzw, .s0123456789abcdef}.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+  \begin{center}
+\textcolor{red}{Portable code does not mean portable performance!}
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusions}
+  
+  \begin{itemize}
+  \item Enables dynamic configuration of application kernels.
+  \item Supports task and data parallelism.
+  \item Provides a clean memory model.
+    \begin{itemize}
+    \item Exposes the underlying memory hierarchy.
+    \item Leads to more efficient program design.
+    \end{itemize}
+  \item Potential for C/C++ compilers to exploit parallelism.
+    \begin{itemize}
+    \item Eg., host operations on vector types such as \code{char8}.
+    \end{itemize}
+  \item Lacks type safety when going from host to kernel.
+    \begin{itemize}
+    \item Everything is cast to a \code{void*}.
+    \item Better integration with host language would help.
+    \end{itemize}
+  \item Little control over the command queue scheduling.
+  \end{itemize}
+\end{frame}
+
+\end{document}

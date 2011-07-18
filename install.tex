@@ -1,0 +1,208 @@
+\section{Installation}
+\label{sec:install}
+%
+This document contains basic information required to install and start using
+PFunc. 
+%
+Please take the time to read through it as there might be subtleties in the
+build process that might influence behavior of PFunc, and ultimately, your
+application. 
+%
+
+\subsection{Software Requirements}
+\label{subsec:install_requirements}
+PFunc uses CMake to configure and build itself. We selected CMake for its
+portability across Windows, Linux and Unix platforms. 
+%
+So, in order to configure and build PFunc, it is required that CMake be
+installed on your system.
+%
+To obtain a copy of CMake, please visit \texttt{www.cmake.org}. PFunc requires
+CMake version 2.6 or later.
+%
+To build documentation, PFunc requires these additional software: doxygen,
+latex, dvips, ps2pdf, perl, and makeindex; however, these are not required 
+if users do not intend to build documentation.
+
+\subsection{Supported Platforms}
+\label{subsec:supported_platforms}
+%
+PFunc is written in standards conformant C++, and as such, it should work with
+most C++ compilers. 
+%
+However, because as PFunc makes heavy use of templates, it is recommended to
+get the latest C++ compilers. 
+%
+Furthermore, as PFunc makes use of low-level assembly code for atomic
+operations, it is guaranteed to work \textit{only} on certain architectures.
+%
+The table below lists all the platforms on which PFunc has been tested.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Operating System & Architecture & Compiler \\
+\hline
+Windows & Visual Studio Express 10.0 & x86\_32 and x86\_64 \\
+\hline
+Linux, kernel $\ge{}$2.6 & GCC $\ge{}3.4.6$ & x86\_32, x86\_64, ppc32, and ppc64 \\
+\hline
+AIX $\ge{}5.3$ & GCC $\ge{}3.4.6$ & ppc2 and ppc64 \\
+\hline
+OS X $\ge{}10.5$ & GCC $\ge{}3.4.6$ & x86\_32 and x86\_64 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Header Files and \code{libpfunc}}
+%
+To use PFunc's \Cpp{} interface, it is sufficient to configure PFunc and use 
+the header files; on the other hand, to use the C interface, it is necessary 
+to link against \code{libpfunc}.
+%
+The table below lists all the header files and their contents.
+%
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Header & Language & Contents \\
+\hline
+\code{pfunc/pfunc.h} & C & \textit{All} definitions for task-based parallelization. \\
+\hline
+\code{pfunc/pfunc.hpp} & \Cpp{} & \textit{All} definitions for task-based parallelization. \\
+\hline
+\code{pfunc/parallel\_for.hpp} & \Cpp{} & Necessary to use \code{pfunc::parallel\_for}. \\
+\hline
+\code{pfunc/parallel\_reduce.hpp} & \Cpp{} & Necessary to use \code{pfunc::parallel\_reduce}. \\
+\hline
+\code{pfunc/parallel\_while.hpp} & \Cpp{} &  Necessary to use \code{pfunc::parallel\_while}. \\
+\hline
+\code{pfunc/pfunc\_atomics.h} & C,\Cpp{} & Necessary to PFunc atomics. \\
+\hline
+\code{pfunc/utility.h} & C,\Cpp{} & Necessary to use timers and other utilities. \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Configuration Options}
+%
+Configuration is necessary to use either the C or the \Cpp{} interfaces. 
+%
+During this phase, PFunc (using CMake) gathers all platform specific
+information to provide the most optimal execution to its users.
+%
+There are a variety of options available for configuring PFunc; a detailed list
+of these options is available using the command \code{cmake -i}.
+%
+We briefly describe the important options and their default values below.
+%
+\paragraph{CMAKE\_BUILD\_TYPE}
+The available choices are \code{Release}, \code{Debug} and
+\code{RelWithDebugInfo}; the default is \code{Release}.
+
+\paragraph{CMAKE\_INSTALL\_PREFIX}
+The value of this variable is used as the base installation location for PFunc;
+the default value is \code{/usr/local}.
+
+\paragraph{BUILD\_EXAMPLES}
+The available choices are \code{ON|On} and \code{OFF|Off}; by default, this 
+option is turned \code{ON}. 
+%
+Enabling this builds the examples that are provided with the distribution.
+
+\paragraph{BUILD\_PERF\_TESTS}
+The available choices are \code{ON|On} and \code{OFF|Off}; by default, this 
+option is turned \code{OFF}.
+%
+Enabling this builds the performance tests that are provided with the
+distribution.
+
+\paragraph{BUILD\_TUTORIAL}
+The available choices are \code{ON|On} and \code{OFF|Off}; by default, this 
+option is turned \code{OFF}.
+%
+Enabling this builds the PFunc tutorial.
+
+\paragraph{BUILD\_DOCS}
+The available choices are \code{ON|On} and \code{OFF|Off}; by default, this 
+option is turned \code{OFF}.
+%
+Enabling this option builds in-code documentation. 
+
+\paragraph{USE\_EXCEPTIONS}
+This option is used to turn on exception handling (\code{ON|On}) in PFunc; by
+default, this option is turned \code{OFF|Off}.
+
+\paragraph{USE\_PAPI}
+This option is used to turn on hardware performance profiling (\code{ON|On}) in 
+PFunc; by default, this option is turned \code{OFF|Off}.
+%
+Note that PAPI needs to be installed in order for performance profiling to 
+work.
+
+\subsection{Installation}
+For a clean installation process, we recommend an out-of-source build; however,
+the in-source build works just as well. 
+%
+Given below are the basic installation instructions for PFunc on Linux/OS
+X/AIX:
+
+\begin{list}{\labelitemi}{\leftmargin=0em}
+\item
+Get a copy of PFunc; for the sake of this installation guide, let us assume
+that PFunc's sources have been checked out in the directory
+\code{/home/anon/pfunc}.
+
+\item
+\code{\#cd /home/anon/ && mkdir pfunc-build}
+
+At the end of this step, we have created \code{/home/anon/pfunc} and 
+\code{/home/anon/pfunc-build}.
+
+\item
+\code{\#cd /home/anon/pfunc-build}
+
+\item
+\code{\#cmake /home/anon/pfunc -DCMAKE\_INSTALL\_PREFIX=/home/anon/pfunc-install}
+
+At this step, we are configuring PFunc and have choosen to install the 
+files in \code{/home/anon/pfunc-install}. 
+%
+Once configuration is done, the following targets are available to be built by
+the native build-system: 
+  \begin{itemize}
+  \item \code{pfunc}, builds the static library \code{libpfunc}
+  \item \code{tutorial}, builds the tutorial if BUILD\_TUTORIAL was ON.
+  \item \code{doc}, build documentation if BUILD\_DOCS was ON.
+  \item \code{all},  builds all the selected targets.
+  \item \code{clean}, removes all the object files.
+  \item \code{install}, installs the targets to the selected prefix.
+  \item \code{uninstall}, does the obvious.
+  \item \code{examples}, builds examples if BUILD\_EXAMPLES was ON.
+  \item \code{perf\_tests}, builds performance tests if BUILD\_PERF\_TESTS was ON.
+  \end{itemize}
+\end{list}
+
+%
+\subsection{Caveat}
+PFunc is written completely in \Cpp{}; that is, \code{libpfunc} is a \Cpp{}
+library that provides C-bindings. 
+%
+To build a C executable using \code{libpfunc}, you \textit{may}  
+need to link against the \Cpp{} standard library (\code{libstdc++} on most 
+machines and \code{libC} on AIX).
+%
+When building the C examples and performance tests, PFunc's configuration
+mechanism checks for the presence of these libraries. 
+%
+Unfortunately, due to a shortcoming in CMake, the library has to be named
+\code{libstdc++.[so|a]} or \code{libC.[so|a]}. 
+%
+Usually, what you find on your system will be \code{libstdc++.so.[0-9]}, with a
+symbolic link to \code{libstdc++.so}. 
+%
+In the oft-chance that this symbolic link is missing, the C
+examples will fail to build. 
+%
+In this case, manually create a symbolic link to \code{libstdc++} to fix this 
+issue.

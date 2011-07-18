@@ -1,0 +1,129 @@
+\section{Synchronization Primitives}
+\label{sec:sync}
+%
+In PFunc, we encourage parallel programming without using low-level constructs
+such as locks and atomic operations as these constructs often interfere with
+task scheduling.
+%
+However, discerning users can make use of these constructs to improve
+performance of their applications.
+%
+For this purpose, PFunc provides portable locks and low-level atomic
+instructions; however, we do not provide access to condition variables as they
+interfere exceedingly with task scheduling; in this section, we briefly explain
+these constructs.
+%
+Since synchronization primitives are a secondary goal in PFunc, all the
+relevant functions are prototyped in \code{pfunc/pfunc_atomics.h}, which should
+be included to use these functions.
+
+\subsection{pfunc::mutex}
+\label{subsec:mutex}
+%
+\code{pfunc::mutex} is a \Cpp{} class that implements a portable lock that
+provides \func{lock}, \func{unlock}, and \func{trylock} operations on all
+supported platforms.
+%
+All locking operations occur at thread-scope; that is, when a task calls
+\func{lock}, it blocks the thread executing the task till the lock can be 
+acquired.
+%
+Due to this reason, users are encouraged to use \func{trylock}, a non-blocking
+function instead of \func{lock}.
+%
+Note that \lstinline{foo.lock()}, where \code{foo} is a \code{pfunc::mutex}, is
+theoretically the same as \lstinline{while (false==foo.trylock());}; however, 
+\func{lock} can save computational cycles by putting the calling thread to 
+sleep whereas repeated calls to \func{trylock} spin the CPU.
+%
+The precise implementation of \code{pfunc::mutex} depends on the platform; when
+\textit{futexes}, a type of user-level fast locks, are supported ($\ge{}$ Linux
+kernel 2.6), \code{pfunc::mutex} is designed to use them.
+%
+In all other cases, \code{pfunc::mutex} uses either \textit{pthread} mutexes or
+in the case of Windows, \textit{native} locks.
+%
+Like most other features in PFunc, users can choose to implement their own 
+mutexes and use that instead of \code{pfunc::mutex}.
+%
+
+\subsection{Atomic operations}
+\label{subsec:atomic}
+%
+An alternative to using lock-based algorithms is to make use of lock-free
+algorithms; these algorithms make use of \textit{atomic operations} such as
+\textit{compare-and-swap} to ensure atomicity of updates instead of resorting
+to locks.
+%
+PFunc provides four portable atomic operations on 8, 16, 32, and 64 bits.
+%
+\paragraph{Compare-and-swap} This is a key operation in many lock-free
+algorithms, including PFunc's futex-based implementation of
+\code{pfunc::mutex}. 
+%
+The operation performed by compare-and-swap is given in pseudo-code below.
+ 
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+intX_t pfunc_compare_and_swap_X (volatile void* dest, /*mem location*/
+                                 intX_t exchg, /*new value*/
+                                 intX_t comprnd) { /*old value*/
+  if (*dest == comprnd) { *dest = exchg; return exchg; } 
+  else return *dest;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+In the above example, \code{X} denotes the number of bits to compare-and-swap;
+the valid values are 8, 16, 32, and 64.
+
+\paragraph{Fetch-and-add} This primitive allows programmers to atomically 
+read and update 8, 16, 32, or 64 bit values, and hence, is an important 
+operation to support.
+%
+The operation performed by fetch-and-add is given in pseudo-code below.
+
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+intX_t pfunc_fetch_and_add_X (volatile void* location, /*mem location*/
+                              intX_t addend) { /*to add*/
+  result = *location; *location += addend; return result;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\paragraph{Fetch-and-store} This primitive allows programmers to atomically 
+read and replace 8, 16, 32, or 64 bit values, which is a slight modification 
+to fetch-and-add.
+%
+The operation performed by fetch-and-store is given in pseudo-code below.
+
+\begin{center}
+\begin{minipage}{0.7\textwidth}
+\begin{lstlisting}
+intX_t pfunc_fetch_and_store_X (volatile void* location, /*mem location*/
+                                intX_t new_val) { /*to store*/
+  result = *location; *location += new_val; return result;
+}
+\end{lstlisting}
+\end{minipage}
+\end{center}
+
+\paragraph{Read-with-fence} This primitive allows programmers to read the most
+current 8, 16, 32, or 64 bit value at a memory location by inserting a memory
+fence just before the read operation. 
+%
+The PFunc nomenclature for this function is \func{pfunc_read_with_fence_X}, 
+where \code{X} is 8, 16, 32, or 64.
+
+\paragraph{Write-with-fence} This primitive allows programmers to write a 8,
+16, 32, or 64 bit value to a memory location and then ensure that the value is
+flushed down to memory (i.e., not just written to the cached value) by placing
+a memory fence right after the write operation. 
+%
+The PFunc nomenclature for this function is \func{pfunc_write_with_fence_X}, 
+where \code{X} is 8, 16, 32, or 64.

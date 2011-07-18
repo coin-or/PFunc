@@ -1,0 +1,236 @@
+\section{Fibonacci numbers in PFunc}
+\label{sec:fibonacci}
+%
+In this section, we will construct a parallel version of a program that
+calculates the $n^{th}$ Fibonacci number using what we have learned in
+Section~\ref{sec:generate}, Section~\ref{sec:initialize} and
+Section~\ref{sec:spawn}. To save space, the example is constructed in C.
+
+\subsection{Parallelizing Fibonacci}
+\label{subsec:fib_parallel}
+%
+Consider the serial version of fibonacci numbers shown below:
+%
+\begin{lstlisting}
+int serial_fib (int n) {
+  if (0 == n || 1 == n) return n;
+  else {
+    int x, y;
+    x = serial_fib (n-1);
+    y = serial_fib (n-2);
+@\halfline@
+    return x+y;
+  }
+}
+\end{lstlisting}
+%
+The function \func{serial_fib} recursively divides the task of calculating the
+$N^{th}$ Fibonacci number (for $N \ge 2$), into the tasks of calculating the
+$(N-1)^{st}$ and the $(N-2)^{nd}$ Fibonacci numbers.  
+%
+As the tasks of calculating the $(N-1)^{st}$ and the $(N-2)^{nd}$ Fibonacci
+numbers are independent of one another, they can be executed in parallel. 
+%
+To parallelize the execution of this function using PFunc, we have to first
+change \func{serial_fib}'s signature to match PFunc's stipulated \code{void
+(*)(void*)} prototype (see Section~\ref{subsubsec:spawn_c}). 
+%
+This transformation can be achieved by means of a C-struct as shown below:
+%
+\begin{lstlisting}
+typedef struct { int n; int fib_n; } fib_t;
+@\halfline@
+void serial_fib (void* arg) {
+  fib_t* fib_arg = (fib_t*) arg;
+@\halfline@
+  if (0 == fib_arg->n || 1 == fib_arg->n) fib_arg->fib_n = fib_arg->n;
+  else {
+    fib_t x = {fib_arg->n-1, 0};
+    fib_t y = {fib_arg->n-2, 0};
+@\halfline@
+    serial_fib (&x);
+    serial_fib (&y);
+@\halfline@
+    fib_arg->fib_n = x->fib_n + y->fib_n;
+  }
+}
+\end{lstlisting}
+%
+The above version of \func{serial\_fib} is now ready to be parallelized using 
+PFunc; note the following properties about \func{serial\_fib}. 
+%
+First, as it does not require setting of any special attributes, we can use the
+default value of NULL. 
+%
+Second, \func{serial\_fib} is not a SPMD-style program; therefore, groups are
+not needed and \code{NULL} can be used. 
+%
+With the following in mind, we arrive at the new definition, which we now call
+\func{parallel\_fib}.
+
+\begin{lstlisting}
+void parallel_fib (void* arg) {
+  fib_t* fib_arg = (fib_t*) arg;
+@\halfline@
+  if (0 == fib_arg->n || 1 == fib_arg->n) fib_arg->fib_n = fib_arg->n;
+  else {
+    pfunc_cilk_task_t fib_task_1;
+    pfunc_cilk_task_t fib_task_2;
+    fib_t x = {fib_arg->n-1, 0};
+    fib_t y = {fib_arg->n-2, 0};
+@\halfline@
+    pfunc_cilk_task_init (&fib_task_1);
+    pfunc_cilk_task_init (&fib_task_2);
+@\halfline@
+    pfunc_cilk_spawn_c_gbl (fib_task_1, NULL, NULL, parallel_fib, &x);
+    pfunc_cilk_spawn_c_gbl (fib_task_2, NULL, NULL, parallel_fib, &x);
+@\halfline@
+    pfunc_cilk_wait_gbl (fib_task_1);
+    pfunc_cilk_wait_gbl (fib_task_2);
+@\halfline@
+    pfunc_cilk_task_clear (&fib_task_1);
+    pfunc_cilk_task_clear (&fib_task_2);
+@\halfline@
+    fib_arg->fib_n = x->fib_n + y->fib_n;
+  }
+}
+\end{lstlisting}
+%
+In this version, we have parallelized the execution of \func{parallel\_fib} for
+the non-base cases using PFunc. 
+%
+In our case, we have used Cilk-style scheduling; queue-based or stack-based
+scheduling could very well have been used instead. 
+%
+Although the current version of \func{parallel\_fib} has been parallelized, it
+is sub-optimal. 
+%
+When a thread is executing a non-base case of \func{parallel\_fib}, it is not
+necessary to spawn two tasks; it is sufficient to spawn one of the tasks and
+execute the other serially. 
+%
+In effect, this will result in the same degree of parallelization
+without the cost of an additional task spawn. 
+%
+This version of \func{parallel\_fib} is given below:
+%
+\begin{lstlisting}
+void parallel_fib (void* arg) {
+  fib_t* fib_arg = (fib_t*) arg;
+@\halfline@
+  if (0 == fib_arg->n || 1 == fib_arg->n) fib_arg->fib_n = fib_arg->n;
+  else {
+    pfunc_cilk_task_t fib_task;
+    fib_t x = {fib_arg->n-1, 0};
+    fib_t y = {fib_arg->n-2, 0};
+@\halfline@
+    pfunc_cilk_task_init (&fib_task);
+@\halfline@
+    pfunc_cilk_spawn_c_gbl (fib_task, NULL, NULL, parallel_fib, &x);
+    parallel_fib (&y);
+@\halfline@
+    pfunc_cilk_wait_gbl (fib_task);
+    pfunc_cilk_task_clear (&fib_task);
+@\halfline@
+    fib_arg->fib_n = x->fib_n + y->fib_n;
+  }
+}
+\end{lstlisting}
+ 
+\subsection{Setting up the rest of the program}
+\label{subsec:fib_main}
+%
+Once the final version of \func{parallel\_fib} is ready, we proceed to setting
+up the rest of the program as shown below:
+%
+\begin{lstlisting}
+int main (int argc, char** argv) {
+  pfunc_cilk_task_t root_task;
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+  pfunc_cilk_taskmgr_t cilk_tmanager;
+  fib_t fib = {35, 0};
+@\halfline@
+  /* Initialize the cilk run time */
+  pfunc_cilk_taskmgr_init (&cilk_tmanager, num_queues, num_threads_per_queue, NULL);
+@\halfline@
+  /* Make this instance global */
+  pfunc_cilk_init (&cilk_tmanager);
+@\halfline@
+  /* Spawn the first task */
+  pfunc_cilk_task_init (&root_task);
+@\halfline@
+  pfunc_cilk_spawn_c_gbl (root_task, NULL, NULL, parallel_fib, &fib);
+@\halfline@
+  /* Wait for the tasks and clear the task handle */
+  pfunc_cilk_wait_gbl (root_task);
+  pfunc_cilk_task_clear (&root_task);
+@\halfline@
+  /* Clear the global runtime */
+  pfunc_cilk_clear ();
+@\halfline@
+  /* Clear the Cilk runtime */
+  pfunc_cilk_taskmgr_clear (&cilk_tmanager);
+@\halfline@
+  return 0;
+}
+\end{lstlisting}
+%
+In the above example, we have set up Cilk-style Pfunc runtime with 4 task
+queues and 1 thread per task queue; In essence, each threads owns its own task
+queue. 
+%
+\textcolor{red}{Giving each thread its own queue is typical of Cilk-style
+scheduling and is highly recommended. 
+%
+Such a setup minimizes the contention on the task queues when the programs
+being parallelized are deeply nested (for example, the fibonacci program). 
+%
+Furthermore, in deeply nested parallel programs, Cilk-style work-stealing setup
+with one task queue per thread minimizes the chances of thread stack space
+explosion.} 
+%
+Finally, we initialize the root task and launch it to calculate the $35^{th}$
+Fibonacci number. 
+%
+At the end of the wait (\func{pfunc_cilk_wait_gbl}), \code{fib->fib_n} contains
+the $35^{th}$ Fibonacci number.
+
+\subsection{Runtime details}
+%
+In the Fibonacci example (Section~\ref{subsec:fib_main}), the root task is
+launched from the main thread of execution. 
+%
+This thread is not a part of PFunc's runtime and therefore is not used to
+execute the spawned task. 
+%
+The call to \func{pfunc_cilk_wait_gbl} from the main thread turns into a sleep
+until the task is completed. 
+%
+When the main thread spawns a task (eg., the root task), it is put on the task
+queue 0. 
+%
+Since there has to be at least one task queue in every PFunc runtime, queue
+0 always exists. 
+%
+Alternately, the task attributes can be used to directly specify the queue on
+which the task needs to be enqueued (see Section~\ref{sec:attribute}). 
+%
+From here, the task is picked up and executed by thread 0, which is assigned to
+queue 0.  
+%
+At this point, the other threads (1,2 and 3) have no tasks enqueued on their
+task queues and consequently, are looking to steal tasks from one another.  
+%
+The main task (\func{parallel_fib} with $N=35$) gives rise to more tasks. 
+%
+By default, these new tasks are spawned on the queue of the owning thread (task
+queue 0).
+%
+At this point, threads 1, 2 and 3 bootstrap by stealing their first task from
+queue 0. 
+%
+As execution of \func{parallel_fib} is deeply nested, stealing one task gives
+rise to many other tasks that keep each thread busy. 
+%
+Therefore, very few steals are necessary.

@@ -1,0 +1,178 @@
+\section{Groups}
+\label{sec:group}
+PFunc allows users to mix task parallelism with SPMD-style programming through
+the use of task groups.  
+%
+Currently, tasks within the same group can synchronize with one another using 
+the \func{barrier} primitive (point-to-point and collective operations are
+being implemented).
+%
+Each group has three pieces of information associated with it:
+%
+\begin{list}{\labelitemi}{\leftmargin=1em}
+% Id
+\item \textbf{Id} uniquely identifies each group and is used for debugging
+purposes.
+% Size
+\item \textbf{Size} of the group. Each group can have atmost ``size'' tasks.
+\item \textbf{Barrier type} to be executed. PFunc provides three types of
+barriers.
+  \begin{list}{\labelitemi}{\leftmargin=1em}
+  \item \textbf{Spinning (default)} It is the ideal barrier type when the wait
+  time is expected to be small.
+  \item \textbf{Waiting} barriers on the other hand can be used when the wait 
+  times are expected to be large.
+  \item \textbf{Stealing} barriers enable a thread that is executing a task 
+  that is waiting on a barrier to select and execute tasks from other groups.
+  Note that tasks from the same group cannot be picked up for execution as 
+  this might result in deadlocks.
+  \end{list}
+\end{list}
+%
+In addition, each task belonging to a group is given an unique \code{rank} in
+that group that can be used for point-to-point communications.
+%
+For a more detailed description, please see Section~\ref{subsubsec:group}.
+
+\begin{table}
+\tablefont
+\begin{tabular}{|c|c|l|}
+\hline
+Function & Explanation & Value \\
+\hline
+\func{group_id_set} & Set the group's Id & Type: \code{unsigned int} \\
+\func{group_id_get} & Get the group's Id & \\
+\hline
+\func{group_size_set} & Set the group's size & Type: \code{unsigned int} \\
+\func{group_size_get} & Get the group's size & \\
+\hline
+\func{group_barrier_set} & Set the group's barrier type & BARRIER\_SPIN (default), \\
+\func{group_barrier_get} & Get the group's barrier type & BARRIER\_STEAL or BARRIER\_WAIT \\
+\hline
+\func{group_rank} & Get my rank in my group & 0 to num\_tasks\\
+\func{group_size} & Get my size in my group & Type: \code{unsigned int} \\
+\hline
+\func{pfunc_<schedpolicy>_group_init} & Initialize the C group & \\
+\func{pfunc_<schedpolicy>_group_clear} & Clear the C group & \\
+\hline
+\end{tabular}
+\caption{\Cpp{} functions (1-8) that operate on groups and their explanations.
+Their C counterparts can be deduced by adding the prefix
+\code{pfunc_<schedpolicy>} (where \code{<schedpolicy>} is one of \code{cilk,
+lifo, fifo} or \code{prio}) to the \Cpp{} versions. The last two functions are
+strictly C and are required to initialize an clear the group structure.}
+\label{tbl:group}
+\normalfont
+\end{table}
+
+\subsection{Groups in C}
+\label{subsec:group_c}
+Groups are accessed through objects of type \code{pfunc_<schedpolicy>_group_t},
+where \code{<schedpolicy>} is one of \code{cilk, lifo, fifo} or \code{prio}.
+%
+The functions that are available to operate on groups are summarized in
+Table~\ref{tbl:group}. 
+%
+Consider the following example that demonstrates simple use of the groups:
+
+\begin{lstlisting}
+void parallel_foo (void* arg) {
+  unsigned int rank, size, id;
+@\halfline@
+  pfunc_cilk_group_rank(&rank);
+  pfunc_cilk_group_size(&size);
+@\halfline@
+  /* Print the rank and size */
+  printf ("Here: %u of %u\n", rank, size);
+}
+
+int main () {
+  pfunc_cilk_task_t tasks[10];
+  pfunc_cilk_group_t group;
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+  pfunc_cilk_taskmgr_t cilk_tmanager;
+  int i;
+@\halfline@
+  pfunc_cilk_taskmgr_init (&cilk_tmanager, num_queues, num_threads_per_queue, NULL);
+  pfunc_cilk_group_init (&group);
+  pfunc_cilk_group_size_set (group, 10);
+@\halfline@
+  for (i=0; i<10; ++i) {
+    pfunc_cilk_task_init (&(tasks[i]));
+    pfunc_cilk_run_c (cilk_taskmgr, tasks[i], NULL, group, parallel_foo, NULL);
+  }
+@\halfline@
+  pfunc_cilk_wait_all (cilk_tmanager, tasks, 10);
+@\halfline@
+  pfunc_cilk_group_clear (&group);
+  pfunc_cilk_taskmgr_clear (&cilk_tmanager);
+@\halfline@
+  return 0;
+}
+\end{lstlisting}
+%
+In this example, each spawned task prints its rank along with the size of the 
+group before exiting.
+%
+The rank and size are obtained by a calls to \func{pfunc_cilk_group_rank} and
+\func{pfunc_cilk_group_size}; as the runtime knows which group each task was
+spawned with, there is no need to pass the group explicitly.
+%
+Note that each task can only belong to one group.
+
+\subsection{\Cpp{}}
+\label{subsec:group_cxx}
+In \Cpp{}, task groups are implemented through of type \code{group} that can 
+be accessed as a nested type of the generated library instance description (see
+Section~\ref{sec:generate}). 
+%
+Other than this, the behavior is similar to that of the groups in C. The
+following code sample gives the \Cpp{} equivalent of the example in
+Section~\ref{subsec:group_c}.
+%
+\begin{lstlisting}
+struct parallel_foo {
+  void operator()() {
+    unsigned int rank, size, id;
+@\halfline@
+    pfunc::group_rank(rank);
+    pfunc::group_size(size);
+@\halfline@
+    /* Print the rank and size */
+    std::cout << "Here: " << rank << " of " << size << std::endl;
+  }
+}
+@\halfline@
+/* Library instance description */
+typedef pfunc::generator<cilkS, pfunc::use_default, parallel_foo> my_pfunc; 
+@\halfline@
+int main () {
+  my_pfunc::task tasks[10];
+  my_pfunc::group group;
+  parallel_foo work[10];
+  unsigned int num_queues = 4;
+  const unsigned int num_threads_per_queue[] = {1,1,1,1};
+@\halfline@
+  /* Initialize a global instance of the library */
+  my_pfunc::taskmgr cilk_tmanager (num_queues, num_threads_per_queue);
+  pfunc::init (cilk_tmanager);
+@\halfline@
+  /* Set the size of the group */
+  pfunc::group_size_set (group, 10);
+@\halfline@
+  /* Spawn the tasks */
+  for (int i=0; i<10; ++i) {
+    work[i].initialize (i);
+    pfunc::spawn (tasks[i], group, work[i]);
+  }
+@\halfline@
+  /* Wait for the tasks and clear the task handle */
+  pfunc::wait_all (tasks, 10);
+@\halfline@
+  /* Clear the library */
+  pfunc::clear ();
+@\halfline@
+  return 0;
+}
+\end{lstlisting}
