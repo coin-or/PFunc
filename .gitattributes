@@ -1,0 +1,7 @@
+* text=auto !eol
+/CMakeLists.txt -text
+/cancel_threads.c -text
+/mutex_test.cpp -text
+/pfunc_barrier_time.cpp -text
+/thrdperf.c -text
+/virtual_fn_cost.cpp -text
