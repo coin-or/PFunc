@@ -1,0 +1,2 @@
+* text=auto !eol
+/doxygen.config.in -text
