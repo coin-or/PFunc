@@ -18,6 +18,8 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
