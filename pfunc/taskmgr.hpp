@@ -561,25 +561,30 @@ struct taskmgr : public taskmgr_virtual_base  {
                   const unsigned int& max_attempts,
                   const unsigned int& queue_number,
                   const TaskPredicate& task_pred) {
-    unsigned int num_attempts = max_attempts;
     task* return_value = NULL;
 
     PFUNC_START_TRY_BLOCK()
 
-    while (!completion_pred() && (0 < num_attempts--)) {
-      if (NULL != (return_value = 
-                      task_queue->get (queue_number, task_pred))) 
-                        goto end_of_get_task;
-    }
-
-    /** Decrease the number of attempts, yield and start back again */
-    if (!completion_pred()) { 
-      pfunc::detail::thread::yield ();
-      return_value =  get_task (completion_pred,
-                                (0==(max_attempts/2)) ? 1 : (max_attempts/2),
-                                queue_number,
-                                task_pred);
-    }
+    unsigned int num_attempts = max_attempts;
+    /**
+     * Anju: Bug Fix: Earlier, when we ran out of the number of attempts, 
+     * we would recursively call get_task with half as many attempts. When
+     * there is no task to pick from the queue for a long time, this results
+     * in a long long recursion stack, eventually leading to explosion. 
+     * Fixing this by having two loops --- ugly but works. Also, notice 
+     * that this depends on the completion_pred() being twice testable. 
+     * I am assuming that this is OK since the originally loop tested the
+     * completion predicate multiple times.
+     */
+    do {
+      while (!completion_pred() && (0<num_attempts--)) {
+        if (NULL != 
+            (return_value = task_queue->get (queue_number, task_pred))) break;
+      }
+      if (completion_pred() || NULL!=return_value) break; 
+      else num_attempts = (0==(max_attempts/2))? 1: (max_attempts/2);
+      pfunc::detail::thread::yield();
+    } while (true);
 
     PFUNC_END_TRY_BLOCK()
     PFUNC_CATCH_AND_RETHROW(taskmgr,get_task)
