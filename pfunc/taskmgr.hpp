@@ -589,7 +589,6 @@ struct taskmgr : public taskmgr_virtual_base  {
     PFUNC_END_TRY_BLOCK()
     PFUNC_CATCH_AND_RETHROW(taskmgr,get_task)
 
-    end_of_get_task:
     return return_value;
   }
 
