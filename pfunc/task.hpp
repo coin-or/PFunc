@@ -192,7 +192,7 @@ struct task : public no_copy {
    * \param [in] grp The group for this task.
    * \param [in] func The work function for this task.
    */
-  task (const attribute& attr, const group*& grp, functor*& func) :
+  task (const attribute& attr, group* grp, functor* func) :
                  attr (attr),
                  grp (grp),
                  gsize (0),
