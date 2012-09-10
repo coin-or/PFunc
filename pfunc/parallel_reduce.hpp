@@ -1,5 +1,5 @@
-#ifndef PFUNC_PARALLEL_FOR_HPP
-#define PFUNC_PARALLEL_FOR_HPP
+#ifndef PFUNC_PARALLEL_REDUCE_HPP
+#define PFUNC_PARALLEL_REDUCE_HPP
 
 #include <pfunc/pfunc.hpp>
 #include <iostream>
@@ -108,4 +108,4 @@ struct parallel_reduce : pfunc::virtual_functor {
 
 } // namespace pfunc
 
-#endif // PFUNC_PARALLEL_FOR_HPP
+#endif // PFUNC_PARALLEL_REDUCE_HPP
