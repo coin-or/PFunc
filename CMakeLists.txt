@@ -93,7 +93,7 @@ endif (BUILD_DOCS)
 ###############################################################################
 
 # Examples
-option (BUILD_EXAMPLES "Whether to build examples" ON)
+option (BUILD_EXAMPLES "Whether to build examples" OFF)
 if (BUILD_EXAMPLES)
   add_subdirectory (examples)
 endif (BUILD_EXAMPLES)
