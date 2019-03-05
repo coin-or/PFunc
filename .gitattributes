@@ -1,4 +1,5 @@
 * text=auto !eol
+.coin-or/projDesc.xml -text
 /AUTHORS -text
 CMake/BuildDocs.cmake -text
 CMake/cmake_uninstall.cmake.in -text
